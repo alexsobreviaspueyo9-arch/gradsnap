@@ -1,17 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  AvailabilityCalendar,
+  type CalendarEvent,
+} from '@/components/availability-calendar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
-import { todayISODate, formatDateHeading, groupByDate } from '@/lib/date'
+import { trackEvent } from '@/lib/posthog'
+import {
+  formatDateHeading,
+  isoDateToLocalDate,
+  localDateToISODate,
+  slotDateTime,
+  todayISODate,
+} from '@/lib/date'
 import type { AvailabilitySlot } from '@/types/database'
+
+const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
 
 function sortSlots(slots: AvailabilitySlot[]): AvailabilitySlot[] {
   return [...slots].sort((a, b) =>
@@ -31,19 +43,37 @@ export function AvailabilityManager({
   const supabase = createClient()
 
   const [slots, setSlots] = useState(() => sortSlots(initialSlots))
-  const [date, setDate] = useState('')
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
+    isoDateToLocalDate(todayISODate())
+  )
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  const selectedDateISO = selectedDate ? localDateToISODate(selectedDate) : null
+  const events: CalendarEvent[] = slots.map((slot) => ({
+    id: slot.id,
+    title: slot.start_time.slice(0, 5),
+    start: slotDateTime(slot.date, slot.start_time),
+    end: slotDateTime(slot.date, slot.end_time),
+    booked: slot.is_booked,
+  }))
+  const daySlots = selectedDateISO
+    ? slots.filter((s) => s.date === selectedDateISO)
+    : []
+
   async function handleAddSlot(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    if (!date || !startTime || !endTime) {
-      setError('Please fill in the date, start time and end time.')
+    if (!selectedDateISO || !startTime || !endTime) {
+      setError('Please select a date and fill in the start and end time.')
+      return
+    }
+    if (selectedDateISO < todayISODate()) {
+      setError('Cannot add a slot in the past.')
       return
     }
     if (startTime >= endTime) {
@@ -57,7 +87,7 @@ export function AvailabilityManager({
       .from('availability_slots')
       .insert({
         photographer_id: photographerId,
-        date,
+        date: selectedDateISO,
         start_time: startTime,
         end_time: endTime,
       })
@@ -75,6 +105,7 @@ export function AvailabilityManager({
       return
     }
 
+    trackEvent('availability_slot_added')
     setSlots((prev) => sortSlots([...prev, inserted]))
     setStartTime('')
     setEndTime('')
@@ -113,104 +144,103 @@ export function AvailabilityManager({
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Add a slot</CardTitle>
-        </CardHeader>
-        <form onSubmit={handleAddSlot}>
-          <CardContent className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                min={todayISODate()}
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </div>
-          </CardContent>
-          <CardContent className="pt-0">
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Adding…' : 'Add slot'}
-            </Button>
-          </CardContent>
-        </form>
-      </Card>
-
-      {slots.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No slots yet — add your first one above.
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {groupByDate(slots).map(([slotDate, dateSlots]) => (
-            <Card key={slotDate}>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {formatDateHeading(slotDate)}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {dateSlots.map((slot) => (
-                  <div
-                    key={slot.id}
-                    className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span>
-                        {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}
-                      </span>
-                      <Badge variant={slot.is_booked ? 'outline' : 'secondary'}>
-                        {slot.is_booked ? 'Booked' : 'Open'}
-                      </Badge>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={slot.is_booked || deletingId === slot.id}
-                      title={
-                        slot.is_booked
-                          ? "This slot has a booking and can't be deleted."
-                          : undefined
-                      }
-                      onClick={() => handleDelete(slot)}
-                    >
-                      {deletingId === slot.id ? 'Deleting…' : 'Delete'}
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-start">
+        <div className={PANEL}>
+          <AvailabilityCalendar
+            events={events}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
         </div>
-      )}
 
-      <Link
-        href="/dashboard/photographer"
-        className={cn(buttonVariants({ variant: 'outline' }))}
-      >
-        Back to dashboard
-      </Link>
+        <div className="space-y-4 lg:sticky lg:top-36">
+          <section className={PANEL}>
+            <h2 className="font-heading text-xl font-semibold tracking-tight">
+              {selectedDateISO
+                ? formatDateHeading(selectedDateISO)
+                : 'Select a date'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add a time window clients can book on this day.
+            </p>
+
+            <form onSubmit={handleAddSlot} className="mt-5 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime">Start</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime">End</Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button
+                type="submit"
+                className="h-11 w-full text-base"
+                disabled={submitting || !selectedDateISO}
+              >
+                {submitting ? 'Adding…' : 'Add slot'}
+              </Button>
+            </form>
+          </section>
+
+          {daySlots.length > 0 && (
+            <section className={cn(PANEL, 'space-y-2')}>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                Slots on this day
+              </h3>
+              {daySlots.map((slot) => (
+                <div
+                  key={slot.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-muted/60 px-4 py-2.5"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium tabular-nums">
+                      {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                    </span>
+                    <Badge
+                      className={cn(
+                        slot.is_booked
+                          ? 'bg-muted text-muted-foreground'
+                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400'
+                      )}
+                    >
+                      {slot.is_booked ? 'Booked' : 'Open'}
+                    </Badge>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Delete slot"
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    disabled={slot.is_booked || deletingId === slot.id}
+                    title={
+                      slot.is_booked
+                        ? "This slot has a booking and can't be deleted."
+                        : undefined
+                    }
+                    onClick={() => handleDelete(slot)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

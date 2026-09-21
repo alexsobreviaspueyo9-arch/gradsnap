@@ -12,6 +12,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Camera, GraduationCap } from 'lucide-react'
+import { IconChip } from '@/components/icon-chip'
+import { CenteredShell } from '@/components/brand/centered-shell'
+import { trackEvent } from '@/lib/posthog'
 import type { UserRole } from '@/types/database'
 
 export default function SelectRolePage() {
@@ -62,6 +66,8 @@ export default function SelectRolePage() {
       return
     }
 
+    trackEvent('signup_completed', { role })
+
     // If photographer, also create photographer_profiles record
     if (role === 'photographer') {
       await supabase.from('photographer_profiles').insert({ user_id: user.id })
@@ -72,13 +78,15 @@ export default function SelectRolePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <Card>
+    <CenteredShell>
+      <div>
+        <Card className="rounded-3xl py-6">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">How will you use GradSnap?</CardTitle>
+            <CardTitle className="font-heading text-2xl font-bold tracking-tight">
+              How will you use GradSnap?
+            </CardTitle>
             <CardDescription>
-              Choose your role — you can&apos;t change this later.
+              Choose your role. You can&apos;t change this later.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -87,18 +95,24 @@ export default function SelectRolePage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="grid grid-cols-1 gap-4">
+            <div
+              role="radiogroup"
+              aria-label="Choose your role"
+              className="grid grid-cols-1 gap-4"
+            >
               {(
                 [
                   {
                     value: 'client' as const,
-                    title: '📸 I want to book a photographer',
+                    icon: GraduationCap,
+                    title: 'I want to book a photographer',
                     description:
                       'Browse photographer profiles, check availability and book sessions.',
                   },
                   {
                     value: 'photographer' as const,
-                    title: '🎓 I am a photographer',
+                    icon: Camera,
+                    title: 'I am a photographer',
                     description:
                       'Create your profile, upload your portfolio and manage bookings.',
                   },
@@ -107,22 +121,27 @@ export default function SelectRolePage() {
                 <button
                   key={option.value}
                   type="button"
+                  role="radio"
+                  aria-checked={role === option.value}
                   onClick={() => setRole(option.value)}
-                  className={`rounded-xl border-2 p-5 text-left transition-colors ${
+                  className={`flex items-start gap-3 rounded-2xl border-2 p-5 text-left transition-colors ${
                     role === option.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-muted hover:border-primary/40'
+                      ? 'border-primary bg-accent'
+                      : 'border-border hover:border-primary/40'
                   }`}
                 >
-                  <p className="font-semibold">{option.title}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {option.description}
-                  </p>
+                  <IconChip icon={option.icon} />
+                  <div>
+                    <p className="font-semibold">{option.title}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {option.description}
+                    </p>
+                  </div>
                 </button>
               ))}
             </div>
             <Button
-              className="w-full"
+              className="h-12 w-full text-base"
               onClick={handleConfirm}
               disabled={loading}
             >
@@ -131,6 +150,6 @@ export default function SelectRolePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </CenteredShell>
   )
 }

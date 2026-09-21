@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PageHeader } from '@/components/dashboard/page-header'
 import { BookingsManager } from '@/components/photographer/BookingsManager'
 import type { BookingWithDetails } from '@/components/photographer/BookingsManager'
 
@@ -72,16 +73,12 @@ export default async function PhotographerBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Bookings</h1>
-          <p className="text-muted-foreground mt-1">
-            Confirm or cancel pending booking requests.
-          </p>
-        </div>
-        <BookingsManager initialBookings={bookings} />
-      </main>
+    <div className="mx-auto max-w-4xl">
+      <PageHeader
+        title="Bookings"
+        description="Confirm or cancel pending booking requests."
+      />
+      <BookingsManager initialBookings={bookings} />
     </div>
   )
 }

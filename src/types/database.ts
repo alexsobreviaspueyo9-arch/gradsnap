@@ -1,3 +1,25 @@
+export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
+export type Weekday = (typeof WEEKDAYS)[number]
+
+export type SocialLink = { label: string; url: string }
+export type WeeklyAvailability = Partial<Record<Weekday, { start: string; end: string }>>
+
+export const PHOTOGRAPHER_SPECIALTIES = [
+  'Natural light',
+  'Editorial',
+  'Drone',
+  'Studio',
+  'Documentary',
+] as const
+
+export const DEPOSIT_POLICIES = ['deposit_50', 'cash_on_session'] as const
+export type DepositPolicy = (typeof DEPOSIT_POLICIES)[number]
+
+export const DEPOSIT_POLICY_LABELS: Record<DepositPolicy, string> = {
+  deposit_50: '50% deposit via Stripe, rest in cash after the session',
+  cash_on_session: 'Full payment in cash after the session',
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -33,6 +55,16 @@ export type Database = {
           bio: string | null
           city: string | null
           base_price: number | null
+          price_max: number | null
+          session_duration_minutes: number | null
+          specialty: string | null
+          specialty_other: string | null
+          instagram_url: string | null
+          social_links: SocialLink[]
+          weekly_availability: WeeklyAvailability
+          payment_link: string | null
+          payment_terms: string | null
+          deposit_policy: DepositPolicy | null
           has_signed_contract: boolean
           created_at: string
         }
@@ -43,6 +75,16 @@ export type Database = {
           bio?: string | null
           city?: string | null
           base_price?: number | null
+          price_max?: number | null
+          session_duration_minutes?: number | null
+          specialty?: string | null
+          specialty_other?: string | null
+          instagram_url?: string | null
+          social_links?: SocialLink[]
+          weekly_availability?: WeeklyAvailability
+          payment_link?: string | null
+          payment_terms?: string | null
+          deposit_policy?: DepositPolicy | null
           has_signed_contract?: boolean
           created_at?: string
         }
@@ -53,6 +95,16 @@ export type Database = {
           bio?: string | null
           city?: string | null
           base_price?: number | null
+          price_max?: number | null
+          session_duration_minutes?: number | null
+          specialty?: string | null
+          specialty_other?: string | null
+          instagram_url?: string | null
+          social_links?: SocialLink[]
+          weekly_availability?: WeeklyAvailability
+          payment_link?: string | null
+          payment_terms?: string | null
+          deposit_policy?: DepositPolicy | null
           has_signed_contract?: boolean
           created_at?: string
         }
@@ -126,6 +178,7 @@ export type Database = {
           balance_payment_intent_id: string | null
           deposit_refunded_at: string | null
           deposit_refund_id: string | null
+          payment_status: 'pending' | 'paid'
         }
         Insert: {
           id?: string
@@ -143,6 +196,7 @@ export type Database = {
           balance_payment_intent_id?: string | null
           deposit_refunded_at?: string | null
           deposit_refund_id?: string | null
+          payment_status?: 'pending' | 'paid'
         }
         Update: {
           id?: string
@@ -160,6 +214,7 @@ export type Database = {
           balance_payment_intent_id?: string | null
           deposit_refunded_at?: string | null
           deposit_refund_id?: string | null
+          payment_status?: 'pending' | 'paid'
         }
         Relationships: []
       }
@@ -222,6 +277,7 @@ export type Database = {
 
 export type UserRole = Database['public']['Enums']['user_role']
 export type BookingStatus = Database['public']['Enums']['booking_status']
+export type PaymentStatus = 'pending' | 'paid'
 export type PhotographerProfile = Database['public']['Tables']['photographer_profiles']['Row']
 export type PortfolioPhoto = Database['public']['Tables']['portfolio_photos']['Row']
 export type AvailabilitySlot = Database['public']['Tables']['availability_slots']['Row']

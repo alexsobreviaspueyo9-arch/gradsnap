@@ -1,0 +1,138 @@
+/* Theme react-big-calendar to match GradSnap's tokens instead of its
+   default blue/gray look. Scoped under .gs-calendar so it never leaks into
+   other components. */
+
+.gs-calendar {
+  --rbc-radius: 1.25rem;
+}
+
+.gs-calendar .rbc-calendar {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+}
+
+.gs-calendar .rbc-toolbar {
+  margin-bottom: 1rem;
+  gap: 0.5rem;
+}
+
+.gs-calendar .rbc-toolbar button {
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--background);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.gs-calendar .rbc-toolbar button:hover,
+.gs-calendar .rbc-toolbar button:focus-visible {
+  background: var(--accent);
+  border-color: var(--primary);
+  color: var(--accent-foreground);
+}
+
+.gs-calendar .rbc-toolbar button.rbc-active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.gs-calendar .rbc-toolbar-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+
+.gs-calendar .rbc-month-view {
+  border: 1px solid var(--border);
+  border-radius: var(--rbc-radius);
+  overflow: hidden;
+  background: var(--card);
+}
+
+.gs-calendar .rbc-header {
+  border-color: var(--border);
+  padding: 0.6rem 0;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+
+.gs-calendar .rbc-month-row + .rbc-month-row,
+.gs-calendar .rbc-day-bg + .rbc-day-bg,
+.gs-calendar .rbc-header + .rbc-header {
+  border-color: var(--border);
+}
+
+.gs-calendar .rbc-off-range-bg {
+  background: color-mix(in oklch, var(--muted), transparent 40%);
+}
+
+.gs-calendar .rbc-off-range {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+.gs-calendar .rbc-today {
+  background: color-mix(in oklch, var(--primary), transparent 92%);
+}
+
+.gs-calendar .rbc-selected-cell {
+  background: color-mix(in oklch, var(--primary), transparent 84%);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.gs-calendar .rbc-event {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.gs-calendar .rbc-event.gs-event-booked {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.gs-calendar .rbc-event:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.gs-calendar .rbc-show-more {
+  color: var(--primary);
+  background: transparent;
+  font-weight: 600;
+}
+
+.gs-calendar .rbc-date-cell {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.gs-calendar .rbc-date-cell.rbc-now {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.gs-calendar .rbc-overlay {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px -20px var(--shadow-tint);
+}
+
+.gs-calendar .rbc-overlay-header {
+  border-color: var(--border);
+}

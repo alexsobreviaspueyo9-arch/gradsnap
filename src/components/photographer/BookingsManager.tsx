@@ -1,42 +1,69 @@
 'use client'
 
 import { useState } from 'react'
+import { CalendarClock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { formatDateHeading } from '@/lib/date'
+import { cn } from '@/lib/utils'
+import { formatDateHeading, isoDateToLocalDate } from '@/lib/date'
 import {
   confirmBooking,
   completeBooking,
   cancelBooking,
+  setBookingPaymentStatus,
 } from '@/app/dashboard/photographer/bookings/actions'
-import type { Booking, AvailabilitySlot, BookingStatus } from '@/types/database'
+import type {
+  Booking,
+  AvailabilitySlot,
+  BookingStatus,
+  PaymentStatus,
+} from '@/types/database'
 
 export type BookingWithDetails = Booking & {
   slot: Pick<AvailabilitySlot, 'id' | 'date' | 'start_time' | 'end_time'>
   clientName: string
 }
 
-const STATUS_VARIANT = {
-  pending: 'secondary',
-  confirmed: 'default',
-  completed: 'outline',
-  cancelled: 'outline',
-} as const
+const STATUS_STYLES: Record<BookingStatus, string> = {
+  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400',
+  confirmed: 'bg-primary/10 text-primary',
+  completed:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400',
+  cancelled: 'bg-muted text-muted-foreground',
+}
+
+const PAYMENT_STATUS_STYLES: Record<PaymentStatus, string> = {
+  pending: 'bg-muted text-muted-foreground',
+  paid:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400',
+}
 
 function paymentStatusLabel(booking: BookingWithDetails): string | null {
   if (booking.deposit_amount == null) return null
   if (booking.deposit_refunded_at) return 'Deposit refunded'
-  if (booking.balance_paid_at) return 'Balance paid ✓'
-  if (booking.deposit_paid_at) return 'Deposit paid ✓ · Balance pending'
+  if (booking.balance_paid_at) return 'Balance paid'
+  if (booking.deposit_paid_at) return 'Deposit paid, balance pending'
   return null
+}
+
+function DateTile({ isoDate, muted }: { isoDate: string; muted: boolean }) {
+  const date = isoDateToLocalDate(isoDate)
+  return (
+    <div
+      className={cn(
+        'flex size-16 shrink-0 flex-col items-center justify-center rounded-2xl',
+        muted ? 'bg-muted text-muted-foreground' : 'bg-accent text-primary'
+      )}
+    >
+      <span className="text-[0.65rem] font-semibold tracking-wide uppercase">
+        {date.toLocaleDateString('en-US', { month: 'short' })}
+      </span>
+      <span className="font-heading text-2xl leading-none font-bold tabular-nums">
+        {date.getDate()}
+      </span>
+    </div>
+  )
 }
 
 export function BookingsManager({
@@ -52,6 +79,31 @@ export function BookingsManager({
     setBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? { ...b, status } : b))
     )
+  }
+
+  function patchPaymentStatus(bookingId: string, paymentStatus: PaymentStatus) {
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === bookingId ? { ...b, payment_status: paymentStatus } : b
+      )
+    )
+  }
+
+  async function handleTogglePaymentStatus(booking: BookingWithDetails) {
+    const next: PaymentStatus =
+      booking.payment_status === 'paid' ? 'pending' : 'paid'
+
+    setActingId(booking.id)
+    setError(null)
+
+    try {
+      await setBookingPaymentStatus(booking.id, next)
+      patchPaymentStatus(booking.id, next)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    } finally {
+      setActingId(null)
+    }
   }
 
   async function handleConfirm(booking: BookingWithDetails) {
@@ -100,11 +152,20 @@ export function BookingsManager({
 
   if (bookings.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        No bookings yet — they&apos;ll show up here once a client books a slot.
-      </p>
+      <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-20 text-center">
+        <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <CalendarClock className="size-7" strokeWidth={1.75} />
+        </span>
+        <p className="font-heading text-xl font-semibold">No bookings yet</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          They will show up here as soon as a client books one of your open
+          slots.
+        </p>
+      </div>
     )
   }
+
+  const pendingCount = bookings.filter((b) => b.status === 'pending').length
 
   return (
     <div className="space-y-4">
@@ -114,71 +175,110 @@ export function BookingsManager({
         </Alert>
       )}
 
-      {bookings.map((booking) => (
-        <Card key={booking.id}>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {formatDateHeading(booking.slot.date)}
-              <span className="text-muted-foreground font-normal ml-2">
-                {booking.slot.start_time.slice(0, 5)}–
-                {booking.slot.end_time.slice(0, 5)}
-              </span>
-            </CardTitle>
-            <CardAction>
-              <Badge variant={STATUS_VARIANT[booking.status]}>
-                {booking.status}
-              </Badge>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div className="text-sm space-y-1">
-              <p>
-                <span className="font-medium">Client: </span>
-                {booking.clientName}
-              </p>
-              {paymentStatusLabel(booking) && (
-                <p className="text-muted-foreground">
-                  {paymentStatusLabel(booking)}
+      {pendingCount > 0 && (
+        <p className="text-sm font-medium text-muted-foreground">
+          {pendingCount} pending {pendingCount === 1 ? 'request' : 'requests'}{' '}
+          waiting for you
+        </p>
+      )}
+
+      {bookings.map((booking) => {
+        const busy = actingId === booking.id
+        const inactive =
+          booking.status === 'cancelled' || booking.status === 'completed'
+        const paymentNote = paymentStatusLabel(booking)
+        return (
+          <article
+            key={booking.id}
+            className={cn(
+              'flex flex-col gap-5 rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:flex-row sm:items-center sm:p-6',
+              inactive && 'opacity-75'
+            )}
+          >
+            <div className="flex items-center gap-4 sm:w-72 sm:shrink-0">
+              <DateTile isoDate={booking.slot.date} muted={inactive} />
+              <div className="min-w-0">
+                <p className="truncate font-heading text-lg font-semibold tracking-tight">
+                  {booking.clientName}
                 </p>
-              )}
+                <p className="text-sm text-muted-foreground">
+                  {formatDateHeading(booking.slot.date)}
+                </p>
+                <p className="text-sm font-medium tabular-nums">
+                  {booking.slot.start_time.slice(0, 5)} -{' '}
+                  {booking.slot.end_time.slice(0, 5)}
+                </p>
+              </div>
             </div>
-            <div className="flex gap-2">
-              {booking.status === 'pending' && (
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={actingId === booking.id}
-                  onClick={() => handleConfirm(booking)}
-                >
-                  {actingId === booking.id ? 'Confirming…' : 'Confirm'}
-                </Button>
-              )}
-              {booking.status === 'confirmed' && (
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={actingId === booking.id}
-                  onClick={() => handleComplete(booking)}
-                >
-                  {actingId === booking.id ? 'Completing…' : 'Mark completed'}
-                </Button>
-              )}
-              {(booking.status === 'pending' ||
-                booking.status === 'confirmed') && (
+
+            <div className="flex flex-1 flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={cn(STATUS_STYLES[booking.status], 'capitalize')}>
+                  {booking.status}
+                </Badge>
+                <Badge className={cn(PAYMENT_STATUS_STYLES[booking.payment_status])}>
+                  {booking.payment_status === 'paid' ? 'Paid' : 'Payment pending'}
+                </Badge>
+                {paymentNote && (
+                  <span className="text-xs text-muted-foreground">
+                    {paymentNote}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {booking.status === 'pending' && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 px-4"
+                    disabled={busy}
+                    onClick={() => handleConfirm(booking)}
+                  >
+                    {busy ? 'Confirming…' : 'Confirm'}
+                  </Button>
+                )}
+                {booking.status === 'confirmed' && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 px-4"
+                    disabled={busy}
+                    onClick={() => handleComplete(booking)}
+                  >
+                    {busy ? 'Completing…' : 'Mark completed'}
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={actingId === booking.id}
-                  onClick={() => handleCancel(booking)}
+                  className="h-9 px-4"
+                  disabled={busy}
+                  onClick={() => handleTogglePaymentStatus(booking)}
                 >
-                  {actingId === booking.id ? 'Cancelling…' : 'Cancel'}
+                  {booking.payment_status === 'paid'
+                    ? 'Mark unpaid'
+                    : 'Mark as paid'}
                 </Button>
-              )}
+                {(booking.status === 'pending' ||
+                  booking.status === 'confirmed') && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 px-4 text-destructive hover:bg-destructive/10"
+                    disabled={busy}
+                    onClick={() => handleCancel(booking)}
+                  >
+                    {busy ? 'Cancelling…' : 'Cancel'}
+                  </Button>
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          </article>
+        )
+      })}
     </div>
   )
 }

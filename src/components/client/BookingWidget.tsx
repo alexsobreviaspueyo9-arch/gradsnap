@@ -1,65 +1,100 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useMemo, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { formatDateHeading, groupByDate } from '@/lib/date'
+import { CalendarX2, ExternalLink } from 'lucide-react'
 import {
-  startDepositCheckout,
-  bookSlotFree,
-} from '@/app/dashboard/client/photographers/[id]/actions'
+  AvailabilityCalendar,
+  type CalendarEvent,
+} from '@/components/availability-calendar'
+import { cn } from '@/lib/utils'
+import { formatDateHeading, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
+import { useBookSlot } from '@/components/client/use-book-slot'
 import type { AvailabilitySlot } from '@/types/database'
+
+const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
 
 export function BookingWidget({
   photographerId,
   photographerName,
   basePrice,
   paymentsEnabled,
+  paymentLink,
   initialSlots,
 }: {
   photographerId: string
   photographerName: string
   basePrice: number | null
   paymentsEnabled: boolean
+  paymentLink: string | null
   initialSlots: AvailabilitySlot[]
 }) {
+  const supabase = createClient()
   const [slots, setSlots] = useState(initialSlots)
-  const [bookingSlotId, setBookingSlotId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
+    initialSlots.length > 0 ? isoDateToLocalDate(initialSlots[0].date) : undefined
+  )
+  const { bookingSlotId, error, successMessage, bookSlot } =
+    useBookSlot(paymentsEnabled)
 
-  async function handleBook(slotId: string) {
-    if (paymentsEnabled && basePrice == null) return
+  // Live-remove a slot the moment it's booked or deleted, so this
+  // photographer's calendar never shows a slot that's already gone.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`photographer-availability-${photographerId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'availability_slots',
+          filter: `photographer_id=eq.${photographerId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            const oldId = (payload.old as { id?: string }).id
+            setSlots((prev) => prev.filter((s) => s.id !== oldId))
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as AvailabilitySlot
+            if (updated.is_booked) {
+              setSlots((prev) => prev.filter((s) => s.id !== updated.id))
+            }
+          }
+        }
+      )
+      .subscribe()
 
-    setBookingSlotId(slotId)
-    setError(null)
-    setSuccessMessage(null)
-
-    try {
-      if (paymentsEnabled && basePrice != null) {
-        await startDepositCheckout({
-          slotId,
-          photographerId,
-          photographerName,
-          basePrice,
-        })
-      } else {
-        await bookSlotFree(slotId)
-        setSlots((prev) => prev.filter((s) => s.id !== slotId))
-        setSuccessMessage(
-          'Booking requested! The photographer will confirm shortly.'
-        )
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-        setSlots((prev) => prev.filter((s) => s.id !== slotId))
-      }
-    } finally {
-      setBookingSlotId(null)
+    return () => {
+      supabase.removeChannel(channel)
     }
+  }, [supabase, photographerId])
+
+  function handleBook(slotId: string) {
+    bookSlot(
+      { slotId, photographerId, photographerName, basePrice },
+      () => setSlots((prev) => prev.filter((s) => s.id !== slotId))
+    )
   }
+
+  const events: CalendarEvent[] = useMemo(
+    () =>
+      [...new Set(slots.map((s) => s.date))].map((date) => ({
+        id: date,
+        title: 'Open',
+        start: isoDateToLocalDate(date),
+        end: isoDateToLocalDate(date),
+      })),
+    [slots]
+  )
+
+  const selectedDateISO = selectedDate
+    ? localDateToISODate(selectedDate)
+    : null
+  const daySlots = selectedDateISO
+    ? slots.filter((s) => s.date === selectedDateISO)
+    : []
 
   if (paymentsEnabled && basePrice == null) {
     return (
@@ -86,10 +121,27 @@ export function BookingWidget({
         </Alert>
       )}
 
+      {successMessage && paymentLink && (
+        <a
+          href={paymentLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(buttonVariants({ size: 'lg' }), 'h-12 w-full gap-2 text-base')}
+        >
+          Pay deposit / Complete payment
+          <ExternalLink className="size-4" />
+        </a>
+      )}
+
       {slots.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No open slots right now — check back later.
-        </p>
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-12 text-center">
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <CalendarX2 className="size-6" strokeWidth={1.75} />
+          </span>
+          <p className="text-sm text-muted-foreground">
+            No open slots right now. Check back later.
+          </p>
+        </div>
       ) : (
         <div className="space-y-4">
           {paymentsEnabled && depositAmount != null && (
@@ -98,25 +150,40 @@ export function BookingWidget({
               paid up front; the rest is due after the session.
             </p>
           )}
-          {groupByDate(slots).map(([date, dateSlots]) => (
-            <Card key={date}>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {formatDateHeading(date)}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {dateSlots.map((slot) => (
+
+          <div className={PANEL}>
+            <AvailabilityCalendar
+              events={events}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
+          </div>
+
+          <div className={PANEL}>
+            <h3 className="font-heading text-lg font-semibold tracking-tight">
+              {selectedDateISO
+                ? formatDateHeading(selectedDateISO)
+                : 'Select a date'}
+            </h3>
+            <div className="mt-4 space-y-2">
+              {daySlots.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No open slots this day. Pick a highlighted date on the
+                  calendar.
+                </p>
+              ) : (
+                daySlots.map((slot) => (
                   <div
                     key={slot.id}
-                    className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded-2xl bg-muted/60 px-4 py-2.5"
                   >
-                    <span>
-                      {slot.start_time.slice(0, 5)}–{slot.end_time.slice(0, 5)}
+                    <span className="text-sm font-medium tabular-nums">
+                      {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                     </span>
                     <Button
                       type="button"
                       size="sm"
+                      className="h-9 px-5"
                       disabled={bookingSlotId === slot.id}
                       onClick={() => handleBook(slot.id)}
                     >
@@ -127,10 +194,10 @@ export function BookingWidget({
                         : 'Book'}
                     </Button>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

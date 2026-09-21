@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Mail } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -11,8 +12,8 @@ export default function VerifyEmailPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-4xl">
-          ✉️
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Mail className="h-7 w-7" />
         </div>
         <CardTitle className="text-2xl">Check your email</CardTitle>
         <CardDescription>

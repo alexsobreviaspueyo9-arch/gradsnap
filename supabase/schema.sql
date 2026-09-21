@@ -453,3 +453,72 @@ grant execute on function public.finalize_balance_payment(uuid, text, text) to s
 
 -- book_slot (Sprint 3) is now dead code: paid bookings go through
 -- finalize_paid_booking via the webhook. Left deployed, unused, harmless.
+
+-- ─────────────────────────────────────────────
+-- FASE 2: extended photographer profile fields
+-- ─────────────────────────────────────────────
+
+alter table public.photographer_profiles
+  add column if not exists instagram_url text,
+  add column if not exists social_links jsonb not null default '[]'::jsonb,
+  add column if not exists price_max numeric(10, 2),
+  add column if not exists session_duration_minutes integer,
+  add column if not exists specialty text,
+  add column if not exists specialty_other text,
+  add column if not exists weekly_availability jsonb not null default '{}'::jsonb;
+
+-- social_links: array of { "label": string, "url": string }, e.g. TikTok, a
+-- personal site, etc. Instagram gets its own column since it's the one
+-- platform the product brief calls out by name.
+--
+-- weekly_availability: object keyed by 'mon'..'sun', each value
+-- { "start": "HH:MM", "end": "HH:MM" }. This is reference info shown on the
+-- public profile ("usually free these days/times") — it does NOT generate
+-- rows in availability_slots. Sprint 3's calendar (specific dated slots) is
+-- the source of truth for what's actually bookable; this field is the
+-- lighter-weight "recurring pattern" the product brief asks for as a
+-- starting point, kept intentionally decoupled from the real booking
+-- calendar so it can't silently create/delete real bookable slots.
+
+-- ─────────────────────────────────────────────
+-- External payment links — photographer-managed, platform never touches
+-- the money. Deliberately separate from Sprint 4's Stripe Checkout
+-- deposit/balance columns above, which stay dormant while
+-- PAYMENTS_ENABLED=false. This is the actual live payment path: the client
+-- pays the photographer directly via a link the photographer generates
+-- themselves (a Stripe Payment Link, PayPal.me, etc.), and the photographer
+-- marks it paid by hand since we have no way to verify an external payment.
+-- ─────────────────────────────────────────────
+
+alter table public.photographer_profiles
+  add column if not exists payment_link text,
+  add column if not exists payment_terms text,
+  add column if not exists deposit_policy text
+    check (deposit_policy in ('deposit_50', 'cash_on_session'));
+
+alter table public.bookings
+  add column if not exists payment_status text not null default 'pending'
+    check (payment_status in ('pending', 'paid'));
+
+-- deposit_policy: the photographer's choice for how they collect payment via
+-- their own payment_link — 'deposit_50' (50% via Stripe upfront, rest in
+-- cash after the session) or 'cash_on_session' (no deposit, full amount in
+-- cash after the session). Nullable = not chosen yet. Shown on both the
+-- photographer's own settings and the public profile, per explicit ask.
+
+-- ─────────────────────────────────────────────
+-- FASE 3: Realtime — a slot must disappear live for every client watching
+-- the moment it's booked or removed, not just on refresh.
+-- ─────────────────────────────────────────────
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'availability_slots'
+  ) then
+    alter publication supabase_realtime add table public.availability_slots;
+  end if;
+end $$;

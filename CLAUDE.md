@@ -31,9 +31,10 @@ src/
       photographer/   # Server component, requires role=photographer + has_signed_contract
       client/         # Server component, requires role=client
     layout.tsx        # Root layout (fonts, metadata)
-    page.tsx          # Public landing page
+    page.tsx          # Public landing page (composes components/landing/*)
   components/
     auth/             # LoginForm, RegisterForm (client components)
+    landing/          # Marketing landing page sections (see below)
     ui/               # shadcn/ui primitives (never edit these manually)
   lib/
     supabase/
@@ -102,6 +103,185 @@ Unique constraint on `(photographer_id, date, start_time)`.
 | status | text | `pending` / `confirmed` / `cancelled` |
 | created_at | timestamptz | |
 
+## Marketing landing page (`src/app/page.tsx`)
+
+Visually redesigned (2026-09) on top of the same IA, copy, routes and
+analytics events. `page.tsx` is a Server Component composing
+`src/components/landing/*`; each Framer Motion user is an isolated client leaf:
+
+- `landing-nav.tsx` (server) - floating pill nav, anchors `#how-it-works` /
+  `#gallery`, "Log in" + "Get started". One label per intent: the hero CTA is
+  also "Get started".
+- `landing-hero.tsx` - asymmetric split: word-reveal headline, two overlapping
+  photos with scroll parallax (`useScroll`/`useTransform`), CTA -> `/register`.
+- `style-marquee.tsx` (server) - the ONE marquee on the page, fed by
+  `PHOTOGRAPHER_SPECIALTIES`. Pure CSS (`.gs-marquee-*` in `globals.css`);
+  wraps statically under `prefers-reduced-motion`.
+- `how-it-works.tsx` - 3-cell bento (photo / brand-violet / tinted), reveal
+  on scroll.
+- `gallery-strip.tsx` (server) - horizontal scroll-snap strip (replaced
+  `gallery-masonry.tsx`, deleted). Do NOT add `justify-center` to it: with
+  overflow the first photo becomes unreachable.
+- `final-cta.tsx` - asymmetric 1.35fr/1fr pair; keeps the `signup_started`
+  events and `?role=` hrefs.
+- `landing-footer.tsx` (server), shared `components/brand/wordmark.tsx`
+  (also used by the auth layout and `DashboardHeader`).
+
+**Design system.** Tokens in `globals.css`: one neutral family tinted to the
+brand violet (hue 285), `--font-heading` is now Bricolage Grotesque
+(`--font-bricolage`, display) over Geist (body). Dark mode follows
+`prefers-color-scheme` via CSS only (`@custom-variant dark` is a media query,
+tokens live in `@media (prefers-color-scheme: dark)`), there is no toggle and
+no `.dark` class any more. Extra tokens: `--brand-glow`, `--shadow-tint`.
+Radius rule: marketing buttons are pills (`rounded-full`), images/cards are
+`rounded-3xl`; app UI keeps shadcn radius from `--radius` (0.75rem).
+The `(auth)` layout is now a split screen (form + photo on `lg+`).
+
+Photos are the 8 verified Unsplash IDs already used before (2 hero, 1 bento,
+5 gallery); the auth panel reuses the hero photo. More photos need the same
+`images.remotePatterns` entry in `next.config.ts`.
+
+## Dashboards redesign (2026-09)
+
+Same tokens/fonts as the landing (see above). Structure:
+
+- `app/dashboard/{client,photographer}/layout.tsx` wrap every page in
+  `components/dashboard/dashboard-shell.tsx` (sticky `DashboardHeader` with a
+  per-role tab nav via `dashboard-nav.tsx`). Pages therefore no longer render
+  their own header, `min-h-screen` wrapper or "Back to dashboard" buttons.
+- Shared building blocks in `components/dashboard/`: `PageHeader`, `StatTile`,
+  `ActionTile`, `WelcomeBanner`.
+- Overview screens and the public photographer profile are presentational
+  components (`client-overview`, `photographer-overview`,
+  `client/photographer-detail-view`); the `page.tsx` files only fetch from
+  Supabase and pass props. Queries, redirects and analytics events are
+  unchanged from before the redesign.
+- Global shape rule lives in `globals.css` (unlayered `[data-slot='button']`
+  = pill, `[data-slot='input']` = min-height 2.5rem) so `components/ui/*` stay
+  untouched. `--radius` is 0.875rem; cards/panels use `rounded-3xl`.
+- `onboarding/*` and `booking/balance-paid` use `brand/centered-shell.tsx`.
+  The contract legal copy was NOT edited, only its container.
+- `select-role` icons were swapped (client had the camera); fixed.
+- `app/preview-tmp/[screen]` is a TEMPORARY dev-only review route with mock
+  data (404s in production). Delete the folder once the redesign is approved.
+
+**`RegisterForm` now reads a `role` query param** (`?role=client` /
+`?role=photographer`) to preselect its role toggle, defaulting to `client` for
+any other/missing value. Because it uses `useSearchParams()`, `register/page.tsx`
+wraps it in `<Suspense>`.
+
+**`next.config.ts` now has `images.remotePatterns` for `images.unsplash.com`.**
+The old landing page used raw `<img>` tags specifically because this wasn't
+configured (there's an eslint-disable comment to that effect in the old code);
+without this, `next/image` throws at runtime for any Unsplash URL. Any future
+image source domain needs the same treatment added here.
+
+The old `scroll-booking-demo.tsx`/`icon-chip.tsx` components are no longer
+imported by the landing page but were left on disk (not deleted) in case
+they're still wanted elsewhere — check before reusing them, they were built
+for the previous landing page's client-only "how it works" scroll animation.
+
+## Photographer profile (Fase 2 additions)
+
+`photographer_profiles` grew new columns beyond the original Sprint 2 set —
+run the "FASE 2" section of `supabase/schema.sql` (idempotent, uses
+`add column if not exists`) to pick these up on an existing database:
+
+- `instagram_url text`, `social_links jsonb` (array of `{label, url}`) — the
+  "otras redes" from the brief live in `social_links`, Instagram gets its own
+  column since the brief names it specifically.
+- `price_max numeric` — `base_price` is now "price from", `price_max` is the
+  optional "up to" for a range. `ProfileForm` validates `price_max >= base_price`
+  when both are set. The booking/Stripe flow is untouched — it still only
+  reads `base_price` for the deposit calculation.
+- `session_duration_minutes integer`.
+- `specialty text` + `specialty_other text` — single-select from
+  `PHOTOGRAPHER_SPECIALTIES` (`src/types/database.ts`) or `'Other'` with the
+  free-text description in `specialty_other`.
+- `weekly_availability jsonb` — object keyed by `'mon'..'sun'`
+  (`WeeklyAvailability` type), each a `{start, end}` "HH:MM" range. Edited via
+  `WeeklyAvailabilityPicker.tsx`. **This is reference info only** — it does
+  NOT generate rows in `availability_slots`. The real bookable calendar
+  (Sprint 3, `AvailabilityManager`) is untouched and stays the source of
+  truth for what a client can actually book. If a future ask wants the
+  weekly pattern to bulk-generate real slots, that's new work in
+  `AvailabilityManager`, not something this field already does.
+
+**`PortfolioManager` now previews before uploading.** Selecting files no
+longer uploads immediately — it stages them (with `URL.createObjectURL`
+thumbnails, individually removable) behind a "Upload N photos" confirm step.
+Enforces a 20-photo max (upload button disables at the cap) and shows a
+non-blocking banner below 3 photos ("Add at least 3 photos…") — this is a
+soft nudge, not a hard gate; the rest of the profile still saves fine below
+3 photos.
+
+Both `PortfolioManager`'s saved-photo grid and the public profile page
+(`dashboard/client/photographers/[id]/page.tsx`) now use `next/image`
+instead of raw `<img>` for Supabase Storage URLs, which needed
+`*.supabase.co` (path `/storage/v1/object/public/**`) added to
+`next.config.ts`'s `images.remotePatterns` alongside the Unsplash one from
+Fase 1. The pending-upload previews in `PortfolioManager` stay raw `<img>`
+on purpose — `next/image` doesn't accept `blob:` object URLs.
+
+The public profile page now also surfaces specialty, price range, session
+duration, Instagram/other links, and a compact "usually available" weekly
+summary. Note: this page still requires a signed-in client
+(`if (!user) redirect('/login')`) — making it genuinely public is Sprint 5
+("Public marketplace listing"), not part of this pass.
+
+lucide-react's installed version (`^1.25.0`) has no brand/logo icons
+(no `Instagram`, etc.) — use a generic icon (`AtSign`, `Link`) for social
+links instead of reaching for a brand-named icon that doesn't exist in this
+package version.
+
+## External payment links (photographer-managed, no Stripe Connect)
+
+At the user's explicit request, GradSnap does not intermediate booking
+payments at all — the platform never touches the money, so it never needs
+Stripe Connect, PCI scope, or to justify holding other people's session
+fees. Instead:
+
+- `photographer_profiles.payment_link` (any URL — a Stripe Payment Link,
+  PayPal.me, etc.) and `.payment_terms` (short free text, e.g. "50% deposit
+  to confirm, rest on session day") are set in `ProfileForm.tsx`, right
+  after the price fields.
+- `payment_terms` shows on the public profile
+  (`dashboard/client/photographers/[id]/page.tsx`) right under the price/
+  specialty line.
+- After a client books a slot, `BookingWidget.tsx` shows a "Pay deposit /
+  Complete payment" button (only if the photographer set a `payment_link`)
+  that opens it in a new tab. GradSnap has no way to know whether that
+  external payment actually happened.
+- `bookings.payment_status` (`'pending' | 'paid'`, default `'pending'`) is
+  set **manually** by the photographer from `BookingsManager.tsx` ("Mark as
+  paid" / "Mark unpaid") — there is no webhook or verification for it, by
+  design, since the money movement is entirely outside this app.
+
+`photographer_profiles.deposit_policy` (`'deposit_50' | 'cash_on_session'`,
+nullable — `null` = not chosen yet) is a structured, separate choice from
+the free-text `payment_terms` above: whether the photographer collects a
+50% deposit through their `payment_link` before the session (rest in cash
+after) or takes the full amount in cash after the session with no deposit
+at all. Options/labels live in `DEPOSIT_POLICIES`/`DEPOSIT_POLICY_LABELS`
+(`src/types/database.ts`) so `ProfileForm.tsx`'s selector and the public
+profile's badge never drift out of sync on wording. Explained in full in
+`/onboarding/photographer/contract` (section 2, rewritten — it used to
+describe GradSnap processing payouts itself, which stopped being true the
+moment this external-payment-link model replaced it).
+
+**This is a second, independent payment mechanism, not a replacement for
+Sprint 4's Stripe Checkout deposit/balance columns** (`deposit_amount`,
+`stripe_checkout_session_id`, `finalize_paid_booking`, etc.) — those stay
+fully in place and dormant behind `PAYMENTS_ENABLED=false`. The two systems
+don't share any code, and a booking made through this external-link flow
+never populates the Stripe-specific columns. If `PAYMENTS_ENABLED` is ever
+flipped to `true`, `BookingWidget` will route bookings through the old
+Stripe Checkout flow instead (see `useBookSlot`), and the payment-link
+button described here simply won't render for those bookings (no
+`successMessage` state is set on that path today) — worth a real product
+decision (keep both? retire one?) before that flag is ever flipped, not
+something to silently reconcile later.
+
 ## Auth flows
 
 ### Email / password
@@ -163,12 +343,30 @@ Never put `SUPABASE_SERVICE_ROLE_KEY` in any frontend file.
 
 ## Supabase setup checklist (one-time)
 
-1. Run `supabase/schema.sql` in the **SQL Editor** of your Supabase project
+1. Run `supabase/schema.sql` in the **SQL Editor** of your Supabase project —
+   this also enables Realtime on `availability_slots` (needed for live slot
+   removal, see "Availability calendar" below)
 2. In **Authentication → URL Configuration**, set:
    - Site URL: `http://localhost:3000` (dev) / `https://gradsnap.vercel.app` (prod)
    - Redirect URLs: add `http://localhost:3000/auth/callback` and your prod URL
-3. In **Authentication → Providers**, enable **Google** and add your OAuth credentials
+3. In **Authentication → Providers**, enable **Google** and add your OAuth
+   credentials (the Client ID/Secret from Google Cloud Console — add this
+   project's own `<project-ref>.supabase.co/auth/v1/callback` to that OAuth
+   client's authorized redirect URIs in Google Cloud Console)
 4. Email confirmation is **ON** (default) — do not disable it
+
+**Project moved to a new Supabase account (2026-09).** The original project
+(`qkcjnksxqhhotqrkelld`) hit the free-tier "2 active projects" cap shared
+with the personal-use `pData` project on the same account. Rather than pay
+for Pro, GradSnap now lives under its own separate Supabase account (a
+Gmail `+` alias, its own free-tier project quota, unrelated to pData
+entirely) — new project ref `nrokuqgrjrkfxqbkcyyi`. The old project was
+never migrated (it was still pre-launch dev data, not worth transferring);
+this new project was seeded from scratch by running the full
+`schema.sql` top to bottom. `.env.local` points here now. If a schema
+change ever needs applying to "the live database," confirm which Supabase
+project is currently referenced in `.env.local` first — don't assume it's
+still the original one.
 
 ## Running locally
 
@@ -185,5 +383,143 @@ pnpm lint       # ESLint
 | ✅ 1 | Project setup, Supabase, auth (email + Google), role dashboards, photographer contract |
 | ✅ 2 | Photographer profile setup, portfolio photo upload (Supabase Storage) |
 | ✅ 3 | Availability calendar, booking flow |
-| 4 | Payments (Stripe), booking management, notifications |
-| 5 | Public marketplace listing, search & filters |
+| ✅ 4 | Booking management, email notifications. Payments ended up as **external payment links** (photographer's own Stripe Payment Link / PayPal.me), not platform-processed Stripe Checkout — see "External payment links" below. The original Stripe Checkout deposit/balance code (`lib/stripe.ts`, `finalize_paid_booking`, etc.) still exists behind `PAYMENTS_ENABLED=false` but is not the live payment path. |
+| ✅ 5 | Public marketplace listing, search & filters (price/location/style — see "Availability calendar" below). Photographer profiles still require a signed-in client to view (`redirect('/login')`); a genuinely logged-out-public listing page would be new scope, not part of what's built. |
+
+## Analytics (Vercel Analytics + PostHog)
+
+- **Vercel Analytics**: `<Analytics />` from `@vercel/analytics/next` in
+  `layout.tsx`. Zero config — in dev it just logs to the console instead of
+  sending anything (confirmed: `[Vercel Web Analytics] Debug mode is
+  enabled by default in development`).
+- **PostHog**: `src/lib/posthog.ts` calls `posthog.init(...)` **at module
+  top-level**, guarded by `typeof window !== 'undefined'` — not inside a
+  component's `useEffect`. This matters: React runs a child's effects
+  before its parent's, so if init lived in a `PostHogProvider`'s
+  `useEffect`, a page-level "track on mount" child component (e.g.
+  `TrackLandingViewed`) could fire its own effect and call
+  `posthog.capture()` *before* the parent's init effect ever ran. Top-level
+  module init sidesteps the ordering question entirely — it runs the
+  instant the module is first imported in the browser, before React starts
+  committing anything.
+  `trackEvent(name, properties)` (same file) is the only way any component
+  should fire an event — it's a safe no-op (never throws) when
+  `NEXT_PUBLIC_POSTHOG_KEY` isn't set, so every call site fires
+  unconditionally without its own env check. Both env vars
+  (`NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`) are blank in
+  `.env.local` until a real PostHog project exists — create one free at
+  posthog.com and paste them in, then restart `pnpm dev` (env vars are
+  read at process start).
+  `src/components/analytics/posthog-provider.tsx` just wraps children in
+  `posthog-js/react`'s `PostHogProvider` using that same already-initialized
+  client — needed for `usePostHog()` to work anywhere later, though nothing
+  currently uses that hook (every call site uses the plain `trackEvent`
+  helper instead).
+  `capture_pageview: false` is set deliberately — this app tracks specific
+  named funnel events (below), not a blanket "every route change" pageview
+  stream.
+
+**Events tracked** (exact names/properties, don't rename without updating
+both the call site and whatever PostHog funnel/insight references them):
+
+| Event | Fired from | Properties |
+|---|---|---|
+| `landing_viewed` | `TrackLandingViewed` (mounted in `app/page.tsx`) | — |
+| `signup_started` | The two final-CTA links in `landing/final-cta.tsx` | `role: 'client' \| 'photographer'` |
+| `signup_completed` | `RegisterForm.tsx` (email/password, after `signUp()` succeeds) **and** `onboarding/select-role/page.tsx` (Google OAuth new users, after role is saved) — both paths converge on the same event name so a funnel doesn't need to know which auth method was used | `role` |
+| `photographer_profile_completed` | `ProfileForm.tsx`, after every successful save (not gated to "first time only" — that distinction wasn't asked for and isn't tracked anywhere in the data model) | — |
+| `availability_slot_added` | `AvailabilityManager.tsx`, after a slot insert succeeds | — |
+| `booking_started` | `use-book-slot.ts` (shared by `BookingWidget` and `CalendarSearch` — the one place both booking entry points funnel through), right before the booking call | `slotId`, `photographerId` |
+| `booking_completed` | Same file, right after `bookSlotFree()` succeeds | `slotId`, `photographerId` |
+
+**Known gap, by design, not an oversight**: `booking_completed` only fires
+on the free-booking path (`PAYMENTS_ENABLED=false`, the currently-live
+path — see the external-payment-links section above for why this project
+doesn't process payments itself). If `PAYMENTS_ENABLED` is ever flipped
+back on, `startDepositCheckout` redirects out to Stripe and back via a
+webhook (`api/stripe/webhook`) — true "booking completed" for that path
+would need a **server-side** PostHog capture (`posthog-node`, a different
+package) called from the webhook route, not `use-book-slot.ts`. Not built
+now since that path is dormant; flag it as real work if payments ever go
+live again.
+
+**pnpm build-script gate note**: `pnpm install`/`pnpm exec` may hard-fail
+with `[ERR_PNPM_IGNORED_BUILDS]` over a transitive dep's (`core-js`, via
+`posthog-js`) blocked postinstall script, needing `pnpm approve-builds`
+(interactive) to clear. If you hit this in a non-interactive context, run
+`node_modules/.bin/tsc` / `node_modules/.bin/eslint .` /
+`node_modules/.bin/next build` directly instead of through `pnpm exec` —
+same result, they just don't trigger pnpm's dependency-freshness check.
+
+## Availability calendar (Fase 3 rebuild: react-big-calendar + Realtime)
+
+The original Sprint 3 calendar used `react-day-picker` (a single-date picker
+highlighting which days had slots). Rebuilt on explicit request to use
+**`react-big-calendar`** instead — a real month-grid with slots rendered as
+events inside day cells, not just a highlighted date.
+
+- `src/components/availability-calendar.tsx` — shared wrapper
+  (`AvailabilityCalendar`), month view only (`views={['month']}`, matching
+  the literal ask for a "calendario mensual" — no week/day view toggle).
+  Uses `dateFnsLocalizer` (this project already depends on `date-fns`, no
+  need for `moment`). Selecting a day (`onSelectSlot`) or an event
+  (`onSelectEvent`) both just report that day's `Date` back to the parent —
+  which day is "selected" (for the panel below the calendar) is entirely
+  the consuming component's own state, decoupled from which month the
+  calendar is currently showing (that's `react-big-calendar`'s own internal
+  navigation state, left uncontrolled on purpose — simpler than syncing two
+  sources of truth for "current month" when nothing actually needs to
+  control it from outside).
+  Themed via `availability-calendar.css` (scoped under `.gs-calendar`) to
+  use this app's shadcn tokens (`--primary`, `--border`, `--muted`, etc.)
+  instead of `react-big-calendar`'s default blue/gray look.
+- **Photographer's `AvailabilityManager.tsx`**: one event per real slot,
+  labeled with its time range, styled muted/gray (`.gs-event-booked`, via
+  `eventPropGetter`) when `is_booked`. Clicking a day still drives the same
+  add-slot form / per-day slot list below the calendar as before — only the
+  calendar widget itself changed, the add/delete Supabase calls are
+  untouched.
+- **Client's `CalendarSearch.tsx`** (photographer search/listing) and
+  **`BookingWidget.tsx`** (one photographer's own page): one event per day
+  labeled "Available" (not per-slot — a real client-facing month grid
+  showing every slot's exact time inline would be too cramped to be
+  useful), then the exact times for the selected day render as buttons
+  below, same as before.
+- **Search filters** (`CalendarSearch.tsx`, new): location (substring match
+  on `city`), max price (`base_price`), and style (`specialty`, exact match
+  against `PHOTOGRAPHER_SPECIALTIES` or the custom `specialty_other` value)
+  — all client-side over the already-fetched slot list, no new queries.
+  "Available date" is the calendar itself. This required widening the
+  photographer fields selected in
+  `dashboard/client/photographers/page.tsx` (`price_max`, `specialty`,
+  `specialty_other` added alongside the existing `city`/`base_price`).
+- **Realtime** (new — this genuinely didn't exist anywhere in the app
+  before): `CalendarSearch.tsx` and `BookingWidget.tsx` both open a
+  `supabase.channel(...).on('postgres_changes', ...)` subscription on
+  `availability_slots` (`BookingWidget` filters `photographer_id=eq.…`,
+  `CalendarSearch` has no single-photographer filter to key off so it
+  subscribes unfiltered and checks the row size locally) and drop a slot
+  from local state the instant it's `UPDATE`d to `is_booked=true` or
+  `DELETE`d — so a slot someone else just booked disappears live for every
+  other client looking at the same calendar, no refresh needed. Requires
+  `availability_slots` to be added to the `supabase_realtime` publication —
+  done in `schema.sql` (idempotent `pg_publication_tables` check, same
+  pattern as enabling Realtime on any Supabase table). Only listens for
+  removal; a brand-new slot a photographer just opened does **not** appear
+  live for someone already browsing (would need a join back to
+  `photographer_profiles` that the raw `postgres_changes` payload doesn't
+  carry) — out of scope for what was actually asked ("que desaparezca
+  cuando se reserva", not "que aparezca cuando se crea").
+- **Concurrency** (the two-clients-race requirement) was already correctly
+  handled *before* this rebuild and needed no changes: `book_slot()` (the
+  RPC `bookSlotFree` calls) does `select ... for update` inside a
+  transaction before checking `is_booked`, so two near-simultaneous booking
+  attempts on the same slot serialize at the database level — only one can
+  ever succeed. This is a real transactional guarantee, not just a UNIQUE
+  constraint.
+- `src/components/booking-calendar.tsx` (the old `react-day-picker` wrapper)
+  was deleted outright once nothing referenced it anymore — don't
+  resurrect it. The underlying shadcn `ui/calendar.tsx` primitive (and its
+  `react-day-picker` dependency) was left in place since it's a generic
+  primitive that could still serve some other single-date-picker need
+  later; only the booking-specific wrapper was dead code.

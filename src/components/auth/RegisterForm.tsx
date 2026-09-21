@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -16,16 +16,22 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Camera, GraduationCap } from 'lucide-react'
+import { trackEvent } from '@/lib/posthog'
 import type { UserRole } from '@/types/database'
 
 export function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  const requestedRole = searchParams.get('role')
+  const initialRole: UserRole = requestedRole === 'photographer' ? 'photographer' : 'client'
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<UserRole>('client')
+  const [role, setRole] = useState<UserRole>(initialRole)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -49,6 +55,7 @@ export function RegisterForm() {
       return
     }
 
+    trackEvent('signup_completed', { role })
     router.push('/verify-email')
   }
 
@@ -113,20 +120,24 @@ export function RegisterForm() {
           <div className="space-y-2">
             <Label>I am a…</Label>
             <div className="grid grid-cols-2 gap-3">
-              {(['client', 'photographer'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`rounded-lg border-2 p-3 text-sm font-medium transition-colors ${
-                    role === r
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-muted text-muted-foreground hover:border-primary/50'
-                  }`}
-                >
-                  {r === 'client' ? '📸 Client' : '🎓 Photographer'}
-                </button>
-              ))}
+              {(['client', 'photographer'] as const).map((r) => {
+                const Icon = r === 'client' ? Camera : GraduationCap
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`flex items-center justify-center gap-2 rounded-lg border-2 p-3 text-sm font-medium transition-colors ${
+                      role === r
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-muted text-muted-foreground hover:border-primary/50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {r === 'client' ? 'Client' : 'Photographer'}
+                  </button>
+                )
+              })}
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
@@ -138,7 +149,7 @@ export function RegisterForm() {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-muted-foreground">or</span>
+            <span className="bg-card px-2 text-muted-foreground">or</span>
           </div>
         </div>
         <Button

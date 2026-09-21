@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PageHeader } from '@/components/dashboard/page-header'
 import { ProfileForm } from '@/components/photographer/ProfileForm'
 
 export default async function PhotographerProfilePage() {
@@ -24,16 +25,12 @@ export default async function PhotographerProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-2xl mx-auto px-6 py-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Your profile</h1>
-          <p className="text-muted-foreground mt-1">
-            This is what clients will see when they view your listing.
-          </p>
-        </div>
-        <ProfileForm profile={photographerProfile} />
-      </main>
+    <div className="mx-auto max-w-3xl">
+      <PageHeader
+        title="Your profile"
+        description="This is what clients will see when they view your listing."
+      />
+      <ProfileForm profile={photographerProfile} />
     </div>
   )
 }

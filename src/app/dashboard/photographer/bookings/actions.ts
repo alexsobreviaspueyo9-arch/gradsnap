@@ -140,6 +140,24 @@ export async function completeBooking(bookingId: string): Promise<void> {
   }
 }
 
+// Money for this booking moves outside GradSnap entirely (the client pays
+// the photographer's own payment_link directly), so there's nothing to
+// verify automatically — the photographer just tells us once they've been
+// paid.
+export async function setBookingPaymentStatus(
+  bookingId: string,
+  paymentStatus: 'pending' | 'paid'
+): Promise<void> {
+  const { supabase } = await loadOwnedBooking(bookingId)
+
+  const { error } = await supabase
+    .from('bookings')
+    .update({ payment_status: paymentStatus })
+    .eq('id', bookingId)
+
+  if (error) throw new Error(error.message)
+}
+
 export async function cancelBooking(bookingId: string): Promise<void> {
   const { supabase, booking, client, photographer } =
     await loadOwnedBooking(bookingId)
