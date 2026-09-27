@@ -6,11 +6,12 @@ import {
   bookSlotFree,
 } from '@/app/dashboard/client/photographers/[id]/actions'
 import { trackEvent } from '@/lib/posthog'
+import type { BookingSummary } from '@/components/client/booking-confirmation'
 
 export function useBookSlot(paymentsEnabled: boolean) {
   const [bookingSlotId, setBookingSlotId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [confirmation, setConfirmation] = useState<BookingSummary | null>(null)
 
   async function bookSlot(
     input: {
@@ -18,6 +19,7 @@ export function useBookSlot(paymentsEnabled: boolean) {
       photographerId: string
       photographerName: string
       basePrice: number | null
+      summary: BookingSummary
     },
     onSettled: () => void
   ) {
@@ -25,7 +27,7 @@ export function useBookSlot(paymentsEnabled: boolean) {
 
     setBookingSlotId(input.slotId)
     setError(null)
-    setSuccessMessage(null)
+    setConfirmation(null)
     trackEvent('booking_started', {
       slotId: input.slotId,
       photographerId: input.photographerId,
@@ -46,9 +48,7 @@ export function useBookSlot(paymentsEnabled: boolean) {
           slotId: input.slotId,
           photographerId: input.photographerId,
         })
-        setSuccessMessage(
-          'Booking requested! The photographer will confirm shortly.'
-        )
+        setConfirmation(input.summary)
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -60,5 +60,11 @@ export function useBookSlot(paymentsEnabled: boolean) {
     }
   }
 
-  return { bookingSlotId, error, successMessage, bookSlot }
+  return {
+    bookingSlotId,
+    error,
+    confirmation,
+    clearConfirmation: () => setConfirmation(null),
+    bookSlot,
+  }
 }

@@ -39,13 +39,12 @@ export default function ContractPage() {
       return
     }
 
-    const { error: updateError } = await supabase
-      .from('photographer_profiles')
-      .update({ has_signed_contract: true })
-      .eq('user_id', user.id)
+    const { error: signError } = await supabase.rpc(
+      'sign_photographer_contract'
+    )
 
-    if (updateError) {
-      setError(updateError.message)
+    if (signError) {
+      setError(signError.message)
       setLoading(false)
       return
     }

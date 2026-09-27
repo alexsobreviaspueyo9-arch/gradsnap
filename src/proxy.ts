@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// When Supabase is unreachable (e.g. a paused project), auth-js keeps
+// retrying a session refresh for ~26s, freezing every navigation. Past this
+// limit the request continues as signed out: public pages still render and
+// protected ones redirect to /login (fail closed).
+const AUTH_TIMEOUT_MS = 5000
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -26,9 +32,10 @@ export async function proxy(request: NextRequest) {
   )
 
   // Refresh session — do not add logic between createServerClient and getUser
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await Promise.race([
+    supabase.auth.getUser().then(({ data }) => data.user),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), AUTH_TIMEOUT_MS)),
+  ])
 
   const { pathname } = request.nextUrl
 
@@ -40,34 +47,36 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect authenticated users away from auth pages
-  if (user && (pathname === '/login' || pathname === '/register')) {
-    const role = user.user_metadata?.role as string | undefined
-    if (role === 'photographer') {
-      return NextResponse.redirect(
-        new URL('/dashboard/photographer', request.url)
-      )
-    }
-    if (role === 'client') {
-      return NextResponse.redirect(new URL('/dashboard/client', request.url))
-    }
-    // Google OAuth user with no role yet
-    return NextResponse.redirect(new URL('/onboarding/select-role', request.url))
+  const isAuthPage = pathname === '/login' || pathname === '/register'
+  if (!user || (!isAuthPage && !pathname.startsWith('/dashboard'))) {
+    return supabaseResponse
   }
 
-  // Role-based dashboard protection
-  if (user && pathname.startsWith('/dashboard/photographer')) {
-    if (user.user_metadata?.role !== 'photographer') {
-      return NextResponse.redirect(new URL('/dashboard/client', request.url))
-    }
+  // Role comes from profiles, not user_metadata: users can rewrite their own
+  // metadata with supabase.auth.updateUser(), but profiles.role is locked by
+  // the guard_profile trigger.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const role = profile?.role
+  const home =
+    role === 'photographer'
+      ? '/dashboard/photographer'
+      : role === 'client'
+        ? '/dashboard/client'
+        : '/onboarding/select-role'
+
+  if (isAuthPage) {
+    return NextResponse.redirect(new URL(home, request.url))
   }
 
-  if (user && pathname.startsWith('/dashboard/client')) {
-    if (user.user_metadata?.role !== 'client') {
-      return NextResponse.redirect(
-        new URL('/dashboard/photographer', request.url)
-      )
-    }
+  const allowedPrefix =
+    role === 'photographer' ? '/dashboard/photographer' : '/dashboard/client'
+  if (!role || !pathname.startsWith(allowedPrefix)) {
+    return NextResponse.redirect(new URL(home, request.url))
   }
 
   return supabaseResponse

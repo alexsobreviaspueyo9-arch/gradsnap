@@ -1,5 +1,5 @@
--- GradSnap — Sprint 1 schema
--- Run this in the Supabase SQL Editor: https://supabase.com/dashboard/project/qkcjnksxqhhotqrkelld/sql
+-- GradSnap schema
+-- Run this in the Supabase SQL Editor of the project referenced in .env.local
 
 -- ─────────────────────────────────────────────
 -- TABLES
@@ -451,8 +451,8 @@ revoke all on function public.finalize_balance_payment(uuid, text, text) from pu
 revoke all on function public.finalize_balance_payment(uuid, text, text) from authenticated;
 grant execute on function public.finalize_balance_payment(uuid, text, text) to service_role;
 
--- book_slot (Sprint 3) is now dead code: paid bookings go through
--- finalize_paid_booking via the webhook. Left deployed, unused, harmless.
+-- book_slot (Sprint 3) is the live booking path while PAYMENTS_ENABLED=false;
+-- paid bookings would go through finalize_paid_booking via the webhook.
 
 -- ─────────────────────────────────────────────
 -- FASE 2: extended photographer profile fields
@@ -520,5 +520,274 @@ begin
       and tablename = 'availability_slots'
   ) then
     alter publication supabase_realtime add table public.availability_slots;
+  end if;
+end $$;
+
+-- ─────────────────────────────────────────────
+-- LAUNCH HARDENING (2026-09) — idempotent, safe to re-run.
+--
+-- Pattern: the guard triggers only restrict requests that arrive straight
+-- from the browser (current_user is 'authenticated' / 'anon' via PostgREST).
+-- security definer RPCs run as the function owner and the Stripe webhook
+-- runs as service_role, so both keep full write access.
+--
+-- One account = one role, forever. Someone who wants to be both a
+-- photographer and a client signs up twice with two different emails.
+-- ─────────────────────────────────────────────
+
+-- 1. Bookings can only be created through book_slot() (or the service-role
+--    Stripe webhook), never by a raw INSERT that skips the is_booked check.
+drop policy if exists "Clients can create bookings" on public.bookings;
+
+create or replace function public.book_slot(p_slot_id uuid)
+returns public.bookings
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_slot    public.availability_slots%rowtype;
+  v_booking public.bookings%rowtype;
+begin
+  if auth.uid() is null then
+    raise exception 'You must be signed in to book a slot.';
+  end if;
+
+  if not exists (
+    select 1 from public.profiles where id = auth.uid() and role = 'client'
+  ) then
+    raise exception 'Only client accounts can book sessions.';
+  end if;
+
+  select * into v_slot
+  from public.availability_slots
+  where id = p_slot_id
+  for update;
+
+  if not found then
+    raise exception 'This slot no longer exists.';
+  end if;
+
+  -- Wall-clock slot times; zone must match APP_TIME_ZONE in src/lib/date.ts.
+  if v_slot.date + v_slot.start_time
+     <= (now() at time zone 'Europe/Madrid')::timestamp then
+    raise exception 'This slot has already started.';
+  end if;
+
+  if v_slot.is_booked then
+    raise exception 'This slot has already been booked.';
+  end if;
+
+  update public.availability_slots
+  set is_booked = true
+  where id = p_slot_id;
+
+  insert into public.bookings (slot_id, client_id, status)
+  values (p_slot_id, auth.uid(), 'pending')
+  returning * into v_booking;
+
+  return v_booking;
+end;
+$$;
+
+revoke all on function public.book_slot(uuid) from public;
+grant execute on function public.book_slot(uuid) to authenticated;
+
+-- 2. Photographers may only change a booking's status / payment tracking,
+--    never who booked it, which slot, or the Stripe amounts.
+create or replace function public.guard_booking_update()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('authenticated', 'anon')
+    and (to_jsonb(new) - 'status' - 'payment_status'
+                       - 'deposit_refunded_at' - 'deposit_refund_id')
+        is distinct from
+        (to_jsonb(old) - 'status' - 'payment_status'
+                       - 'deposit_refunded_at' - 'deposit_refund_id')
+  then
+    raise exception 'Only the booking status and payment status can be changed.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_booking_update on public.bookings;
+create trigger guard_booking_update
+  before update on public.bookings
+  for each row execute function public.guard_booking_update();
+
+-- 3. A booked slot can't be silently reopened while its booking is active
+--    (cancelBooking cancels the booking first, then frees the slot).
+create or replace function public.guard_slot_update()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user in ('authenticated', 'anon')
+    and old.is_booked and not new.is_booked
+    and exists (
+      select 1 from public.bookings
+      where slot_id = old.id and status in ('pending', 'confirmed')
+    )
+  then
+    raise exception 'Cancel the booking before reopening this slot.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_slot_update on public.availability_slots;
+create trigger guard_slot_update
+  before update on public.availability_slots
+  for each row execute function public.guard_slot_update();
+
+-- 4. Contract acceptance only via sign_photographer_contract(), which also
+--    records when it was signed.
+alter table public.photographer_profiles
+  add column if not exists contract_signed_at timestamptz;
+
+create or replace function public.guard_photographer_profile()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if not exists (
+      select 1 from public.profiles where id = new.user_id and role = 'photographer'
+    ) then
+      raise exception 'Only photographer accounts can have a photographer profile.';
+    end if;
+    new.has_signed_contract := false;
+    new.contract_signed_at := null;
+    return new;
+  end if;
+
+  if new.user_id is distinct from old.user_id
+    or new.has_signed_contract is distinct from old.has_signed_contract
+    or new.contract_signed_at is distinct from old.contract_signed_at
+  then
+    raise exception 'The contract can only be signed from the onboarding page.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_photographer_profile on public.photographer_profiles;
+create trigger guard_photographer_profile
+  before insert or update on public.photographer_profiles
+  for each row execute function public.guard_photographer_profile();
+
+create or replace function public.sign_photographer_contract()
+returns void
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'You must be signed in.';
+  end if;
+
+  update public.photographer_profiles pp
+  set has_signed_contract = true,
+      contract_signed_at = coalesce(pp.contract_signed_at, now())
+  from public.profiles p
+  where pp.user_id = auth.uid()
+    and p.id = pp.user_id
+    and p.role = 'photographer';
+
+  if not found then
+    raise exception 'No photographer profile found for this account.';
+  end if;
+end;
+$$;
+
+revoke all on function public.sign_photographer_contract() from public;
+grant execute on function public.sign_photographer_contract() to authenticated;
+
+-- 5. Role and the notification email are fixed after creation, and the
+--    email always comes from the signed-in session, never from the client.
+create or replace function public.guard_profile()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    new.email := auth.jwt() ->> 'email';
+    return new;
+  end if;
+
+  if new.id is distinct from old.id
+    or new.role is distinct from old.role
+    or new.email is distinct from old.email
+  then
+    raise exception 'Your role cannot be changed. To use GradSnap as both a photographer and a client, create a second account with a different email.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_profile on public.profiles;
+create trigger guard_profile
+  before insert or update on public.profiles
+  for each row execute function public.guard_profile();
+
+-- 6. Photographer links are rendered as hrefs for other users: http(s) only.
+--    Existing values are normalized first (same rule as normalizeHttpUrl in
+--    src/lib/url.ts: no scheme -> https:// added, any other scheme -> dropped)
+--    so the constraint can validate every row.
+update public.photographer_profiles
+set payment_link = case
+      when payment_link is null or payment_link ~* '^https?://' then payment_link
+      when payment_link ~* '^[a-z][a-z0-9+.-]*:' then null
+      else 'https://' || payment_link
+    end,
+    instagram_url = case
+      when instagram_url is null or instagram_url ~* '^https?://' then instagram_url
+      when instagram_url ~* '^[a-z][a-z0-9+.-]*:' then null
+      else 'https://' || instagram_url
+    end
+where payment_link !~* '^https?://' or instagram_url !~* '^https?://';
+
+update public.photographer_profiles
+set social_links = coalesce((
+  select jsonb_agg(
+    case when e ->> 'url' ~* '^https?://' then e
+         else jsonb_set(e, '{url}', to_jsonb('https://' || (e ->> 'url')))
+    end)
+  from jsonb_array_elements(social_links) e
+  where e ->> 'url' is not null
+    and (e ->> 'url' ~* '^https?://' or e ->> 'url' !~* '^[a-z][a-z0-9+.-]*:')
+), '[]'::jsonb)
+where jsonb_path_exists(
+  social_links, '$[*] ? (!(@.url like_regex "^https?://" flag "i"))'
+);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'photographer_links_http_only'
+  ) then
+    alter table public.photographer_profiles
+      add constraint photographer_links_http_only check (
+        (payment_link is null or payment_link ~* '^https?://')
+        and (instagram_url is null or instagram_url ~* '^https?://')
+        and not jsonb_path_exists(
+          social_links,
+          '$[*] ? (!(@.url like_regex "^https?://" flag "i"))'
+        )
+      );
   end if;
 end $$;

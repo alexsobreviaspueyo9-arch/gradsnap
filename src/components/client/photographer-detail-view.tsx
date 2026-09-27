@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import { PortfolioImage } from '@/components/portfolio-image'
 import {
   Aperture,
   ArrowLeft,
@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
+import { normalizeHttpUrl } from '@/lib/url'
+import { formatPriceRange } from '@/lib/price'
 import { BookingWidget } from '@/components/client/BookingWidget'
 import {
   WEEKDAYS,
@@ -32,14 +34,6 @@ const DAY_LABELS: Record<Weekday, string> = {
 }
 
 const PANEL = 'rounded-3xl bg-card p-6 ring-1 ring-foreground/10 sm:p-8'
-
-function formatPriceRange(basePrice: number | null, priceMax: number | null) {
-  if (basePrice == null && priceMax == null) return null
-  if (basePrice != null && priceMax != null && priceMax > basePrice) {
-    return `€${basePrice} - €${priceMax}`
-  }
-  return `€${basePrice ?? priceMax}`
-}
 
 export function PhotographerDetailView({
   photographer,
@@ -63,8 +57,12 @@ export function PhotographerDetailView({
     photographer.base_price,
     photographer.price_max
   )
-  const hasLinks =
-    photographer.instagram_url || (photographer.social_links?.length ?? 0) > 0
+  const instagramHref = normalizeHttpUrl(photographer.instagram_url)
+  const socialLinks = (photographer.social_links ?? []).flatMap((link) => {
+    const href = normalizeHttpUrl(link.url)
+    return href ? [{ label: link.label, href }] : []
+  })
+  const hasLinks = instagramHref !== null || socialLinks.length > 0
   const hasWeekly = Object.keys(photographer.weekly_availability ?? {}).length > 0
 
   return (
@@ -147,9 +145,9 @@ export function PhotographerDetailView({
 
             {hasLinks && (
               <div className="mt-6 flex flex-wrap gap-2 text-sm">
-                {photographer.instagram_url && (
+                {instagramHref && (
                   <a
-                    href={photographer.instagram_url}
+                    href={instagramHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -158,10 +156,10 @@ export function PhotographerDetailView({
                     Instagram
                   </a>
                 )}
-                {photographer.social_links?.map((link, i) => (
+                {socialLinks.map((link, i) => (
                   <a
                     key={i}
-                    href={link.url}
+                    href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -205,7 +203,7 @@ export function PhotographerDetailView({
                     i === 0 && photos.length > 2 && 'col-span-2 row-span-2'
                   )}
                 >
-                  <Image
+                  <PortfolioImage
                     src={photo.image_url}
                     alt={photo.caption ?? 'Portfolio photo'}
                     fill
@@ -238,8 +236,11 @@ export function PhotographerDetailView({
             photographerId={photographer.id}
             photographerName={photographer.display_name ?? 'this photographer'}
             basePrice={photographer.base_price}
+            priceLabel={priceRange}
+            depositPolicy={photographer.deposit_policy}
+            paymentTerms={photographer.payment_terms}
             paymentsEnabled={paymentsEnabled}
-            paymentLink={photographer.payment_link}
+            paymentLink={normalizeHttpUrl(photographer.payment_link)}
             initialSlots={slots}
           />
         </section>

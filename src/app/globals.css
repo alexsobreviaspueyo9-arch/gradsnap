@@ -184,6 +184,31 @@
   border-radius: 9999px;
 }
 
+/* Primary actions (<Button> and buttonVariants() links share these classes):
+   a slight lift + brand glow on hover. `scale` (not `transform`) so it
+   composes with the translate utilities some CTAs already use. */
+.group\/button.bg-primary:not(:disabled):not([data-disabled]) {
+  transition-property: scale, translate, box-shadow, background-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group\/button.bg-primary:not(:disabled):not([data-disabled]):hover {
+  scale: 1.03;
+  box-shadow: 0 10px 28px -8px var(--primary), 0 0 0 4px var(--brand-glow);
+}
+
+.group\/button.bg-primary:not(:disabled):not([data-disabled]):active {
+  scale: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group\/button.bg-primary:not(:disabled):not([data-disabled]):hover,
+  .group\/button.bg-primary:not(:disabled):not([data-disabled]):active {
+    scale: none;
+  }
+}
+
 [data-slot='input'] {
   min-height: 2.5rem;
 }

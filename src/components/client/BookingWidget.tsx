@@ -2,17 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CalendarX2, ExternalLink } from 'lucide-react'
+import { CalendarX2 } from 'lucide-react'
 import {
   AvailabilityCalendar,
   type CalendarEvent,
 } from '@/components/availability-calendar'
-import { cn } from '@/lib/utils'
 import { formatDateHeading, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
 import { useBookSlot } from '@/components/client/use-book-slot'
-import type { AvailabilitySlot } from '@/types/database'
+import { BookingConfirmation } from '@/components/client/booking-confirmation'
+import type { AvailabilitySlot, DepositPolicy } from '@/types/database'
 
 const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
 
@@ -20,6 +20,9 @@ export function BookingWidget({
   photographerId,
   photographerName,
   basePrice,
+  priceLabel,
+  depositPolicy,
+  paymentTerms,
   paymentsEnabled,
   paymentLink,
   initialSlots,
@@ -27,6 +30,9 @@ export function BookingWidget({
   photographerId: string
   photographerName: string
   basePrice: number | null
+  priceLabel: string | null
+  depositPolicy: DepositPolicy | null
+  paymentTerms: string | null
   paymentsEnabled: boolean
   paymentLink: string | null
   initialSlots: AvailabilitySlot[]
@@ -36,7 +42,7 @@ export function BookingWidget({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
     initialSlots.length > 0 ? isoDateToLocalDate(initialSlots[0].date) : undefined
   )
-  const { bookingSlotId, error, successMessage, bookSlot } =
+  const { bookingSlotId, error, confirmation, clearConfirmation, bookSlot } =
     useBookSlot(paymentsEnabled)
 
   // Live-remove a slot the moment it's booked or deleted, so this
@@ -71,10 +77,25 @@ export function BookingWidget({
     }
   }, [supabase, photographerId])
 
-  function handleBook(slotId: string) {
+  function handleBook(slot: AvailabilitySlot) {
     bookSlot(
-      { slotId, photographerId, photographerName, basePrice },
-      () => setSlots((prev) => prev.filter((s) => s.id !== slotId))
+      {
+        slotId: slot.id,
+        photographerId,
+        photographerName,
+        basePrice,
+        summary: {
+          photographerName,
+          date: slot.date,
+          startTime: slot.start_time,
+          endTime: slot.end_time,
+          priceLabel,
+          depositPolicy,
+          paymentTerms,
+          paymentLink,
+        },
+      },
+      () => setSlots((prev) => prev.filter((s) => s.id !== slot.id))
     )
   }
 
@@ -108,29 +129,18 @@ export function BookingWidget({
   const depositAmount =
     basePrice != null ? Math.round((basePrice / 2) * 100) / 100 : null
 
+  if (confirmation) {
+    return (
+      <BookingConfirmation booking={confirmation} onBookAnother={clearConfirmation} />
+    )
+  }
+
   return (
     <div className="space-y-4">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      )}
-      {successMessage && (
-        <Alert>
-          <AlertDescription>{successMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {successMessage && paymentLink && (
-        <a
-          href={paymentLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(buttonVariants({ size: 'lg' }), 'h-12 w-full gap-2 text-base')}
-        >
-          Pay deposit / Complete payment
-          <ExternalLink className="size-4" />
-        </a>
       )}
 
       {slots.length === 0 ? (
@@ -185,7 +195,7 @@ export function BookingWidget({
                       size="sm"
                       className="h-9 px-5"
                       disabled={bookingSlotId === slot.id}
-                      onClick={() => handleBook(slot.id)}
+                      onClick={() => handleBook(slot)}
                     >
                       {bookingSlotId === slot.id
                         ? paymentsEnabled

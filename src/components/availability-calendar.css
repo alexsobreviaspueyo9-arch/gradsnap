@@ -98,11 +98,6 @@
   font-weight: 500;
 }
 
-.gs-calendar .rbc-event.gs-event-booked {
-  background: var(--muted);
-  color: var(--muted-foreground);
-}
-
 .gs-calendar .rbc-event:focus {
   outline: 2px solid var(--ring);
   outline-offset: 1px;

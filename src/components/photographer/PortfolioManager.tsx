@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import Image from 'next/image'
+import { PortfolioImage } from '@/components/portfolio-image'
 import { ImagePlus, Trash2, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -228,6 +228,7 @@ export function PortfolioManager({
         </div>
         <Button
           type="button"
+          variant={pending.length > 0 ? 'outline' : 'default'}
           className="h-11 px-6 text-base"
           disabled={uploading || remainingSlots <= 0}
           onClick={() => fileInputRef.current?.click()}
@@ -296,7 +297,7 @@ export function PortfolioManager({
               className="group overflow-hidden rounded-3xl bg-card ring-1 ring-foreground/10"
             >
               <div className="relative aspect-square w-full">
-                <Image
+                <PortfolioImage
                   src={photo.image_url}
                   alt={photo.caption ?? 'Portfolio photo'}
                   fill

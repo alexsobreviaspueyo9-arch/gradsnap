@@ -1,5 +1,18 @@
 import { formatDateHeading } from '@/lib/date'
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+
+// Names are typed by users, so they must never reach the email as raw HTML.
+export function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char])
+}
+
 function wrapper(bodyHtml: string): string {
   return `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #111;">
@@ -23,8 +36,8 @@ export function newBookingRequestEmail(input: {
   return {
     subject: 'New booking request',
     html: wrapper(`
-      <p>Hi ${input.photographerName},</p>
-      <p><strong>${input.clientName}</strong> just booked a session with you on
+      <p>Hi ${escapeHtml(input.photographerName)},</p>
+      <p><strong>${escapeHtml(input.clientName)}</strong> just booked a session with you on
       <strong>${sessionTime(input.date, input.startTime)}</strong> and paid a
       €${input.depositAmount.toFixed(2)} deposit.</p>
       <p>Confirm or cancel it from your GradSnap bookings dashboard.</p>
@@ -41,8 +54,8 @@ export function bookingConfirmedEmail(input: {
   return {
     subject: 'Your session is confirmed',
     html: wrapper(`
-      <p>Hi ${input.clientName},</p>
-      <p><strong>${input.photographerName}</strong> confirmed your session on
+      <p>Hi ${escapeHtml(input.clientName)},</p>
+      <p><strong>${escapeHtml(input.photographerName)}</strong> confirmed your session on
       <strong>${sessionTime(input.date, input.startTime)}</strong>.</p>
       <p>See you then!</p>
     `),
@@ -58,10 +71,10 @@ export function sessionCompletedBalanceEmail(input: {
   return {
     subject: 'Your session is complete — balance due',
     html: wrapper(`
-      <p>Hi ${input.clientName},</p>
-      <p>${input.photographerName} marked your session as complete. The remaining
+      <p>Hi ${escapeHtml(input.clientName)},</p>
+      <p>${escapeHtml(input.photographerName)} marked your session as complete. The remaining
       balance of <strong>€${input.balanceAmount.toFixed(2)}</strong> is now due.</p>
-      <p><a href="${input.paymentLinkUrl}">Pay the remaining balance</a></p>
+      <p><a href="${escapeHtml(input.paymentLinkUrl)}">Pay the remaining balance</a></p>
     `),
   }
 }
@@ -74,8 +87,8 @@ export function balanceReceivedEmail(input: {
   return {
     subject: 'Balance received',
     html: wrapper(`
-      <p>Hi ${input.photographerName},</p>
-      <p><strong>${input.clientName}</strong> just paid the remaining
+      <p>Hi ${escapeHtml(input.photographerName)},</p>
+      <p><strong>${escapeHtml(input.clientName)}</strong> just paid the remaining
       €${input.balanceAmount.toFixed(2)} balance. This booking is now fully paid.</p>
     `),
   }
@@ -89,8 +102,8 @@ export function bookingCancelledRefundedEmail(input: {
   return {
     subject: 'Booking cancelled — deposit refunded',
     html: wrapper(`
-      <p>Hi ${input.clientName},</p>
-      <p>${input.photographerName} cancelled your booking. Your
+      <p>Hi ${escapeHtml(input.clientName)},</p>
+      <p>${escapeHtml(input.photographerName)} cancelled your booking. Your
       €${input.depositAmount.toFixed(2)} deposit has been refunded in full and
       should appear on your statement in a few business days.</p>
     `),

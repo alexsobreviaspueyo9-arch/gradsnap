@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { todayISODate } from '@/lib/date'
+import { isUpcomingSlot, todayISODate } from '@/lib/date'
 import { PhotographerDetailView } from '@/components/client/photographer-detail-view'
 
 export default async function PhotographerDetailPage({
@@ -47,7 +47,7 @@ export default async function PhotographerDetailPage({
     <PhotographerDetailView
       photographer={photographer}
       photos={photos ?? []}
-      slots={slots ?? []}
+      slots={(slots ?? []).filter((slot) => isUpcomingSlot(slot))}
       justBooked={booked === '1'}
       paymentsEnabled={process.env.PAYMENTS_ENABLED === 'true'}
     />

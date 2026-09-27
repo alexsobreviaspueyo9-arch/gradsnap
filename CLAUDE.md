@@ -70,7 +70,8 @@ Extra data for photographers. A row is inserted at registration (email flow trig
 | bio | text? | |
 | city | text? | |
 | base_price | numeric? | |
-| has_signed_contract | boolean | false until /onboarding/photographer/contract |
+| has_signed_contract | boolean | false until /onboarding/photographer/contract; only settable via `sign_photographer_contract()` |
+| contract_signed_at | timestamptz? | set by `sign_photographer_contract()` |
 | created_at | timestamptz | |
 
 ### `portfolio_photos` (Sprint 2)
@@ -162,8 +163,6 @@ Same tokens/fonts as the landing (see above). Structure:
 - `onboarding/*` and `booking/balance-paid` use `brand/centered-shell.tsx`.
   The contract legal copy was NOT edited, only its container.
 - `select-role` icons were swapped (client had the camera); fixed.
-- `app/preview-tmp/[screen]` is a TEMPORARY dev-only review route with mock
-  data (404s in production). Delete the folder once the redesign is approved.
 
 **`RegisterForm` now reads a `role` query param** (`?role=client` /
 `?role=photographer`) to preselect its role toggle, defaulting to `client` for
@@ -176,10 +175,8 @@ configured (there's an eslint-disable comment to that effect in the old code);
 without this, `next/image` throws at runtime for any Unsplash URL. Any future
 image source domain needs the same treatment added here.
 
-The old `scroll-booking-demo.tsx`/`icon-chip.tsx` components are no longer
-imported by the landing page but were left on disk (not deleted) in case
-they're still wanted elsewhere — check before reusing them, they were built
-for the previous landing page's client-only "how it works" scroll animation.
+`scroll-booking-demo.tsx` was deleted (2026-09, unused). `icon-chip.tsx` is
+kept: `onboarding/select-role` still uses it.
 
 ## Photographer profile (Fase 2 additions)
 
@@ -320,7 +317,136 @@ Never import the server client into a Client Component — it will throw.
 3. Redirects authenticated users away from `/login` and `/register`
 4. Enforces role-based access to `/dashboard/photographer` vs `/dashboard/client`
 
+The role is read from `profiles.role` (one query, only on `/dashboard/**`,
+`/login` and `/register`), **never from `user_metadata.role`**: users can
+rewrite their own metadata with `supabase.auth.updateUser()`, while
+`profiles.role` is locked by the `guard_profile` trigger.
+
+`getUser()` is capped at 5s (`AUTH_TIMEOUT_MS`): with Supabase unreachable
+and a stored session, auth-js retries the refresh for ~26s and every
+navigation looked frozen (seen 2026-09-27 while the project was paused).
+Past the cap the request is treated as signed out.
+
 Contract check (`has_signed_contract`) is NOT done in middleware (requires a DB query per request). Instead it is checked inside the photographer dashboard Server Component, which redirects to `/onboarding/photographer/contract` if needed.
+
+## Security model (launch hardening, 2026-09)
+
+**Product rule: one account = one role, forever.** Someone who wants to be
+both a photographer and a client signs up twice with two different emails.
+There is intentionally no "switch role" feature.
+
+RLS alone let browser users write more than they should, so the
+"LAUNCH HARDENING" section of `supabase/schema.sql` adds:
+
+- **Bookings are only created by `book_slot()`** (the client INSERT policy is
+  dropped). `book_slot()` requires `profiles.role = 'client'` and a slot
+  that hasn't started yet, and keeps its `for update` race protection.
+  Slot times are wall-clock times in **Europe/Madrid**: `APP_TIME_ZONE` +
+  `isUpcomingSlot()` in `src/lib/date.ts` hide started slots in the UI, and
+  `book_slot()` hardcodes the same zone. Change both together.
+- **Guard triggers** that only restrict direct browser requests
+  (`current_user` = `authenticated`/`anon`); security-definer RPCs and the
+  service-role webhook are unaffected:
+  - `guard_booking_update`: a photographer may only change `status`,
+    `payment_status` and the refund columns of a booking.
+  - `guard_slot_update`: a booked slot can't be reopened while its booking
+    is `pending`/`confirmed` (cancel the booking first, as `cancelBooking`
+    does).
+  - `guard_photographer_profile`: `has_signed_contract`/`contract_signed_at`
+    can't be set directly (use the `sign_photographer_contract()` RPC), and
+    only photographer accounts can create a photographer profile.
+  - `guard_profile`: `role` and `email` can't change after creation; on
+    insert the email is taken from the session JWT, not the request body.
+- **Links are http(s) only**: `normalizeHttpUrl()` (`src/lib/url.ts`) in
+  `ProfileForm` and when rendering, plus the `photographer_links_http_only`
+  check constraint.
+- **Emails escape user text** with `escapeHtml()` (`src/lib/email-templates.ts`).
+
+To verify on a real database, run `supabase/tests/launch-hardening.sql` in
+the SQL Editor: it creates throwaway users, tries each attack as a browser
+user, and rolls everything back. It must end with `ALL CHECKS PASSED`.
+
+## Booking flow & UI polish (2026-09-27)
+
+- **Access rule (user decision, do not change):** a client must have an
+  account BEFORE browsing the photographer listing or any calendar. The
+  listing/profile stay behind `/dashboard/client` + `proxy.ts`.
+- **Calendars show only bookable slots.** Clients never saw booked ones;
+  the photographer's month grid (`AvailabilityManager`) now hides them too,
+  but the selected-day list still shows them with a "Booked" badge.
+- **Weekly repeat** in `AvailabilityManager`: "Repeat every <weekday>" for
+  4/8/12 weeks (`weeklyDates()` in `lib/date.ts`). Inserted with
+  `upsert(..., { ignoreDuplicates: true })` so weeks that already have a slot
+  at that start time are skipped, not errors. It creates real
+  `availability_slots` rows; unrelated to the reference-only
+  `weekly_availability` profile field.
+- **Booking confirmation** (`client/booking-confirmation.tsx`): after
+  `book_slot()` succeeds, `useBookSlot` stores a `BookingSummary` and both
+  `BookingWidget` and `CalendarSearch` swap their calendar for the summary
+  (photographer, date, time, price, next payment step by `deposit_policy`).
+  The payment link opens in a new tab and nothing clears the summary except
+  "Book another session".
+- **Skeletons:** `PortfolioImage` (next/image + pulse until loaded) for
+  portfolio photos; route `loading.tsx` for the listing and the profile.
+  Portfolio tiles are `aspect-square` everywhere (the profile bento's big
+  tile is 2x2 squares, so don't switch one place to 4/5 alone).
+- **Motion:** "How it works" uses parent `staggerChildren`. Page fades are
+  `template.tsx` + `components/motion/page-transition.tsx` (root and each
+  dashboard). AnimatePresence exit animations are NOT used: in the App
+  Router they need a hack on Next's internal `LayoutRouterContext`. The first
+  server-rendered load never fades (content must be visible pre-hydration).
+- **Accent colour rule:** violet (`bg-primary`) only for the one main action
+  per context (Book, Confirm, Save, Upload, Get started); secondary actions
+  use `outline`/`ghost`. Primary buttons get a hover lift + glow from an
+  unlayered rule in `globals.css` (`.group\/button.bg-primary`), which uses
+  the CSS `scale` property so it composes with Tailwind `translate` utilities.
+
+## Launch checklist (PENDING, as of 2026-09-27)
+
+Code-side hardening is done (see "Security model" above) but NOT committed.
+The user wants to review the site and tweak some features before any of
+this; don't start these items without asking.
+
+1. ~~Apply the DB hardening~~ **DONE 2026-09-27**: applied to
+   `nrokuqgrjrkfxqbkcyyi` and `supabase/tests/launch-hardening.sql` returned
+   `ALL CHECKS PASSED` in the Supabase SQL Editor.
+2. **Email**: `src/lib/resend.ts` still sends from `onboarding@resend.dev`
+   (only delivers to the account owner). Supabase's built-in auth SMTP is
+   rate-limited to a few emails/hour, so signup confirmations would fail
+   at launch. Proposed: buy a domain, verify it in Resend, and set Resend
+   as custom SMTP in Supabase (Auth → SMTP).
+3. **Legal**: no privacy policy / terms pages; PostHog sets cookies with no
+   consent. Proposed: PostHog cookieless mode (Vercel Analytics already is)
+   + draft privacy/terms pages. Needs from the user: owner name/entity,
+   country, contact email. Recommend a lawyer review.
+4. **Production config** (after the domain exists): `APP_URL` (also drives
+   robots/sitemap/OG), Supabase Site URL + Redirect URLs, Google OAuth
+   consent screen published + redirect URI, all env vars in Vercel.
+5. **Repo + deploy**: no git remote yet. Proposed: private GitHub repo +
+   Vercel Git integration (auto deploy on push).
+6. **Time zone assumption**: slots are treated as Europe/Madrid (because
+   prices are EUR). Confirm with the user.
+7. **Supabase free-tier pausing**: on 2026-09-27 the project
+   (`nrokuqgrjrkfxqbkcyyi`) stopped resolving in DNS, most likely paused
+   after a week of inactivity (fix: dashboard → Restore project). Free
+   projects pause after ~7 idle days, which would take the live site down.
+   Decide before launch: Pro plan, or rely on real traffic keeping it awake.
+   Restored 2026-09-27. Note: this project lives in the separate `+alias`
+   Supabase account; the user's main account (alexsobreviaspueyo9@gmail.com)
+   also has an OLD `gradsnap` project (`qkcjnksxqhhotqrkelld`, outdated
+   schema, shows "Unhealthy") that the app does NOT use. Don't confuse them.
+
+8. **Booking confirmation email to the client (NOT implemented, user
+   decision 2026-09-27)**: "Enviar email de confirmación automático al
+   cliente tras completar una reserva, con resumen de fecha, hora,
+   fotógrafo y precio (requiere integrar Resend o similar para envío
+   transaccional)". Note: Resend is already wired up (`src/lib/resend.ts`,
+   `src/lib/email-templates.ts`), so this is mostly a new template + a call
+   after `book_slot()` succeeds, but it only reaches real users once item 2
+   (verified sending domain) is done.
+
+Open questions for the user: which domain, who the legal owner is and in
+which country, and when to commit/push.
 
 ## Code conventions
 
@@ -374,7 +500,13 @@ still the original one.
 pnpm dev        # http://localhost:3000
 pnpm build      # production build
 pnpm lint       # ESLint
+pnpm test       # Vitest unit tests (src/**/*.test.ts)
 ```
+
+Also: robots.txt, sitemap.xml and the Open Graph image are generated from
+`src/app/{robots,sitemap}.ts` and `opengraph-image.tsx`, all based on
+`SITE_URL` (`src/lib/site.ts`, from `APP_URL`). Set `APP_URL` to the real
+domain in production or they point to the wrong place.
 
 ## Sprint roadmap
 

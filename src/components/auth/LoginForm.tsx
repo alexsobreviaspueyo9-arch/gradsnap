@@ -42,7 +42,13 @@ export function LoginForm() {
       return
     }
 
-    const role = data.user?.user_metadata?.role as string | undefined
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle()
+
+    const role = profile?.role
     if (role === 'photographer') {
       router.push('/dashboard/photographer')
     } else if (role === 'client') {

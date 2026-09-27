@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/posthog'
+import { normalizeHttpUrl } from '@/lib/url'
 import { WeeklyAvailabilityPicker } from '@/components/photographer/WeeklyAvailabilityPicker'
 import {
   PHOTOGRAPHER_SPECIALTIES,
@@ -148,9 +149,30 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
       return
     }
 
-    const cleanedSocialLinks = socialLinks
+    const paymentLinkUrl = normalizeHttpUrl(paymentLink)
+    if (paymentLink.trim() !== '' && !paymentLinkUrl) {
+      setError('Payment link must be a valid web address (https://…).')
+      return
+    }
+
+    const instagramHref = normalizeHttpUrl(instagramUrl)
+    if (instagramUrl.trim() !== '' && !instagramHref) {
+      setError('Instagram link must be a valid web address (https://…).')
+      return
+    }
+
+    const filledSocialLinks = socialLinks
       .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
       .filter((link) => link.label !== '' && link.url !== '')
+    const cleanedSocialLinks: SocialLink[] = []
+    for (const link of filledSocialLinks) {
+      const href = normalizeHttpUrl(link.url)
+      if (!href) {
+        setError(`"${link.label}" must be a valid web address (https://…).`)
+        return
+      }
+      cleanedSocialLinks.push({ label: link.label, url: href })
+    }
 
     setLoading(true)
 
@@ -175,10 +197,10 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
         session_duration_minutes: sessionDurationMinutes,
         specialty: specialty === '' ? null : specialty,
         specialty_other: specialty === 'Other' ? specialtyOther.trim() : null,
-        instagram_url: instagramUrl.trim() === '' ? null : instagramUrl.trim(),
+        instagram_url: instagramHref,
         social_links: cleanedSocialLinks,
         weekly_availability: weeklyAvailability,
-        payment_link: paymentLink.trim() === '' ? null : paymentLink.trim(),
+        payment_link: paymentLinkUrl,
         payment_terms: paymentTerms.trim() === '' ? null : paymentTerms.trim(),
         deposit_policy: depositPolicy,
       })

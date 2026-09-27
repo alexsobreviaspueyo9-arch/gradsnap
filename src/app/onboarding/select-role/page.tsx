@@ -70,7 +70,15 @@ export default function SelectRolePage() {
 
     // If photographer, also create photographer_profiles record
     if (role === 'photographer') {
-      await supabase.from('photographer_profiles').insert({ user_id: user.id })
+      const { error: photographerError } = await supabase
+        .from('photographer_profiles')
+        .insert({ user_id: user.id })
+
+      if (photographerError && photographerError.code !== '23505') {
+        setError(photographerError.message)
+        setLoading(false)
+        return
+      }
       router.push('/onboarding/photographer/contract')
     } else {
       router.push('/dashboard/client')

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { CalendarX2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { todayISODate } from '@/lib/date'
+import { isUpcomingSlot, todayISODate } from '@/lib/date'
 import { PageHeader } from '@/components/dashboard/page-header'
 import {
   CalendarSearch,
@@ -20,7 +20,7 @@ export default async function ClientPhotographersPage() {
   const { data: photographers } = await supabase
     .from('photographer_profiles')
     .select(
-      'id, display_name, city, base_price, price_max, specialty, specialty_other'
+      'id, display_name, city, base_price, price_max, specialty, specialty_other, deposit_policy, payment_terms, payment_link'
     )
     .eq('has_signed_contract', true)
 
@@ -41,6 +41,7 @@ export default async function ClientPhotographersPage() {
   const photographerById = new Map((photographers ?? []).map((p) => [p.id, p]))
 
   const slotsWithPhotographer: SlotWithPhotographer[] = (slots ?? [])
+    .filter((slot) => isUpcomingSlot(slot))
     .map((slot) => {
       const photographer = photographerById.get(slot.photographer_id)
       return photographer ? { ...slot, photographer } : null

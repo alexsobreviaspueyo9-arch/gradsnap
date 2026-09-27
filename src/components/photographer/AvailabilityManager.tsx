@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   AvailabilityCalendar,
   type CalendarEvent,
@@ -20,10 +21,13 @@ import {
   localDateToISODate,
   slotDateTime,
   todayISODate,
+  weeklyDates,
 } from '@/lib/date'
 import type { AvailabilitySlot } from '@/types/database'
 
 const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
+const REPEAT_WEEK_OPTIONS = [4, 8, 12] as const
+const DEFAULT_REPEAT_WEEKS = 8
 
 function sortSlots(slots: AvailabilitySlot[]): AvailabilitySlot[] {
   return [...slots].sort((a, b) =>
@@ -51,15 +55,24 @@ export function AvailabilityManager({
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [repeatWeekly, setRepeatWeekly] = useState(false)
+  const [repeatWeeks, setRepeatWeeks] = useState<number>(DEFAULT_REPEAT_WEEKS)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const selectedDateISO = selectedDate ? localDateToISODate(selectedDate) : null
-  const events: CalendarEvent[] = slots.map((slot) => ({
-    id: slot.id,
-    title: slot.start_time.slice(0, 5),
-    start: slotDateTime(slot.date, slot.start_time),
-    end: slotDateTime(slot.date, slot.end_time),
-    booked: slot.is_booked,
-  }))
+  // The month grid shows only bookable slots; booked ones stay listed (and
+  // labelled) in the day panel so it's clear why they can't be deleted.
+  const events: CalendarEvent[] = slots
+    .filter((slot) => !slot.is_booked)
+    .map((slot) => ({
+      id: slot.id,
+      title: slot.start_time.slice(0, 5),
+      start: slotDateTime(slot.date, slot.start_time),
+      end: slotDateTime(slot.date, slot.end_time),
+    }))
+  const weekdayName = selectedDate
+    ? selectedDate.toLocaleDateString('en-US', { weekday: 'long' })
+    : null
   const daySlots = selectedDateISO
     ? slots.filter((s) => s.date === selectedDateISO)
     : []
@@ -67,6 +80,7 @@ export function AvailabilityManager({
   async function handleAddSlot(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    setNotice(null)
 
     if (!selectedDateISO || !startTime || !endTime) {
       setError('Please select a date and fill in the start and end time.')
@@ -83,33 +97,60 @@ export function AvailabilityManager({
 
     setSubmitting(true)
 
+    const dates = repeatWeekly
+      ? weeklyDates(selectedDateISO, repeatWeeks)
+      : [selectedDateISO]
+    const rows = dates.map((date) => ({
+      photographer_id: photographerId,
+      date,
+      start_time: startTime,
+      end_time: endTime,
+    }))
+
+    // ON CONFLICT DO NOTHING: weeks that already have a slot at this start
+    // time are skipped instead of failing the whole batch.
     const { data: inserted, error: insertError } = await supabase
       .from('availability_slots')
-      .insert({
-        photographer_id: photographerId,
-        date: selectedDateISO,
-        start_time: startTime,
-        end_time: endTime,
+      .upsert(rows, {
+        onConflict: 'photographer_id,date,start_time',
+        ignoreDuplicates: true,
       })
       .select()
-      .single()
 
     setSubmitting(false)
 
     if (insertError) {
-      if (insertError.code === '23505') {
-        setError('You already have a slot at that date and start time.')
-      } else {
-        setError(insertError.message)
-      }
+      setError(insertError.message)
       return
     }
 
-    trackEvent('availability_slot_added')
-    setSlots((prev) => sortSlots([...prev, inserted]))
+    const added = inserted ?? []
+    const skipped = rows.length - added.length
+    if (added.length === 0) {
+      setError(
+        repeatWeekly
+          ? 'You already have a slot at that start time on every one of those days.'
+          : 'You already have a slot at that date and start time.'
+      )
+      return
+    }
+
+    added.forEach(() => trackEvent('availability_slot_added'))
+    setSlots((prev) => sortSlots([...prev, ...added]))
     setStartTime('')
     setEndTime('')
+    if (repeatWeekly) {
+      const plural = added.length === 1 ? '' : 's'
+      const skippedNote = skipped > 0 ? ` (${skipped} skipped, already taken)` : ''
+      setNotice(`Added ${added.length} weekly slot${plural}${skippedNote}.`)
+    }
   }
+
+  const submitLabel = submitting
+    ? 'Adding…'
+    : repeatWeekly
+      ? `Add ${repeatWeeks} weekly slots`
+      : 'Add slot'
 
   async function handleDelete(slot: AvailabilitySlot) {
     if (!window.confirm('Delete this slot?')) return
@@ -141,6 +182,11 @@ export function AvailabilityManager({
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {notice && (
+        <Alert>
+          <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
 
@@ -185,12 +231,43 @@ export function AvailabilityManager({
                   />
                 </div>
               </div>
+
+              <div className="space-y-3 rounded-2xl bg-muted/60 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="repeatWeekly"
+                    checked={repeatWeekly}
+                    onCheckedChange={(v) => setRepeatWeekly(v === true)}
+                  />
+                  <Label htmlFor="repeatWeekly" className="cursor-pointer">
+                    Repeat every {weekdayName ?? 'week'}
+                  </Label>
+                </div>
+                {repeatWeekly && (
+                  <div className="flex items-center gap-2 pl-7 text-sm text-muted-foreground">
+                    <label htmlFor="repeatWeeks">for the next</label>
+                    <select
+                      id="repeatWeeks"
+                      value={repeatWeeks}
+                      onChange={(e) => setRepeatWeeks(Number(e.target.value))}
+                      className="rounded-lg border border-input bg-background px-2 py-1 text-foreground"
+                    >
+                      {REPEAT_WEEK_OPTIONS.map((weeks) => (
+                        <option key={weeks} value={weeks}>
+                          {weeks} weeks
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="h-11 w-full text-base"
                 disabled={submitting || !selectedDateISO}
               >
-                {submitting ? 'Adding…' : 'Add slot'}
+                {submitLabel}
               </Button>
             </form>
           </section>

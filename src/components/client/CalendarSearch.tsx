@@ -19,6 +19,8 @@ import {
   localDateToISODate,
 } from '@/lib/date'
 import { useBookSlot } from '@/components/client/use-book-slot'
+import { BookingConfirmation } from '@/components/client/booking-confirmation'
+import { formatPriceRange } from '@/lib/price'
 import {
   PHOTOGRAPHER_SPECIALTIES,
   type AvailabilitySlot,
@@ -35,6 +37,9 @@ export type SlotWithPhotographer = AvailabilitySlot & {
     | 'price_max'
     | 'specialty'
     | 'specialty_other'
+    | 'deposit_policy'
+    | 'payment_terms'
+    | 'payment_link'
   >
 }
 
@@ -110,7 +115,7 @@ export function CalendarSearch({
     initialSlots.length > 0 ? isoDateToLocalDate(initialSlots[0].date) : undefined
   )
 
-  const { bookingSlotId, error, successMessage, bookSlot } =
+  const { bookingSlotId, error, confirmation, clearConfirmation, bookSlot } =
     useBookSlot(paymentsEnabled)
 
   const selectedDateISO = selectedDate
@@ -139,14 +144,34 @@ export function CalendarSearch({
   }))
 
   function handleBook(slot: SlotWithPhotographer) {
+    const { photographer } = slot
+    const photographerName = photographer.display_name ?? 'the photographer'
     bookSlot(
       {
         slotId: slot.id,
-        photographerId: slot.photographer.id,
-        photographerName: slot.photographer.display_name ?? 'the photographer',
-        basePrice: slot.photographer.base_price,
+        photographerId: photographer.id,
+        photographerName,
+        basePrice: photographer.base_price,
+        summary: {
+          photographerName,
+          date: slot.date,
+          startTime: slot.start_time,
+          endTime: slot.end_time,
+          priceLabel: formatPriceRange(photographer.base_price, photographer.price_max),
+          depositPolicy: photographer.deposit_policy,
+          paymentTerms: photographer.payment_terms,
+          paymentLink: photographer.payment_link,
+        },
       },
       () => setSlots((prev) => prev.filter((s) => s.id !== slot.id))
+    )
+  }
+
+  if (confirmation) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <BookingConfirmation booking={confirmation} onBookAnother={clearConfirmation} />
+      </div>
     )
   }
 
@@ -155,11 +180,6 @@ export function CalendarSearch({
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert>
-          <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       )}
 

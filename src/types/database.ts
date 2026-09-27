@@ -66,6 +66,7 @@ export type Database = {
           payment_terms: string | null
           deposit_policy: DepositPolicy | null
           has_signed_contract: boolean
+          contract_signed_at: string | null
           created_at: string
         }
         Insert: {
@@ -86,6 +87,7 @@ export type Database = {
           payment_terms?: string | null
           deposit_policy?: DepositPolicy | null
           has_signed_contract?: boolean
+          contract_signed_at?: string | null
           created_at?: string
         }
         Update: {
@@ -106,6 +108,7 @@ export type Database = {
           payment_terms?: string | null
           deposit_policy?: DepositPolicy | null
           has_signed_contract?: boolean
+          contract_signed_at?: string | null
           created_at?: string
         }
         Relationships: []
@@ -263,6 +266,10 @@ export type Database = {
           status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
           created_at: string
         }
+      }
+      sign_photographer_contract: {
+        Args: { [_ in never]: never }
+        Returns: undefined
       }
     }
     Enums: {

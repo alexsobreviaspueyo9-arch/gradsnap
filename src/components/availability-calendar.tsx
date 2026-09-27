@@ -20,7 +20,6 @@ export type CalendarEvent = {
   title: string
   start: Date
   end: Date
-  booked?: boolean
 }
 
 function isSameDay(a: Date, b: Date) {
@@ -54,9 +53,6 @@ export function AvailabilityCalendar({
         popup
         onSelectSlot={(slotInfo) => onSelectDate?.(slotInfo.start)}
         onSelectEvent={(event) => onSelectDate?.(event.start)}
-        eventPropGetter={(event) => ({
-          className: cn(event.booked && 'gs-event-booked'),
-        })}
         dayPropGetter={(date) => {
           if (selectedDate && isSameDay(date, selectedDate)) {
             return { className: 'rbc-selected-cell' }

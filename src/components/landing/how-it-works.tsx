@@ -1,19 +1,26 @@
 'use client'
 
 import Image from 'next/image'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Search, CalendarCheck, Image as GalleryIcon } from 'lucide-react'
 
 const EASE = [0.16, 1, 0.3, 1] as const
+const STEP_STAGGER_S = 0.18
 
-function useReveal(delay: number) {
-  const reduce = useReducedMotion()
-  return {
-    initial: reduce ? false : { opacity: 0, y: 28 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.25 },
-    transition: { duration: 0.7, delay, ease: EASE },
-  } as const
+// The grid triggers once, then each step card follows the previous one.
+const GRID_VARIANTS: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: STEP_STAGGER_S } },
+}
+
+const STEP_VARIANTS: Variants = {
+  hidden: { opacity: 0, y: 28, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.7, ease: EASE },
+  },
 }
 
 function IconChip({
@@ -37,9 +44,7 @@ function IconChip({
 }
 
 export function HowItWorks() {
-  const findReveal = useReveal(0)
-  const bookReveal = useReveal(0.12)
-  const receiveReveal = useReveal(0.24)
+  const reduceMotion = useReducedMotion()
 
   return (
     <section
@@ -56,9 +61,15 @@ export function HowItWorks() {
         </p>
       </div>
 
-      <div className="mt-14 grid gap-4 md:grid-cols-6 md:grid-rows-2">
+      <motion.div
+        variants={GRID_VARIANTS}
+        initial={reduceMotion ? false : 'hidden'}
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        className="mt-14 grid gap-4 md:grid-cols-6 md:grid-rows-2"
+      >
         <motion.article
-          {...findReveal}
+          variants={STEP_VARIANTS}
           className="group relative flex min-h-[440px] flex-col justify-end overflow-hidden rounded-3xl p-7 text-white md:col-span-3 md:row-span-2 md:min-h-[560px] md:p-9"
         >
           <Image
@@ -86,7 +97,7 @@ export function HowItWorks() {
         </motion.article>
 
         <motion.article
-          {...bookReveal}
+          variants={STEP_VARIANTS}
           className="relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-3xl bg-primary p-7 text-primary-foreground md:col-span-3 md:p-9"
         >
           <div
@@ -107,7 +118,7 @@ export function HowItWorks() {
         </motion.article>
 
         <motion.article
-          {...receiveReveal}
+          variants={STEP_VARIANTS}
           className="relative flex min-h-[260px] flex-col justify-between overflow-hidden rounded-3xl bg-accent p-7 text-accent-foreground ring-1 ring-foreground/5 md:col-span-3 md:p-9"
         >
           <IconChip tone="solid">
@@ -122,7 +133,7 @@ export function HowItWorks() {
             </p>
           </div>
         </motion.article>
-      </div>
+      </motion.div>
     </section>
   )
 }
