@@ -9,10 +9,6 @@ export default function AuthLayout({
   return (
     <div className="grid min-h-[100dvh] lg:grid-cols-[1fr_1.05fr]">
       <div className="relative flex flex-col px-4 py-6 sm:px-8">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_45%_at_50%_0%,var(--brand-glow),transparent_70%)]"
-        />
         <div className="relative">
           <Wordmark />
         </div>
@@ -33,7 +29,7 @@ export default function AuthLayout({
           aria-hidden
           className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent"
         />
-        <p className="absolute right-12 bottom-12 left-12 max-w-md font-heading text-4xl leading-[1.05] font-semibold tracking-tight text-white">
+        <p className="absolute right-12 bottom-12 left-12 max-w-md text-4xl leading-[1.05] font-semibold tracking-tight text-white">
           Four years, one day. Make it unforgettable.
         </p>
       </aside>

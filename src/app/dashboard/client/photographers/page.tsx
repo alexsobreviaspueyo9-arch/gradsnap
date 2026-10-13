@@ -60,7 +60,7 @@ export default async function ClientPhotographersPage() {
           <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
             <CalendarX2 className="size-7" strokeWidth={1.75} />
           </span>
-          <p className="font-heading text-xl font-semibold">No open slots yet</p>
+          <p className="text-xl font-semibold">No open slots yet</p>
           <p className="max-w-sm text-sm text-muted-foreground">
             Photographers have not opened any dates. Check back soon.
           </p>

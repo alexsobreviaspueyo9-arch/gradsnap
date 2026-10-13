@@ -27,18 +27,18 @@ export function DashboardHeader({
   role: 'photographer' | 'client'
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-xl">
+    <header className="gs-glass gs-glass-bar sticky top-0 z-30">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
             <Wordmark href={`/dashboard/${role}`} />
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="max-[359px]:hidden">
               {role === 'photographer' ? 'Photographer' : 'Client'}
             </Badge>
           </div>
           <form action={signOut}>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               type="submit"
               className="h-9 px-4"

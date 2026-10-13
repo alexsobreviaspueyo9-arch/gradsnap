@@ -121,7 +121,7 @@ export function RegisterForm() {
             <Label>I am a…</Label>
             <div className="grid grid-cols-2 gap-3">
               {(['client', 'photographer'] as const).map((r) => {
-                const Icon = r === 'client' ? Camera : GraduationCap
+                const Icon = r === 'client' ? GraduationCap : Camera
                 return (
                   <button
                     key={r}
@@ -140,7 +140,7 @@ export function RegisterForm() {
               })}
             </div>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="h-11 w-full text-base" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}
           </Button>
         </form>
@@ -154,7 +154,7 @@ export function RegisterForm() {
         </div>
         <Button
           variant="outline"
-          className="w-full"
+          className="h-11 w-full"
           onClick={handleGoogleRegister}
           type="button"
         >
@@ -185,7 +185,7 @@ export function RegisterForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="text-primary underline underline-offset-4">
+          <Link href="/login" className="inline-block py-2.5 text-primary underline underline-offset-4">
             Sign in
           </Link>
         </p>

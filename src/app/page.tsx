@@ -1,6 +1,5 @@
 import { LandingNav } from '@/components/landing/landing-nav'
 import { LandingHero } from '@/components/landing/landing-hero'
-import { StyleMarquee } from '@/components/landing/style-marquee'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { GalleryStrip } from '@/components/landing/gallery-strip'
 import { FinalCta } from '@/components/landing/final-cta'
@@ -14,7 +13,6 @@ export default function HomePage() {
       <LandingNav />
       <main>
         <LandingHero />
-        <StyleMarquee />
         <HowItWorks />
         <GalleryStrip />
         <FinalCta />

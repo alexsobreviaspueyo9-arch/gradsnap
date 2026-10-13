@@ -66,7 +66,7 @@ export function PhotographerOverview({
     { label: 'Email', value: email ?? 'Not set' },
     { label: 'Display name', value: profileName ?? 'Not set' },
     { label: 'City', value: city ?? 'Not set' },
-    { label: 'Base price', value: basePrice ? `€${basePrice}` : 'Not set' },
+    { label: 'Base price', value: basePrice ? `$${basePrice}` : 'Not set' },
   ]
 
   return (
@@ -81,8 +81,8 @@ export function PhotographerOverview({
             label: 'View bookings',
           }}
         />
-        <section className="flex flex-col justify-between gap-6 rounded-3xl bg-card p-7 ring-1 ring-foreground/10">
-          <h2 className="font-heading text-xl font-semibold tracking-tight">
+        <section className="flex flex-col justify-between gap-6 rounded-3xl bg-card p-7">
+          <h2 className="text-xl font-semibold tracking-tight">
             Your profile
           </h2>
           <dl className="space-y-3 text-sm">
@@ -99,7 +99,7 @@ export function PhotographerOverview({
               <dt className="text-muted-foreground">Contract</dt>
               <dd className="font-medium">
                 {hasSignedContract ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-1 text-success">
                     <CheckCircle2 className="size-4" /> Signed
                   </span>
                 ) : (

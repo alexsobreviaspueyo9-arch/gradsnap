@@ -12,9 +12,10 @@ import {
 import { formatDateHeading, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
+import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
 import type { AvailabilitySlot, DepositPolicy } from '@/types/database'
 
-const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
+const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
 
 export function BookingWidget({
   photographerId,
@@ -44,6 +45,7 @@ export function BookingWidget({
   )
   const { bookingSlotId, error, confirmation, clearConfirmation, bookSlot } =
     useBookSlot(paymentsEnabled)
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
 
   // Live-remove a slot the moment it's booked or deleted, so this
   // photographer's calendar never shows a slot that's already gone.
@@ -116,6 +118,12 @@ export function BookingWidget({
   const daySlots = selectedDateISO
     ? slots.filter((s) => s.date === selectedDateISO)
     : []
+  // Derived, so a slot someone else just booked can't stay selected.
+  const selectedSlot = daySlots.find((s) => s.id === selectedSlotId) ?? null
+  const isBooking = bookingSlotId !== null
+  const busyLabel = paymentsEnabled ? 'Redirecting…' : 'Booking…'
+  const bookLabel =
+    isBooking || !selectedSlot ? busyLabel : `Book ${slotTimeLabel(selectedSlot)}`
 
   if (paymentsEnabled && basePrice == null) {
     return (
@@ -156,7 +164,7 @@ export function BookingWidget({
         <div className="space-y-4">
           {paymentsEnabled && depositAmount != null && (
             <p className="text-sm text-muted-foreground">
-              Booking requires a €{depositAmount.toFixed(2)} deposit (50%)
+              Booking requires a ${depositAmount.toFixed(2)} deposit (50%)
               paid up front; the rest is due after the session.
             </p>
           )}
@@ -170,43 +178,43 @@ export function BookingWidget({
           </div>
 
           <div className={PANEL}>
-            <h3 className="font-heading text-lg font-semibold tracking-tight">
+            <h3 className="text-lg font-semibold tracking-tight">
               {selectedDateISO
                 ? formatDateHeading(selectedDateISO)
                 : 'Select a date'}
             </h3>
-            <div className="mt-4 space-y-2">
-              {daySlots.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No open slots this day. Pick a highlighted date on the
-                  calendar.
-                </p>
-              ) : (
-                daySlots.map((slot) => (
-                  <div
-                    key={slot.id}
-                    className="flex items-center justify-between rounded-2xl bg-muted/60 px-4 py-2.5"
+            {daySlots.length === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                No open slots this day. Pick a day marked Open on the calendar.
+              </p>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <SlotPicker
+                    label="Available times"
+                    slots={daySlots}
+                    selectedId={selectedSlot?.id ?? null}
+                    onSelect={setSelectedSlotId}
+                    disabled={isBooking}
+                  />
+                </div>
+                {selectedSlot ? (
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="mt-5 h-12 w-full text-base"
+                    disabled={isBooking}
+                    onClick={() => handleBook(selectedSlot)}
                   >
-                    <span className="text-sm font-medium tabular-nums">
-                      {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-9 px-5"
-                      disabled={bookingSlotId === slot.id}
-                      onClick={() => handleBook(slot)}
-                    >
-                      {bookingSlotId === slot.id
-                        ? paymentsEnabled
-                          ? 'Redirecting…'
-                          : 'Booking…'
-                        : 'Book'}
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
+                    {bookLabel}
+                  </Button>
+                ) : (
+                  <p className="mt-4 text-sm text-muted-foreground">
+                    Choose a time to book it.
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

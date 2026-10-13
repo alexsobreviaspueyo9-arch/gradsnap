@@ -26,17 +26,15 @@ export type BookingWithDetails = Booking & {
 }
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400',
-  confirmed: 'bg-primary/10 text-primary',
-  completed:
-    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400',
+  pending: 'bg-warning-fill text-warning',
+  confirmed: 'bg-success-fill text-success',
+  completed: 'bg-muted text-foreground',
   cancelled: 'bg-muted text-muted-foreground',
 }
 
 const PAYMENT_STATUS_STYLES: Record<PaymentStatus, string> = {
   pending: 'bg-muted text-muted-foreground',
-  paid:
-    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400',
+  paid: 'bg-success-fill text-success',
 }
 
 function paymentStatusLabel(booking: BookingWithDetails): string | null {
@@ -53,13 +51,13 @@ function DateTile({ isoDate, muted }: { isoDate: string; muted: boolean }) {
     <div
       className={cn(
         'flex size-16 shrink-0 flex-col items-center justify-center rounded-2xl',
-        muted ? 'bg-muted text-muted-foreground' : 'bg-accent text-primary'
+        muted ? 'bg-muted text-muted-foreground' : 'bg-muted text-foreground'
       )}
     >
-      <span className="text-[0.65rem] font-semibold tracking-wide uppercase">
+      <span className="text-[0.6875rem] font-semibold tracking-wide uppercase">
         {date.toLocaleDateString('en-US', { month: 'short' })}
       </span>
-      <span className="font-heading text-2xl leading-none font-bold tabular-nums">
+      <span className="text-2xl leading-none font-bold tabular-nums">
         {date.getDate()}
       </span>
     </div>
@@ -156,7 +154,7 @@ export function BookingsManager({
         <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
           <CalendarClock className="size-7" strokeWidth={1.75} />
         </span>
-        <p className="font-heading text-xl font-semibold">No bookings yet</p>
+        <p className="text-xl font-semibold">No bookings yet</p>
         <p className="max-w-sm text-sm text-muted-foreground">
           They will show up here as soon as a client books one of your open
           slots.
@@ -191,14 +189,14 @@ export function BookingsManager({
           <article
             key={booking.id}
             className={cn(
-              'flex flex-col gap-5 rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:flex-row sm:items-center sm:p-6',
-              inactive && 'opacity-75'
+              'flex flex-col gap-5 rounded-3xl bg-card p-5 sm:flex-row sm:items-center sm:p-6',
+              inactive && 'bg-muted/50'
             )}
           >
             <div className="flex items-center gap-4 sm:w-72 sm:shrink-0">
               <DateTile isoDate={booking.slot.date} muted={inactive} />
               <div className="min-w-0">
-                <p className="truncate font-heading text-lg font-semibold tracking-tight">
+                <p className="truncate text-lg font-semibold tracking-tight">
                   {booking.clientName}
                 </p>
                 <p className="text-sm text-muted-foreground">

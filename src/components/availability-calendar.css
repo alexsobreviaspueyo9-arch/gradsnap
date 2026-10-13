@@ -18,30 +18,36 @@
 
 .gs-calendar .rbc-toolbar button {
   color: var(--foreground);
-  border: 1px solid var(--border);
-  border-radius: 9999px;
-  background: var(--background);
-  padding: 0.4rem 0.9rem;
+  border: none;
+  /* the library squares off the inner corners of its button group */
+  border-radius: 9999px !important;
+  background: var(--secondary);
+  min-height: 2.25rem;
+  padding: 0.4rem 0.95rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s ease;
+}
+
+.gs-calendar .rbc-toolbar button + button {
+  margin-left: 0.25rem;
 }
 
 .gs-calendar .rbc-toolbar button:hover,
-.gs-calendar .rbc-toolbar button:focus-visible {
-  background: var(--accent);
-  border-color: var(--primary);
-  color: var(--accent-foreground);
+.gs-calendar .rbc-toolbar button:active,
+.gs-calendar .rbc-toolbar button.rbc-active {
+  background: color-mix(in oklch, var(--secondary), var(--foreground) 10%);
+  color: var(--foreground);
+  box-shadow: none;
 }
 
-.gs-calendar .rbc-toolbar button.rbc-active {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-color: var(--primary);
+@media (pointer: coarse) {
+  .gs-calendar .rbc-toolbar button {
+    min-height: 2.75rem;
+  }
 }
 
 .gs-calendar .rbc-toolbar-label {
-  font-family: var(--font-heading);
   font-weight: 600;
   font-size: 1.125rem;
   letter-spacing: -0.02em;
@@ -71,31 +77,46 @@
 }
 
 .gs-calendar .rbc-off-range-bg {
-  background: color-mix(in oklch, var(--muted), transparent 40%);
+  background: color-mix(in oklch, var(--muted), transparent 50%);
 }
 
+/* Other-month days are told apart by the filled cell, not by fading the
+   number (faded, it measured 3.2:1). */
 .gs-calendar .rbc-off-range {
   color: var(--muted-foreground);
-  opacity: 0.6;
 }
 
+/* The day number fills its cell's width, so the hit region is the cell
+   (at least 28px tall) without forcing seven wide columns on a small phone. */
+.gs-calendar .rbc-button-link {
+  display: block;
+  width: 100%;
+  min-height: 1.75rem;
+  padding-right: 0.5rem;
+  text-align: right;
+}
+
+/* Colour roles: violet marks the selected day (and today's number), green
+   marks availability. Neither carries meaning alone: the selection has a
+   ring, availability has a text label. */
 .gs-calendar .rbc-today {
-  background: color-mix(in oklch, var(--primary), transparent 92%);
+  background: transparent;
 }
 
 .gs-calendar .rbc-selected-cell {
-  background: color-mix(in oklch, var(--primary), transparent 84%);
+  background: var(--accent);
   box-shadow: inset 0 0 0 2px var(--primary);
 }
 
-.gs-calendar .rbc-event {
-  background: var(--primary);
-  color: var(--primary-foreground);
+.gs-calendar .rbc-event,
+.gs-calendar .rbc-event.rbc-selected {
+  background: var(--success-fill);
+  color: var(--success);
   border: none;
   border-radius: 9999px;
   padding: 2px 8px;
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .gs-calendar .rbc-event:focus {
@@ -110,7 +131,7 @@
 }
 
 .gs-calendar .rbc-date-cell {
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem 0;
   font-size: 0.8125rem;
   font-weight: 500;
 }

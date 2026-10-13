@@ -111,7 +111,7 @@ export async function completeBooking(bookingId: string): Promise<void> {
     line_items: [
       {
         price_data: {
-          currency: 'eur',
+          currency: 'usd',
           unit_amount: Math.round(Number(booking.balance_amount) * 100),
           product_data: {
             name: `Balance — session with ${photographer.display_name ?? 'your photographer'}`,

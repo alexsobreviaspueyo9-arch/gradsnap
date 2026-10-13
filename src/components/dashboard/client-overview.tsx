@@ -29,8 +29,8 @@ export function ClientOverview({
         }}
       />
 
-      <section className="flex flex-col justify-between gap-8 rounded-3xl bg-card p-7 ring-1 ring-foreground/10 lg:row-span-2">
-        <h2 className="font-heading text-xl font-semibold tracking-tight">
+      <section className="flex flex-col justify-between gap-8 rounded-3xl bg-card p-7 lg:row-span-2">
+        <h2 className="text-xl font-semibold tracking-tight">
           Your account
         </h2>
         <dl className="space-y-4 text-sm">

@@ -39,7 +39,7 @@ export function newBookingRequestEmail(input: {
       <p>Hi ${escapeHtml(input.photographerName)},</p>
       <p><strong>${escapeHtml(input.clientName)}</strong> just booked a session with you on
       <strong>${sessionTime(input.date, input.startTime)}</strong> and paid a
-      €${input.depositAmount.toFixed(2)} deposit.</p>
+      $${input.depositAmount.toFixed(2)} deposit.</p>
       <p>Confirm or cancel it from your GradSnap bookings dashboard.</p>
     `),
   }
@@ -73,7 +73,7 @@ export function sessionCompletedBalanceEmail(input: {
     html: wrapper(`
       <p>Hi ${escapeHtml(input.clientName)},</p>
       <p>${escapeHtml(input.photographerName)} marked your session as complete. The remaining
-      balance of <strong>€${input.balanceAmount.toFixed(2)}</strong> is now due.</p>
+      balance of <strong>$${input.balanceAmount.toFixed(2)}</strong> is now due.</p>
       <p><a href="${escapeHtml(input.paymentLinkUrl)}">Pay the remaining balance</a></p>
     `),
   }
@@ -89,7 +89,7 @@ export function balanceReceivedEmail(input: {
     html: wrapper(`
       <p>Hi ${escapeHtml(input.photographerName)},</p>
       <p><strong>${escapeHtml(input.clientName)}</strong> just paid the remaining
-      €${input.balanceAmount.toFixed(2)} balance. This booking is now fully paid.</p>
+      $${input.balanceAmount.toFixed(2)} balance. This booking is now fully paid.</p>
     `),
   }
 }
@@ -104,7 +104,7 @@ export function bookingCancelledRefundedEmail(input: {
     html: wrapper(`
       <p>Hi ${escapeHtml(input.clientName)},</p>
       <p>${escapeHtml(input.photographerName)} cancelled your booking. Your
-      €${input.depositAmount.toFixed(2)} deposit has been refunded in full and
+      $${input.depositAmount.toFixed(2)} deposit has been refunded in full and
       should appear on your statement in a few business days.</p>
     `),
   }

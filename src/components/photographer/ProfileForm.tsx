@@ -35,9 +35,9 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-foreground/10 sm:p-8">
+    <section className="space-y-6 rounded-3xl bg-card p-6 sm:p-8">
       <div>
-        <h2 className="font-heading text-xl font-semibold tracking-tight">
+        <h2 className="text-xl font-semibold tracking-tight">
           {title}
         </h2>
         {description && (
@@ -303,7 +303,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
       >
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="basePrice">Price per session (€)</Label>
+            <Label htmlFor="basePrice">Price per session ($)</Label>
             <Input
               id="basePrice"
               type="number"
@@ -316,7 +316,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="priceMax">Up to (€, optional)</Label>
+            <Label htmlFor="priceMax">Up to ($, optional)</Label>
             <Input
               id="priceMax"
               type="number"
@@ -495,17 +495,17 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
 
       <div className="sticky bottom-4 z-20 space-y-2">
         {error && (
-          <Alert variant="destructive" className="bg-background shadow-lg">
+          <Alert variant="destructive" className="bg-card shadow-lg">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <div className="flex items-center justify-between gap-4 rounded-full bg-background/85 py-2 pr-2 pl-6 shadow-[0_12px_40px_-8px_var(--shadow-tint)] ring-1 ring-foreground/10 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-4 gs-glass rounded-full py-2 pr-2 pl-6 shadow-[0_12px_40px_-8px_var(--shadow-tint)]">
           <p
             aria-live="polite"
             className={cn(
               'text-sm',
               saved
-                ? 'inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400'
+                ? 'inline-flex items-center gap-1.5 font-medium text-success'
                 : 'text-muted-foreground'
             )}
           >

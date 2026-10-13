@@ -20,6 +20,7 @@ import {
 } from '@/lib/date'
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
+import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
 import { formatPriceRange } from '@/lib/price'
 import {
   PHOTOGRAPHER_SPECIALTIES,
@@ -43,9 +44,9 @@ export type SlotWithPhotographer = AvailabilitySlot & {
   >
 }
 
-const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
+const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
 const FIELD =
-  'h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+  'h-11 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
 
 export function CalendarSearch({
   initialSlots,
@@ -117,6 +118,8 @@ export function CalendarSearch({
 
   const { bookingSlotId, error, confirmation, clearConfirmation, bookSlot } =
     useBookSlot(paymentsEnabled)
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
+  const isBooking = bookingSlotId !== null
 
   const selectedDateISO = selectedDate
     ? localDateToISODate(selectedDate)
@@ -190,13 +193,13 @@ export function CalendarSearch({
               <Label htmlFor="cityFilter">Location</Label>
               <Input
                 id="cityFilter"
-                placeholder="e.g. Barcelona"
+                placeholder="e.g. Richmond"
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maxPriceFilter">Max price (€)</Label>
+              <Label htmlFor="maxPriceFilter">Max price ($)</Label>
               <Input
                 id="maxPriceFilter"
                 type="number"
@@ -234,7 +237,7 @@ export function CalendarSearch({
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-36">
-          <h2 className="font-heading text-2xl font-semibold tracking-tight">
+          <h2 className="text-2xl font-semibold tracking-tight">
             {selectedDateISO
               ? formatDateHeading(selectedDateISO)
               : 'Select a date'}
@@ -259,19 +262,22 @@ export function CalendarSearch({
                     ? photographer.specialty_other
                     : photographer.specialty
                 const name = photographer.display_name ?? 'Photographer'
+                // Derived per card, so a slot that just got booked or filtered out can't stay selected.
+                const selectedSlot =
+                  pSlots.find((s) => s.id === selectedSlotId) ?? null
                 return (
                   <article key={photographerId} className={PANEL}>
                     <div className="flex items-start gap-3">
                       <span
                         aria-hidden
-                        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent font-heading text-lg font-bold text-primary"
+                        className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-lg font-semibold text-foreground"
                       >
                         {name.charAt(0).toUpperCase()}
                       </span>
                       <div className="min-w-0">
                         <Link
                           href={`/dashboard/client/photographers/${photographerId}`}
-                          className="block truncate font-heading text-lg font-semibold tracking-tight hover:text-primary"
+                          className="block truncate text-lg font-semibold tracking-tight hover:text-primary"
                         >
                           {name}
                         </Link>
@@ -290,29 +296,32 @@ export function CalendarSearch({
                           )}
                           {photographer.base_price != null && (
                             <span className="font-medium text-foreground">
-                              from €{photographer.base_price}
+                              from ${photographer.base_price}
                             </span>
                           )}
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {pSlots.map((slot) => (
-                        <Button
-                          key={slot.id}
-                          type="button"
-                          variant="outline"
-                          disabled={bookingSlotId === slot.id}
-                          onClick={() => handleBook(slot)}
-                          className={cn(
-                            'h-9 px-4 tabular-nums hover:border-primary hover:bg-accent',
-                            bookingSlotId === slot.id && 'opacity-70'
-                          )}
-                        >
-                          {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
-                        </Button>
-                      ))}
+                    <div className="mt-4">
+                      <SlotPicker
+                        label={`Available times with ${name}`}
+                        slots={pSlots}
+                        selectedId={selectedSlot?.id ?? null}
+                        onSelect={setSelectedSlotId}
+                        disabled={isBooking}
+                      />
                     </div>
+                    {selectedSlot && (
+                      <Button
+                        type="button"
+                        size="lg"
+                        className="mt-4 h-12 w-full text-base"
+                        disabled={isBooking}
+                        onClick={() => handleBook(selectedSlot)}
+                      >
+                        {isBooking ? 'Booking…' : `Book ${slotTimeLabel(selectedSlot)}`}
+                      </Button>
+                    )}
                   </article>
                 )
               })}

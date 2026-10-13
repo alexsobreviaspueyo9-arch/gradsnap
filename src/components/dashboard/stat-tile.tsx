@@ -15,15 +15,13 @@ export function StatTile({
   return (
     <div
       className={cn(
-        'flex flex-col justify-between gap-8 rounded-3xl bg-card p-6 ring-1 ring-foreground/10',
+        'flex flex-col justify-between gap-8 rounded-3xl bg-card p-6',
         className
       )}
     >
-      <span className="flex size-10 items-center justify-center rounded-2xl bg-accent text-primary">
-        <Icon className="size-5" strokeWidth={1.75} />
-      </span>
+      <Icon className="size-6 text-muted-foreground" strokeWidth={1.75} aria-hidden />
       <div>
-        <p className="font-heading text-5xl font-bold tracking-[-0.04em] tabular-nums">
+        <p className="text-5xl font-semibold tracking-[-0.04em] tabular-nums">
           {value}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">{label}</p>

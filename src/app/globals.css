@@ -7,10 +7,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: -apple-system, BlinkMacSystemFont, var(--font-geist-sans), 'Segoe UI', sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-bricolage);
-  --font-heading: var(--font-display);
+  --font-heading: var(--font-sans);
+  --color-success: var(--success);
+  --color-success-fill: var(--success-fill);
+  --color-warning: var(--warning);
+  --color-warning-fill: var(--warning-fill);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,81 +52,94 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* One neutral family tinted toward the brand violet (hue 285) so greys never fight the accent. */
+/* Colour roles (contrast figures measured against the surface they sit on, WCAG).
+   Neutral surfaces so photographs carry the colour; the brand violet is spent only
+   on the primary action and on selection. One colour, one meaning:
+   violet = act / selected, green = available / paid / done, amber = waiting, red = destructive. */
 :root {
-  --background: oklch(0.982 0.005 285);
-  --foreground: oklch(0.19 0.03 285);
-  --card: oklch(0.995 0.002 285);
-  --card-foreground: oklch(0.19 0.03 285);
-  --popover: oklch(0.995 0.002 285);
-  --popover-foreground: oklch(0.19 0.03 285);
-  --primary: oklch(0.47 0.23 280);
-  --primary-foreground: oklch(0.985 0.005 285);
-  --secondary: oklch(0.955 0.012 285);
-  --secondary-foreground: oklch(0.25 0.04 285);
-  --muted: oklch(0.955 0.01 285);
-  --muted-foreground: oklch(0.5 0.03 285);
-  --accent: oklch(0.94 0.03 285);
-  --accent-foreground: oklch(0.3 0.12 280);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.012 285);
-  --input: oklch(0.91 0.012 285);
-  --ring: oklch(0.58 0.2 280);
-  --chart-1: oklch(0.87 0.03 285);
-  --chart-2: oklch(0.6 0.1 285);
-  --chart-3: oklch(0.47 0.23 280);
-  --chart-4: oklch(0.37 0.15 280);
-  --chart-5: oklch(0.27 0.08 285);
-  --radius: 0.875rem;
-  --sidebar: oklch(0.982 0.005 285);
-  --sidebar-foreground: oklch(0.19 0.03 285);
-  --sidebar-primary: oklch(0.47 0.23 280);
-  --sidebar-primary-foreground: oklch(0.985 0.005 285);
-  --sidebar-accent: oklch(0.94 0.03 285);
-  --sidebar-accent-foreground: oklch(0.3 0.12 280);
-  --sidebar-border: oklch(0.91 0.012 285);
-  --sidebar-ring: oklch(0.58 0.2 280);
+  --background: #f5f5f7;          /* surface: grouped background */
+  --foreground: #1d1d1f;          /* label, 15.5:1 */
+  --card: #ffffff;                /* raised surface, label 16.8:1 */
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+  --primary: #4d34d5;             /* accent, white label 7.6:1 */
+  --primary-foreground: #ffffff;
+  --secondary: #e8e8ed;           /* neutral button fill */
+  --secondary-foreground: #1d1d1f;
+  --muted: #ededf0;               /* fill */
+  --muted-foreground: #636366;    /* secondary label, 5.5:1 on surface, 5.1:1 on fill */
+  --accent: #eceafb;              /* tint: selected / current */
+  --accent-foreground: #3b25b8;   /* 8.3:1 on tint */
+  --destructive: #c9000f;         /* 6.0:1 on card, 5.2:1 on fill */
+  --success: #1b6e36;             /* 5.5:1 on its fill */
+  --success-fill: #e3f3e8;
+  --warning: #8a5300;             /* 5.6:1 on its fill */
+  --warning-fill: #fbefd9;
+  --border: #d2d2d7;              /* separator (decorative) */
+  --input: #86868b;               /* control edge, 3.6:1 on card, 3.3:1 on surface */
+  --ring: #4d34d5;
+  --chart-1: #d2d2d7;
+  --chart-2: #86868b;
+  --chart-3: #4d34d5;
+  --chart-4: #3b25b8;
+  --chart-5: #1d1d1f;
+  --radius: 0.75rem;
+  --sidebar: #f5f5f7;
+  --sidebar-foreground: #1d1d1f;
+  --sidebar-primary: #4d34d5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eceafb;
+  --sidebar-accent-foreground: #3b25b8;
+  --sidebar-border: #d2d2d7;
+  --sidebar-ring: #4d34d5;
 
-  --brand-glow: oklch(0.7 0.16 290 / 0.28);
-  --shadow-tint: oklch(0.3 0.1 285 / 0.14);
+  --glass-fill: rgb(255 255 255 / 0.72);
+  --glass-edge: rgb(0 0 0 / 0.08);
+  --shadow-tint: rgb(0 0 0 / 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.15 0.02 285);
-    --foreground: oklch(0.96 0.008 285);
-    --card: oklch(0.2 0.025 285);
-    --card-foreground: oklch(0.96 0.008 285);
-    --popover: oklch(0.2 0.025 285);
-    --popover-foreground: oklch(0.96 0.008 285);
-    --primary: oklch(0.72 0.16 285);
-    --primary-foreground: oklch(0.16 0.04 285);
-    --secondary: oklch(0.26 0.03 285);
-    --secondary-foreground: oklch(0.96 0.008 285);
-    --muted: oklch(0.25 0.025 285);
-    --muted-foreground: oklch(0.72 0.03 285);
-    --accent: oklch(0.29 0.05 285);
-    --accent-foreground: oklch(0.94 0.02 285);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 11%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.72 0.16 285);
-    --chart-1: oklch(0.87 0.03 285);
-    --chart-2: oklch(0.7 0.1 285);
-    --chart-3: oklch(0.6 0.15 285);
-    --chart-4: oklch(0.5 0.16 285);
-    --chart-5: oklch(0.4 0.12 285);
-    --sidebar: oklch(0.2 0.025 285);
-    --sidebar-foreground: oklch(0.96 0.008 285);
-    --sidebar-primary: oklch(0.72 0.16 285);
-    --sidebar-primary-foreground: oklch(0.16 0.04 285);
-    --sidebar-accent: oklch(0.29 0.05 285);
-    --sidebar-accent-foreground: oklch(0.94 0.02 285);
-    --sidebar-border: oklch(1 0 0 / 11%);
-    --sidebar-ring: oklch(0.72 0.16 285);
+    --background: #000000;
+    --foreground: #f5f5f7;          /* 19.3:1 */
+    --card: #1c1c1e;                /* label 15.6:1 */
+    --card-foreground: #f5f5f7;
+    --popover: #1c1c1e;
+    --popover-foreground: #f5f5f7;
+    --primary: #a59cff;             /* dark label 8.2:1 */
+    --primary-foreground: #0c0a1d;
+    --secondary: #2c2c2e;
+    --secondary-foreground: #f5f5f7;
+    --muted: #2c2c2e;
+    --muted-foreground: #a1a1a6;    /* 8.2:1 on surface, 5.4:1 on fill */
+    --accent: #262340;
+    --accent-foreground: #c9c3ff;   /* 9.1:1 */
+    --destructive: #ff6961;         /* 6.0:1 on card */
+    --success: #5ed486;             /* 7.7:1 on its fill */
+    --success-fill: #12301d;
+    --warning: #f2b759;             /* 7.7:1 on its fill */
+    --warning-fill: #3a2a0a;
+    --border: #38383a;
+    --input: #7c7c80;               /* 4.1:1 on card */
+    --ring: #a59cff;
+    --chart-1: #48484a;
+    --chart-2: #7c7c80;
+    --chart-3: #a59cff;
+    --chart-4: #c9c3ff;
+    --chart-5: #f5f5f7;
+    --sidebar: #1c1c1e;
+    --sidebar-foreground: #f5f5f7;
+    --sidebar-primary: #a59cff;
+    --sidebar-primary-foreground: #0c0a1d;
+    --sidebar-accent: #262340;
+    --sidebar-accent-foreground: #c9c3ff;
+    --sidebar-border: #38383a;
+    --sidebar-ring: #a59cff;
 
-    --brand-glow: oklch(0.6 0.2 285 / 0.22);
-    --shadow-tint: oklch(0 0 0 / 0.5);
+    --glass-fill: rgb(28 28 30 / 0.72);
+    --glass-edge: rgb(255 255 255 / 0.12);
+    --shadow-tint: rgb(0 0 0 / 0.5);
   }
 }
 
@@ -137,35 +153,36 @@
   html {
     @apply font-sans;
   }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* Touch: every button keeps its drawn size but gets a 44x44 hit region
+     (accessibility.md > Mobility). In the base layer so utilities such as
+     `absolute` still win over `position: relative`. */
+  @media (pointer: coarse) {
+    .group\/button {
+      position: relative;
+    }
+    .group\/button::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 44px);
+      height: max(100%, 44px);
+      translate: -50% -50%;
+    }
+  }
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;
     }
-  }
-}
-
-/* Landing marquee: one per page. Collapses to a static wrapped list under reduced motion. */
-@keyframes gs-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.gs-marquee-track {
-  animation: gs-marquee 38s linear infinite;
-}
-
-.gs-marquee:hover .gs-marquee-track {
-  animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gs-marquee-track {
-    animation: none;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .gs-marquee-clone {
-    display: none;
   }
 }
 
@@ -180,35 +197,93 @@
 /* App-wide shape rule, kept out of components/ui so `shadcn add` never overwrites it:
    buttons are pills, text fields are a touch taller than the shadcn default. Unlayered on
    purpose so it wins over the utility classes baked into the primitives. */
-[data-slot='button'] {
+[data-slot='button'],
+.group\/button {
   border-radius: 9999px;
 }
 
-/* Primary actions (<Button> and buttonVariants() links share these classes):
-   a slight lift + brand glow on hover. `scale` (not `transform`) so it
-   composes with the translate utilities some CTAs already use. */
-.group\/button.bg-primary:not(:disabled):not([data-disabled]) {
-  transition-property: scale, translate, box-shadow, background-color, color;
-  transition-duration: 200ms;
+/* Full-bleed horizontal strips that still start on the page's content edge. */
+.gs-bleed-x {
+  padding-inline: 1rem;
+  scroll-padding-inline: 1rem;
+}
+@media (min-width: 40rem) {
+  .gs-bleed-x {
+    padding-inline: 1.5rem;
+    scroll-padding-inline: 1.5rem;
+  }
+}
+@media (min-width: 80rem) {
+  .gs-bleed-x {
+    padding-inline: calc((100vw - 80rem) / 2 + 1.5rem);
+    scroll-padding-inline: calc((100vw - 80rem) / 2 + 1.5rem);
+  }
+}
+
+/* Keyboard focus: a solid 2px outline in the accent (7.0:1 on the surface).
+   Unlayered so it beats the primitives' `outline-none` + 50% ring. */
+.group\/button:focus-visible,
+[data-slot='input']:focus-visible,
+[data-slot='textarea']:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Every button has a press state (buttons.md > Best practices); the primary one
+   also lifts slightly on hover. `scale` (not `transform`) so it composes with
+   Tailwind's translate utilities. */
+.group\/button:not(:disabled):not([data-disabled]) {
+  transition-property: scale, background-color, color, border-color, opacity;
+  transition-duration: 160ms;
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.group\/button.bg-primary:not(:disabled):not([data-disabled]):hover {
-  scale: 1.03;
-  box-shadow: 0 10px 28px -8px var(--primary), 0 0 0 4px var(--brand-glow);
+.group\/button:not(:disabled):not([data-disabled]):active {
+  scale: 0.97;
 }
 
-.group\/button.bg-primary:not(:disabled):not([data-disabled]):active {
-  scale: 0.98;
+@media (hover: hover) {
+  .group\/button.bg-primary:not(:disabled):not([data-disabled]):hover {
+    scale: 1.02;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .group\/button.bg-primary:not(:disabled):not([data-disabled]):hover,
-  .group\/button.bg-primary:not(:disabled):not([data-disabled]):active {
+  .group\/button:not(:disabled):not([data-disabled]):hover,
+  .group\/button:not(:disabled):not([data-disabled]):active {
     scale: none;
   }
 }
 
-[data-slot='input'] {
-  min-height: 2.5rem;
+/* The floating functional layer (landing bar, dashboard bar) and nothing else:
+   glass never goes on cards or content (liquid-glass.md > Where the material belongs). */
+.gs-glass {
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+}
+
+/* A full-width bar only needs the edge where content meets it. */
+.gs-glass.gs-glass-bar {
+  box-shadow: inset 0 -1px 0 var(--glass-edge);
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .gs-glass {
+    background: var(--card);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 0 0 1px var(--input);
+  }
+  .gs-glass.gs-glass-bar {
+    box-shadow: inset 0 -1px 0 var(--input);
+  }
+}
+
+/* Text fields: 44px tall, and an edge that reads against the surface (3.6:1). */
+[data-slot='input'],
+[data-slot='textarea'] {
+  min-height: 2.75rem;
+  background-color: var(--card);
 }

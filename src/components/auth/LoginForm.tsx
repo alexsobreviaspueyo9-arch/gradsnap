@@ -105,7 +105,7 @@ export function LoginForm() {
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="h-11 w-full text-base" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
@@ -119,7 +119,7 @@ export function LoginForm() {
         </div>
         <Button
           variant="outline"
-          className="w-full"
+          className="h-11 w-full"
           onClick={handleGoogleLogin}
           type="button"
         >
@@ -147,7 +147,7 @@ export function LoginForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-primary underline underline-offset-4">
+          <Link href="/register" className="inline-block py-2.5 text-primary underline underline-offset-4">
             Sign up
           </Link>
         </p>

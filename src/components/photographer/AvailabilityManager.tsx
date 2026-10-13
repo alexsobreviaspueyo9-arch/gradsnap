@@ -25,7 +25,7 @@ import {
 } from '@/lib/date'
 import type { AvailabilitySlot } from '@/types/database'
 
-const PANEL = 'rounded-3xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6'
+const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
 const REPEAT_WEEK_OPTIONS = [4, 8, 12] as const
 const DEFAULT_REPEAT_WEEKS = 8
 
@@ -201,7 +201,7 @@ export function AvailabilityManager({
 
         <div className="space-y-4 lg:sticky lg:top-36">
           <section className={PANEL}>
-            <h2 className="font-heading text-xl font-semibold tracking-tight">
+            <h2 className="text-xl font-semibold tracking-tight">
               {selectedDateISO
                 ? formatDateHeading(selectedDateISO)
                 : 'Select a date'}
@@ -250,7 +250,7 @@ export function AvailabilityManager({
                       id="repeatWeeks"
                       value={repeatWeeks}
                       onChange={(e) => setRepeatWeeks(Number(e.target.value))}
-                      className="rounded-lg border border-input bg-background px-2 py-1 text-foreground"
+                      className="h-9 rounded-lg border border-input bg-card px-2 text-foreground"
                     >
                       {REPEAT_WEEK_OPTIONS.map((weeks) => (
                         <option key={weeks} value={weeks}>
@@ -290,7 +290,7 @@ export function AvailabilityManager({
                       className={cn(
                         slot.is_booked
                           ? 'bg-muted text-muted-foreground'
-                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400'
+                          : 'bg-success-fill text-success'
                       )}
                     >
                       {slot.is_booked ? 'Booked' : 'Open'}

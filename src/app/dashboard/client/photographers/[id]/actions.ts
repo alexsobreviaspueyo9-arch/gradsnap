@@ -38,7 +38,7 @@ export async function startDepositCheckout(input: {
     line_items: [
       {
         price_data: {
-          currency: 'eur',
+          currency: 'usd',
           unit_amount: depositCents,
           product_data: {
             name: `Deposit — session with ${input.photographerName}`,

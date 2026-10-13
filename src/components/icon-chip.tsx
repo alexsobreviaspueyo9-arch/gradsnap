@@ -13,7 +13,7 @@ export function IconChip({
   return (
     <div
       className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary',
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground',
         className
       )}
     >

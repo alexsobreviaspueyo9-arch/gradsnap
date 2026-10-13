@@ -33,7 +33,7 @@ const DAY_LABELS: Record<Weekday, string> = {
   sun: 'Sun',
 }
 
-const PANEL = 'rounded-3xl bg-card p-6 ring-1 ring-foreground/10 sm:p-8'
+const PANEL = 'rounded-3xl bg-card p-6 sm:p-8'
 
 export function PhotographerDetailView({
   photographer,
@@ -69,7 +69,7 @@ export function PhotographerDetailView({
     <>
       <Link
         href="/dashboard/client/photographers"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         Back to photographers
@@ -81,12 +81,12 @@ export function PhotographerDetailView({
             <div className="flex items-start gap-4">
               <span
                 aria-hidden
-                className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary font-heading text-2xl font-bold text-primary-foreground"
+                className="flex size-16 shrink-0 items-center justify-center rounded-full bg-muted text-2xl font-semibold text-foreground"
               >
                 {name.charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0">
-                <h1 className="font-heading text-3xl leading-tight font-bold tracking-[-0.03em] sm:text-4xl">
+                <h1 className="text-3xl leading-tight font-semibold tracking-[-0.03em] sm:text-4xl">
                   {name}
                 </h1>
                 <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -113,7 +113,7 @@ export function PhotographerDetailView({
             </div>
 
             {priceRange && (
-              <p className="mt-6 font-heading text-4xl font-bold tracking-[-0.03em] tabular-nums">
+              <p className="mt-6 text-4xl font-semibold tracking-[-0.03em] tabular-nums">
                 {priceRange}
                 <span className="ml-2 text-sm font-normal tracking-normal text-muted-foreground">
                   per session
@@ -124,7 +124,7 @@ export function PhotographerDetailView({
             {(photographer.deposit_policy || photographer.payment_terms) && (
               <div className="mt-4 space-y-2 text-sm">
                 {photographer.deposit_policy && (
-                  <p className="inline-flex items-center gap-2 rounded-full bg-accent px-3.5 py-1.5 font-medium text-accent-foreground">
+                  <p className="inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-1.5 font-medium">
                     <CreditCard className="size-4" />
                     {DEPOSIT_POLICY_LABELS[photographer.deposit_policy]}
                   </p>
@@ -150,7 +150,7 @@ export function PhotographerDetailView({
                     href={instagramHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 font-medium transition-colors hover:bg-secondary"
                   >
                     <AtSign className="size-4" />
                     Instagram
@@ -162,7 +162,7 @@ export function PhotographerDetailView({
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3.5 py-1.5 font-medium transition-colors hover:bg-secondary"
                   >
                     <LinkIcon className="size-4" />
                     {link.label}
@@ -221,7 +221,7 @@ export function PhotographerDetailView({
         </div>
 
         <section className="space-y-4 lg:sticky lg:top-36">
-          <h2 className="font-heading text-2xl font-semibold tracking-tight">
+          <h2 className="text-2xl font-semibold tracking-tight">
             Book a session
           </h2>
           {justBooked && (

@@ -64,11 +64,11 @@ export default function ContractPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="rounded-2xl bg-accent p-5 text-center">
-              <p className="font-heading text-4xl font-bold tracking-tight text-primary">
+              <p className="text-4xl font-bold tracking-tight text-primary">
                 0% commission
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Every euro your clients pay goes to you. GradSnap is a free,
+                Every dollar your clients pay goes to you. GradSnap is a free,
                 additional channel on top of your existing marketing — not a
                 replacement for it — to bring you more clients at no cost.
               </p>

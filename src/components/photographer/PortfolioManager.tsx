@@ -212,11 +212,11 @@ export function PortfolioManager({
 
       <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-dashed border-border bg-card/50 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
         <div className="flex items-center gap-4">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
             <ImagePlus className="size-7" strokeWidth={1.75} />
           </span>
           <div>
-            <p className="font-heading text-xl font-semibold tracking-tight">
+            <p className="text-xl font-semibold tracking-tight">
               {total} of {MAX_PHOTOS} photos
             </p>
             <p className="text-sm text-muted-foreground">
@@ -240,8 +240,8 @@ export function PortfolioManager({
       </div>
 
       {pending.length > 0 && (
-        <section className="space-y-4 rounded-3xl bg-card p-5 ring-1 ring-primary/40 sm:p-6">
-          <p className="font-heading text-lg font-semibold tracking-tight">
+        <section className="space-y-4 rounded-3xl bg-card p-5 sm:p-6">
+          <p className="text-lg font-semibold tracking-tight">
             {pending.length} photo{pending.length === 1 ? '' : 's'} ready to
             upload
           </p>
@@ -294,7 +294,7 @@ export function PortfolioManager({
           {photos.map((photo) => (
             <figure
               key={photo.id}
-              className="group overflow-hidden rounded-3xl bg-card ring-1 ring-foreground/10"
+              className="group overflow-hidden rounded-3xl bg-card"
             >
               <div className="relative aspect-square w-full">
                 <PortfolioImage

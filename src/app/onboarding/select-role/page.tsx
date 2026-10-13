@@ -90,7 +90,7 @@ export default function SelectRolePage() {
       <div>
         <Card className="rounded-3xl py-6">
           <CardHeader className="text-center">
-            <CardTitle className="font-heading text-2xl font-bold tracking-tight">
+            <CardTitle className="text-2xl font-bold tracking-tight">
               How will you use GradSnap?
             </CardTitle>
             <CardDescription>

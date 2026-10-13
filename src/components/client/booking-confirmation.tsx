@@ -90,14 +90,14 @@ export function BookingConfirmation({
   return (
     <section
       aria-live="polite"
-      className="rounded-3xl bg-card p-6 ring-1 ring-foreground/10 sm:p-8"
+      className="rounded-3xl bg-card p-6 sm:p-8"
     >
       <div className="flex items-center gap-3">
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-accent text-primary">
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-success-fill text-success">
           <CheckCircle2 className="size-6" strokeWidth={1.75} />
         </span>
         <div>
-          <h3 className="font-heading text-xl font-semibold tracking-tight">
+          <h3 className="text-xl font-semibold tracking-tight">
             Booking requested
           </h3>
           <p className="text-sm text-muted-foreground">

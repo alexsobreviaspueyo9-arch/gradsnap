@@ -10,10 +10,6 @@ export function CenteredShell({
 }) {
   return (
     <div className="relative flex min-h-[100dvh] flex-col px-4 py-6 sm:px-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_45%_at_50%_0%,var(--brand-glow),transparent_70%)]"
-      />
       <div className="relative">
         <Wordmark />
       </div>

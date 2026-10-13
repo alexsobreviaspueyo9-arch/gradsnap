@@ -94,17 +94,37 @@ docs/HISTORY.md             full history (not auto-loaded)
   No "switch role" feature.
 - **Clients need an account before browsing** photographers or calendars
   (user decision). Don't make the listing public.
+- **Market: Virginia, USA.** Prices are **US dollars** (`$`, `formatPriceRange()` in
+  `lib/price.ts`; dormant Stripe code uses `usd`).
 - **Time zone:** slot date/time are wall-clock **America/New_York** (Virginia market):
   `APP_TIME_ZONE`/`isUpcomingSlot()` in `lib/date.ts` and `book_slot()` must agree.
 - **CSS:** custom global classes use the **`gs-`** prefix (`gs-calendar`,
-  `gs-marquee*`, `gs-scrollbar-none`); third-party styles are scoped under a
-  `gs-` wrapper. Global overrides of shadcn go unlayered in `globals.css`
-  (button pill shape, input height, primary hover glow via `.group\/button.bg-primary`).
-- **Design:** tokens in `globals.css` (violet hue 285; Bricolage Grotesque
-  headings over Geist). Dark mode = `prefers-color-scheme` only (no toggle).
-  Marketing buttons `rounded-full`, cards/images `rounded-3xl`. Violet
-  (`bg-primary`) only for the ONE main action per context; secondary actions
-  use `outline`/`ghost`. Portfolio tiles are `aspect-square` everywhere.
+  `gs-glass`, `gs-bleed-x`, `gs-scrollbar-none`); third-party styles are scoped
+  under a `gs-` wrapper. Global overrides of shadcn go unlayered in `globals.css`
+  (capsule buttons, press state, focus outline, 44px fields) keyed on
+  `.group\/button` / `[data-slot]`, never by editing `components/ui`.
+- **Design (2026-10, Apple HIG pass via the `apple-design` skill):**
+  - Tokens in `globals.css` are hex with their measured contrast in comments.
+    Neutral surfaces (`--background` grouped grey, `--card` white; black /
+    `#1c1c1e` in dark), one typeface (system font on Apple devices, Geist
+    elsewhere), headings `font-semibold`. Dark mode = `prefers-color-scheme` only.
+  - **One colour, one meaning:** violet (`primary`/`accent`) = the ONE primary
+    action per view and selection; green (`success`) = available / confirmed /
+    paid; amber (`warning`) = pending; red = destructive. Icons, avatars and
+    info chips are neutral (`bg-muted`). No Tailwind palette colours in app code.
+  - **Glass (`gs-glass`) only on floating chrome** (landing bar, dashboard bar,
+    profile save bar), never on cards or content. It turns opaque under
+    `prefers-contrast: more` / `prefers-reduced-transparency`.
+  - No text over photographs (measured down to 1.5:1). `--input` (3.6:1) is
+    for control edges, `--border` for decorative separators.
+  - Touch: buttons get a 44px hit region on coarse pointers; fields are 44px.
+    Don't dim text with `opacity-*` (it broke 4.5:1); change the surface.
+  - Cards/images `rounded-3xl`, buttons are capsules, portfolio tiles `aspect-square`.
+  - Motion: "How it works" stagger and the page fade only; wrap Framer trees
+    that react to reduced motion in `<MotionConfig reducedMotion="user">`
+    (branching on `useReducedMotion()` for `initial` causes hydration errors).
+  - Re-check after UI work with a contrast/overflow/target script (text >= 4.5:1,
+    no overflow at 320px, controls >= 28px); sentence case for all labels.
 - **Images:** new remote hosts need `images.remotePatterns` in `next.config.ts`
   (Unsplash and `*.supabase.co` storage are configured). `blob:` previews stay `<img>`.
 - **Analytics:** fire events only through `trackEvent()` (`lib/posthog.ts`);
@@ -118,11 +138,12 @@ docs/HISTORY.md             full history (not auto-loaded)
 
 ## Views (one paragraph each)
 
-**Landing (`/`).** Server page composing `components/landing/*`: pill nav,
-split hero with parallax photos, one CSS marquee of specialties, "How it
-works" bento with Framer stagger, horizontal gallery strip (never add
-`justify-center`, it hides the first photo), final CTA pair with
-`signup_started` + `?role=` links, footer.
+**Landing (`/`).** Server page composing `components/landing/*`: glass
+capsule nav, hero (headline on the surface, portrait photo beside it),
+"How it works" (photo + numbered list with Framer stagger), horizontal
+gallery strip of 4/5 tiles (never add `justify-center`, it hides the first
+photo), two equal role cards whose buttons fire `signup_started` and link
+to `?role=`, footer.
 
 **Auth (`/login`, `/register`, `/verify-email`).** Split-screen layout.
 Email+password or Google. `RegisterForm` preselects role from `?role=` and
@@ -143,13 +164,14 @@ role tabs); pages don't render their own header.
 **Find a photographer (`/dashboard/client/photographers`).** `CalendarSearch`:
 filters (city substring, max price, style) client-side over upcoming open
 slots of contracted photographers; month calendar (react-big-calendar,
-"Available" per day) and per-day slot buttons that book directly. Has a
-`loading.tsx` skeleton.
+"Available" per day); per photographer a `SlotPicker` (choose a time) and
+one primary "Book HH:MM" button. Has a `loading.tsx` skeleton.
 
 **Photographer profile, client view (`.../photographers/[id]`).**
 `PhotographerDetailView`: bio, specialty, price range, links (always through
 `normalizeHttpUrl`), weekly "usually available" summary, portfolio bento
-(`PortfolioImage` skeletons) and `BookingWidget` (calendar + times + Book).
+(`PortfolioImage` skeletons) and `BookingWidget` (calendar, `SlotPicker`,
+then one primary Book button: choosing a time never books by itself).
 
 **Booking confirmation.** After `book_slot()` succeeds, `useBookSlot` stores a
 `BookingSummary` and the widget/search swaps to `BookingConfirmation`
