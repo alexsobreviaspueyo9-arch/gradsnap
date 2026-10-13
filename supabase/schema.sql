@@ -569,7 +569,7 @@ begin
 
   -- Wall-clock slot times; zone must match APP_TIME_ZONE in src/lib/date.ts.
   if v_slot.date + v_slot.start_time
-     <= (now() at time zone 'Europe/Madrid')::timestamp then
+     <= (now() at time zone 'America/New_York')::timestamp then
     raise exception 'This slot has already started.';
   end if;
 

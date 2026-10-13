@@ -14,7 +14,7 @@ export function slotDateTime(date: string, time: string): Date {
 
 // Slot date/start_time are wall-clock values with no zone. Keep in sync
 // with the time zone used by book_slot() in supabase/schema.sql.
-export const APP_TIME_ZONE = 'Europe/Madrid'
+export const APP_TIME_ZONE = 'America/New_York'
 
 // A slot is upcoming while its start time hasn't passed in APP_TIME_ZONE,
 // regardless of the server's own zone (Vercel runs in UTC).

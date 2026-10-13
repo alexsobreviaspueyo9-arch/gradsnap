@@ -1,22 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import { isUpcomingSlot, weeklyDates } from '@/lib/date'
 
-// 2026-07-01 10:00 UTC = 12:00 in Europe/Madrid (CEST, UTC+2)
-const NOW = new Date('2026-07-01T10:00:00Z')
+// 2026-07-01 16:00 UTC = 12:00 in America/New_York (EDT, UTC-4)
+const NOW = new Date('2026-07-01T16:00:00Z')
 
 describe('isUpcomingSlot', () => {
-  it('keeps slots later today in Madrid time', () => {
+  it('keeps slots later today in New York time', () => {
     expect(isUpcomingSlot({ date: '2026-07-01', start_time: '12:30:00' }, NOW)).toBe(true)
   })
 
-  it('drops slots today that already started in Madrid time', () => {
+  it('drops slots today that already started in New York time', () => {
     expect(isUpcomingSlot({ date: '2026-07-01', start_time: '11:00:00' }, NOW)).toBe(false)
     expect(isUpcomingSlot({ date: '2026-07-01', start_time: '12:00:00' }, NOW)).toBe(false)
   })
 
-  it('uses Madrid time, not UTC, for the cut-off', () => {
-    // 11:00 is still in the future in UTC (10:00) but already past in Madrid
-    expect(isUpcomingSlot({ date: '2026-07-01', start_time: '11:00' }, NOW)).toBe(false)
+  it('uses New York time, not UTC, for the cut-off', () => {
+    // 13:00 is already past in UTC (16:00) but still ahead in New York (12:00)
+    expect(isUpcomingSlot({ date: '2026-07-01', start_time: '13:00' }, NOW)).toBe(true)
+  })
+
+  it('handles winter time (EST, UTC-5)', () => {
+    // 2026-01-15 15:00 UTC = 10:00 in New York
+    const winterNow = new Date('2026-01-15T15:00:00Z')
+    expect(isUpcomingSlot({ date: '2026-01-15', start_time: '10:30' }, winterNow)).toBe(true)
+    expect(isUpcomingSlot({ date: '2026-01-15', start_time: '09:30' }, winterNow)).toBe(false)
   })
 
   it('keeps future days and drops past days', () => {

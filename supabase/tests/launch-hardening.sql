@@ -82,8 +82,8 @@ cross join lateral (values
   (t.open_slot,    current_date + 7, time '10:00'),
   (t.second_slot,  current_date + 8, time '10:00'),
   (t.past_slot,    current_date - 1, time '10:00'),
-  -- today (Madrid) at 00:00: always already started
-  (t.started_slot, (now() at time zone 'Europe/Madrid')::date, time '00:00')
+  -- today (New York) at 00:00: always already started
+  (t.started_slot, (now() at time zone 'America/New_York')::date, time '00:00')
 ) as s(id, d, t);
 
 -- ── checks ───────────────────────────────────────────────────────────────

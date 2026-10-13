@@ -94,7 +94,7 @@ docs/HISTORY.md             full history (not auto-loaded)
   No "switch role" feature.
 - **Clients need an account before browsing** photographers or calendars
   (user decision). Don't make the listing public.
-- **Time zone:** slot date/time are wall-clock **Europe/Madrid**:
+- **Time zone:** slot date/time are wall-clock **America/New_York** (Virginia market):
   `APP_TIME_ZONE`/`isUpcomingSlot()` in `lib/date.ts` and `book_slot()` must agree.
 - **CSS:** custom global classes use the **`gs-`** prefix (`gs-calendar`,
   `gs-marquee*`, `gs-scrollbar-none`); third-party styles are scoped under a
@@ -194,5 +194,4 @@ Details and reasoning in `docs/HISTORY.md` ("Launch checklist").
 3. Production URLs: confirm `APP_URL` in Vercel and Supabase Auth Site URL /
    Redirect URLs include `https://gradsnap.vercel.app/**` (and the domain later).
 4. Supabase free tier pauses after ~7 idle days (DNS stops resolving): Pro plan or accept the risk.
-5. Confirm the Europe/Madrid time zone with the user.
-6. Booking confirmation email to the client (not built; needs item 1).
+5. Booking confirmation email to the client (not built; needs item 1).
