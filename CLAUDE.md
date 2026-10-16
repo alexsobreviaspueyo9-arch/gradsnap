@@ -37,17 +37,17 @@ src/app/
   (auth)/                   login, register, verify-email (split-screen layout)
   auth/callback/route.ts    OAuth + email-confirmation exchange -> dashboard
   onboarding/               select-role (Google users), photographer/contract
-  dashboard/client/         overview, photographers (search), photographers/[id]
-  dashboard/photographer/   overview, profile, portfolio, availability, bookings
+  dashboard/client/         overview, photographers (search), photographers/[id], messages
+  dashboard/photographer/   overview, profile, portfolio, availability, bookings, messages
   booking/balance-paid/     Stripe return page (dormant, see Payments)
   api/stripe/webhook/       dormant Stripe webhook (service-role client)
   template.tsx (+ per dashboard)  page fade, see Motion
   robots.ts sitemap.ts opengraph-image.tsx error.tsx not-found.tsx
 src/components/
   ui/                       shadcn primitives: NEVER edit; restyle via globals.css
-  landing/ auth/ brand/ dashboard/ client/ photographer/ motion/ analytics/
+  landing/ auth/ brand/ dashboard/ client/ photographer/ chat/ motion/ analytics/
 src/lib/
-  supabase/{client,server,service}.ts   date.ts  price.ts  url.ts  site.ts
+  supabase/{client,server,service}.ts   date.ts  price.ts  url.ts  site.ts  chat.ts
   email-templates.ts  resend.ts  posthog.ts  stripe.ts  actions/auth.ts
 supabase/schema.sql         whole schema, run by hand in the SQL Editor
 supabase/tests/launch-hardening.sql   rolled-back RLS/trigger attack suite
@@ -68,8 +68,9 @@ docs/HISTORY.md             full history (not auto-loaded)
   browser requests (`current_user` = `authenticated`/`anon`); security-definer
   RPCs and service_role bypass them. Bookings are created ONLY via
   `rpc('book_slot')`; contracts ONLY via `rpc('sign_photographer_contract')`.
-- **Realtime:** `availability_slots` is in `supabase_realtime`; client calendars
-  remove slots live when booked/deleted (they don't add new ones live).
+- **Realtime:** `availability_slots` and `booking_messages` are in
+  `supabase_realtime`; client calendars remove slots live when booked/deleted
+  (they don't add new ones live); chat threads receive new messages live.
 - **Role** comes from `profiles.role` (locked by trigger), never from
   `user_metadata` (users can edit that). `proxy.ts` looks it up for
   `/dashboard/**`, `/login`, `/register`; `getUser()` is capped at 5s.
@@ -175,7 +176,7 @@ then one primary Book button: choosing a time never books by itself).
 
 **Booking confirmation.** After `book_slot()` succeeds, `useBookSlot` stores a
 `BookingSummary` and the widget/search swaps to `BookingConfirmation`
-(photographer, date, time, price, next payment step from `deposit_policy`,
+(photographer, date, time, price, next payment step from `nextPaymentStep()` in `lib/payment.ts`,
 payment link in a new tab). Stays until "Book another session".
 
 **Photographer overview (`/dashboard/photographer`).** Stats and action tiles;
@@ -183,8 +184,13 @@ redirects to the contract if unsigned.
 
 **Profile (`.../profile`).** `ProfileForm`: name, bio, city, price from/up to,
 session length, specialty (or Other), Instagram + social links (http(s) only,
-DB check constraint too), payment link, payment terms, `deposit_policy`,
-reference-only `weekly_availability` (does NOT create bookable slots).
+DB check constraint too), payment link, payment terms, `payment_method` (stripe|cash) + `requires_deposit` (stripe needs a link; `deposit_policy` is a dead legacy column),
+`weekly_availability`, which DOES create bookable slots: the DB trigger
+`sync_weekly_slots` fills the next 12 weeks (one slot per weekday window,
+skipped where a slot already overlaps, so the same hours entered here and
+with "Repeat every…" stay one slot) and removes open, never-booked future
+slots when a weekday is dropped or changed. `rpc('refresh_weekly_slots')` on
+the availability page and client search keeps the window rolling.
 
 **Portfolio (`.../portfolio`).** `PortfolioManager`: stage files with previews,
 then "Upload N photos" to Storage bucket `portfolio-photos` under
@@ -198,11 +204,20 @@ delete open slots.
 **Bookings (`.../bookings`).** `BookingsManager` + server actions: confirm,
 mark completed, mark paid/unpaid (manual: money moves outside GradSnap),
 cancel (cancels the booking, then reopens the slot, in that order).
+Confirmed/completed bookings link to their chat.
+
+**Messages (`.../messages`, both roles).** One chat per booking
+(`booking_messages`), opened when the photographer confirms; writable while
+confirmed or completed, read-only once cancelled (RLS via
+`can_use_booking_chat`). `lib/chat.ts` loads conversations and threads;
+`MessagesView` (list + thread, `?booking=` selects) and `ChatThread`
+(realtime insert subscription, Enter sends). No unread badges or email
+notifications yet (emails need the domain).
 
 ## Payments
 
 GradSnap does not touch money. Photographers set `payment_link` +
-`payment_terms` + `deposit_policy`; clients pay them directly and the
+`payment_terms` + `payment_method` + `requires_deposit`; clients pay them directly and the
 photographer marks bookings paid. The old Stripe Checkout code
 (`lib/stripe.ts`, webhook, `finalize_*` RPCs, `booking/balance-paid`) is dormant
 behind `PAYMENTS_ENABLED=false`; enabling it needs a product decision first.

@@ -38,7 +38,8 @@ export type SlotWithPhotographer = AvailabilitySlot & {
     | 'price_max'
     | 'specialty'
     | 'specialty_other'
-    | 'deposit_policy'
+    | 'payment_method'
+    | 'requires_deposit'
     | 'payment_terms'
     | 'payment_link'
   >
@@ -161,7 +162,10 @@ export function CalendarSearch({
           startTime: slot.start_time,
           endTime: slot.end_time,
           priceLabel: formatPriceRange(photographer.base_price, photographer.price_max),
-          depositPolicy: photographer.deposit_policy,
+          payment: {
+            method: photographer.payment_method,
+            requiresDeposit: photographer.requires_deposit,
+          },
           paymentTerms: photographer.payment_terms,
           paymentLink: photographer.payment_link,
         },

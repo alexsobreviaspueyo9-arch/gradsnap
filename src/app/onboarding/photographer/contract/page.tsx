@@ -68,9 +68,9 @@ export default function ContractPage() {
                 0% commission
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Every dollar your clients pay goes to you. GradSnap is a free,
-                additional channel on top of your existing marketing — not a
-                replacement for it — to bring you more clients at no cost.
+                Right now, every dollar your clients pay goes to you. GradSnap
+                is an additional channel on top of your existing marketing —
+                not a replacement for it — to bring you more clients.
               </p>
             </div>
 
@@ -79,15 +79,20 @@ export default function ContractPage() {
                 1. Commission Structure
               </h3>
               <p>
-                GradSnap charges <strong>0% commission</strong> on every booking
-                made through the platform. Whatever you set as your price is
-                what you get paid — GradSnap takes no cut, now or in the
-                future for bookings made under this agreement.
+                GradSnap currently charges <strong>0% commission</strong> on
+                bookings made through the platform. Whatever you set as your
+                price is what you get paid.
               </p>
               <p>
-                GradSnap is not a replacement for your existing marketing — it&apos;s
-                an additional, free channel to reach graduating students who are
-                actively looking for a photographer, at no cost to you.
+                GradSnap may introduce a commission or other fees in the
+                future. If it does, we will tell you in advance, before any
+                change applies to your bookings, and you will be free to stop
+                using the platform.
+              </p>
+              <p>
+                GradSnap is not a replacement for your existing marketing —
+                it&apos;s an additional channel to reach graduating students
+                who are actively looking for a photographer.
               </p>
               <Separator />
               <h3 className="font-semibold text-foreground">2. Payments</h3>
@@ -95,9 +100,7 @@ export default function ContractPage() {
                 GradSnap does not process payments and never holds your
                 money — there are no payouts for us to send you, because the
                 money never passes through us in the first place. Clients pay
-                you directly, using a payment link you set up yourself (for
-                example, a free Stripe Payment Link, or PayPal.me) and add to
-                your profile settings.
+                you directly.
               </p>
               <p>
                 You choose how you want to get paid, and that choice is shown
@@ -106,17 +109,17 @@ export default function ContractPage() {
               </p>
               <ul className="list-disc space-y-1 pl-5">
                 <li>
-                  <strong>50% deposit via Stripe</strong> — the client pays
-                  half through your Stripe Payment Link to confirm the
-                  booking, and pays you the rest in cash on the day of the
-                  session.
+                  <strong>Stripe</strong> — through a Stripe Payment Link you
+                  set up yourself and add to your profile settings.
                 </li>
                 <li>
-                  <strong>Cash on session day</strong> — no deposit, no link
-                  needed up front; the client pays the full amount in cash
-                  once the session is done.
+                  <strong>Cash</strong> — paid to you in person.
                 </li>
               </ul>
+              <p>
+                You also decide whether you ask for a deposit to confirm the
+                booking, and how much.
+              </p>
               <p>
                 Since payment happens outside GradSnap, we have no way to
                 verify it automatically — you mark a booking as paid yourself
@@ -161,8 +164,7 @@ export default function ContractPage() {
                 onCheckedChange={(v) => setAccepted(v === true)}
               />
               <Label htmlFor="accept" className="leading-relaxed cursor-pointer">
-                I have read and agree to the GradSnap Photographer Agreement,
-                including the <strong>0% commission</strong> on all bookings.
+                I have read and agree to the GradSnap Photographer Agreement.
               </Label>
             </div>
 

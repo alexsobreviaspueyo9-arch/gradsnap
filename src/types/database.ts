@@ -12,13 +12,12 @@ export const PHOTOGRAPHER_SPECIALTIES = [
   'Documentary',
 ] as const
 
-export const DEPOSIT_POLICIES = ['deposit_50', 'cash_on_session'] as const
-export type DepositPolicy = (typeof DEPOSIT_POLICIES)[number]
+export const PAYMENT_METHODS = ['stripe', 'cash'] as const
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
-export const DEPOSIT_POLICY_LABELS: Record<DepositPolicy, string> = {
-  deposit_50: '50% deposit via Stripe, rest in cash after the session',
-  cash_on_session: 'Full payment in cash after the session',
-}
+// Superseded by payment_method + requires_deposit (2026-10); the column stays
+// in the DB for old rows but the app no longer reads or writes it.
+type DepositPolicy = 'deposit_50' | 'cash_on_session'
 
 export type Database = {
   public: {
@@ -65,6 +64,8 @@ export type Database = {
           payment_link: string | null
           payment_terms: string | null
           deposit_policy: DepositPolicy | null
+          payment_method: PaymentMethod | null
+          requires_deposit: boolean | null
           has_signed_contract: boolean
           contract_signed_at: string | null
           created_at: string
@@ -86,6 +87,8 @@ export type Database = {
           payment_link?: string | null
           payment_terms?: string | null
           deposit_policy?: DepositPolicy | null
+          payment_method?: PaymentMethod | null
+          requires_deposit?: boolean | null
           has_signed_contract?: boolean
           contract_signed_at?: string | null
           created_at?: string
@@ -107,6 +110,8 @@ export type Database = {
           payment_link?: string | null
           payment_terms?: string | null
           deposit_policy?: DepositPolicy | null
+          payment_method?: PaymentMethod | null
+          requires_deposit?: boolean | null
           has_signed_contract?: boolean
           contract_signed_at?: string | null
           created_at?: string
@@ -221,6 +226,30 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_messages: {
+        Row: {
+          id: string
+          booking_id: string
+          sender_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          booking_id: string
+          sender_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          booking_id?: string
+          sender_id?: string
+          body?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -271,6 +300,10 @@ export type Database = {
         Args: { [_ in never]: never }
         Returns: undefined
       }
+      refresh_weekly_slots: {
+        Args: { [_ in never]: never }
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: 'photographer' | 'client'
@@ -289,3 +322,4 @@ export type PhotographerProfile = Database['public']['Tables']['photographer_pro
 export type PortfolioPhoto = Database['public']['Tables']['portfolio_photos']['Row']
 export type AvailabilitySlot = Database['public']['Tables']['availability_slots']['Row']
 export type Booking = Database['public']['Tables']['bookings']['Row']
+export type BookingMessage = Database['public']['Tables']['booking_messages']['Row']

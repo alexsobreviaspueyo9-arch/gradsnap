@@ -11,7 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatDateHeading } from '@/lib/date'
 import { normalizeHttpUrl } from '@/lib/url'
-import type { DepositPolicy } from '@/types/database'
+import { nextPaymentStep, type PaymentSetup } from '@/lib/payment'
 
 export type BookingSummary = {
   photographerName: string
@@ -19,40 +19,9 @@ export type BookingSummary = {
   startTime: string
   endTime: string
   priceLabel: string | null
-  depositPolicy: DepositPolicy | null
+  payment: PaymentSetup
   paymentTerms: string | null
   paymentLink: string | null
-}
-
-type NextStep = { text: string; payLabel: string | null }
-
-function nextStepFor(
-  depositPolicy: DepositPolicy | null,
-  hasPaymentLink: boolean
-): NextStep {
-  if (depositPolicy === 'cash_on_session') {
-    return {
-      text: "No deposit needed. You'll pay the full amount in cash after the session.",
-      payLabel: null,
-    }
-  }
-  if (depositPolicy === 'deposit_50') {
-    return hasPaymentLink
-      ? {
-          text: 'Pay the 50% deposit to secure your session. The rest is paid in cash after the session.',
-          payLabel: 'Pay deposit',
-        }
-      : {
-          text: 'The photographer will send you instructions to pay the 50% deposit.',
-          payLabel: null,
-        }
-  }
-  return hasPaymentLink
-    ? {
-        text: "Complete the payment using the photographer's payment link.",
-        payLabel: 'Complete payment',
-      }
-    : { text: 'The photographer will contact you about payment.', payLabel: null }
 }
 
 function SummaryRow({
@@ -84,7 +53,7 @@ export function BookingConfirmation({
   onBookAnother: () => void
 }) {
   const paymentHref = normalizeHttpUrl(booking.paymentLink)
-  const nextStep = nextStepFor(booking.depositPolicy, paymentHref !== null)
+  const nextStep = nextPaymentStep(booking.payment, paymentHref !== null)
   const time = `${booking.startTime.slice(0, 5)} - ${booking.endTime.slice(0, 5)}`
 
   return (
@@ -101,7 +70,8 @@ export function BookingConfirmation({
             Booking requested
           </h3>
           <p className="text-sm text-muted-foreground">
-            The photographer will confirm it shortly.
+            The photographer will confirm it shortly. Once they do, you can
+            chat with them in Messages.
           </p>
         </div>
       </div>

@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarClock } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { CalendarClock, MessageCircle } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
@@ -246,6 +247,19 @@ export function BookingsManager({
                   >
                     {busy ? 'Completing…' : 'Mark completed'}
                   </Button>
+                )}
+                {(booking.status === 'confirmed' ||
+                  booking.status === 'completed') && (
+                  <Link
+                    href={`/dashboard/photographer/messages?booking=${booking.id}`}
+                    className={cn(
+                      buttonVariants({ variant: 'outline', size: 'sm' }),
+                      'h-9 px-4'
+                    )}
+                  >
+                    <MessageCircle className="size-4" />
+                    Message
+                  </Link>
                 )}
                 <Button
                   type="button"

@@ -17,10 +17,13 @@ export default async function ClientPhotographersPage() {
 
   if (!user) redirect('/login')
 
+  // Keeps every photographer's weekly hours filled 12 weeks ahead.
+  await supabase.rpc('refresh_weekly_slots')
+
   const { data: photographers } = await supabase
     .from('photographer_profiles')
     .select(
-      'id, display_name, city, base_price, price_max, specialty, specialty_other, deposit_policy, payment_terms, payment_link'
+      'id, display_name, city, base_price, price_max, specialty, specialty_other, payment_method, requires_deposit, payment_terms, payment_link'
     )
     .eq('has_signed_contract', true)
 

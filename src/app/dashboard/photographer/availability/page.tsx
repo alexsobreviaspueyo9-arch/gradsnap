@@ -24,6 +24,10 @@ export default async function PhotographerAvailabilityPage() {
     redirect('/onboarding/photographer/contract')
   }
 
+  // Rolls the profile's weekly hours forward so the next 12 weeks are always
+  // filled; a failure here only means no new weekly slots this time.
+  await supabase.rpc('refresh_weekly_slots')
+
   const { data: slots } = await supabase
     .from('availability_slots')
     .select('*')

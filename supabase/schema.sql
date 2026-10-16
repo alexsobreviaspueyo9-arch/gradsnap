@@ -472,13 +472,9 @@ alter table public.photographer_profiles
 -- platform the product brief calls out by name.
 --
 -- weekly_availability: object keyed by 'mon'..'sun', each value
--- { "start": "HH:MM", "end": "HH:MM" }. This is reference info shown on the
--- public profile ("usually free these days/times") — it does NOT generate
--- rows in availability_slots. Sprint 3's calendar (specific dated slots) is
--- the source of truth for what's actually bookable; this field is the
--- lighter-weight "recurring pattern" the product brief asks for as a
--- starting point, kept intentionally decoupled from the real booking
--- calendar so it can't silently create/delete real bookable slots.
+-- { "start": "HH:MM", "end": "HH:MM" }. Shown on the public profile and,
+-- since 2026-10, turned into real bookable slots: see "WEEKLY AVAILABILITY
+-- -> BOOKABLE SLOTS" at the end of this file.
 
 -- ─────────────────────────────────────────────
 -- External payment links — photographer-managed, platform never touches
@@ -791,3 +787,233 @@ begin
       );
   end if;
 end $$;
+
+-- ─────────────────────────────────────────────
+-- WEEKLY AVAILABILITY -> BOOKABLE SLOTS (2026-10) — idempotent.
+-- Supersedes the FASE 2 note: weekly_availability now creates real slots
+-- for the next 12 weeks, one slot per weekday window (the same shape as a
+-- slot added in the calendar). A day that already has a slot overlapping the
+-- window keeps that slot instead, so "Monday 17:00-21:00" entered both in the
+-- profile and with "Repeat every Monday" stays a single slot.
+-- Removing or changing a weekday deletes the future OPEN slots that exactly
+-- match the old window; booked slots, or slots with any booking history,
+-- are never touched.
+-- ─────────────────────────────────────────────
+
+-- Valid windows of a weekly_availability object, keyed by ISO weekday
+-- (1 = Monday). Malformed or empty entries are skipped, never cast.
+create or replace function public.weekly_windows(p_weekly jsonb)
+returns table (isodow integer, start_time time, end_time time)
+language sql
+immutable
+set search_path = ''
+as $$
+  select d.isodow,
+         (p_weekly -> d.key ->> 'start')::time,
+         (p_weekly -> d.key ->> 'end')::time
+  from (values ('mon', 1), ('tue', 2), ('wed', 3), ('thu', 4),
+               ('fri', 5), ('sat', 6), ('sun', 7)) as d(key, isodow)
+  where jsonb_typeof(p_weekly) = 'object'
+    and p_weekly -> d.key ->> 'start' ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+    and p_weekly -> d.key ->> 'end' ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+    and p_weekly -> d.key ->> 'start' < p_weekly -> d.key ->> 'end'
+$$;
+
+-- Creates the missing weekly slots of one photographer for the next 12
+-- weeks (America/New_York, same as book_slot). Returns how many it created.
+create or replace function public.fill_weekly_slots(p_photographer_id uuid)
+returns integer
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_weekly  jsonb;
+  v_now     timestamp := (now() at time zone 'America/New_York')::timestamp;
+  v_created integer;
+begin
+  select weekly_availability into v_weekly
+  from public.photographer_profiles
+  where id = p_photographer_id;
+
+  if v_weekly is null then
+    return 0;
+  end if;
+
+  insert into public.availability_slots (photographer_id, date, start_time, end_time)
+  select p_photographer_id, g.ts::date, w.start_time, w.end_time
+  from generate_series(v_now::date, v_now::date + 83, interval '1 day') as g(ts)
+  join public.weekly_windows(v_weekly) w
+    on w.isodow = extract(isodow from g.ts)
+  where g.ts::date + w.start_time > v_now
+    and not exists (
+      select 1 from public.availability_slots s
+      where s.photographer_id = p_photographer_id
+        and s.date = g.ts::date
+        and s.start_time < w.end_time
+        and s.end_time > w.start_time
+    )
+  on conflict (photographer_id, date, start_time) do nothing;
+
+  get diagnostics v_created = row_count;
+  return v_created;
+end;
+$$;
+
+revoke all on function public.fill_weekly_slots(uuid) from public, anon, authenticated;
+
+-- Keeps the 12-week window rolling: called when the availability page and
+-- the client search load. Only ever adds slots the photographers themselves
+-- declared, so any signed-in user may trigger it.
+create or replace function public.refresh_weekly_slots()
+returns void
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'You must be signed in.';
+  end if;
+
+  for v_id in
+    select id from public.photographer_profiles
+    where has_signed_contract and weekly_availability <> '{}'::jsonb
+  loop
+    perform public.fill_weekly_slots(v_id);
+  end loop;
+end;
+$$;
+
+revoke all on function public.refresh_weekly_slots() from public;
+grant execute on function public.refresh_weekly_slots() to authenticated;
+
+create or replace function public.sync_weekly_slots()
+returns trigger
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  delete from public.availability_slots s
+  using public.weekly_windows(old.weekly_availability) o
+  where s.photographer_id = new.id
+    and not s.is_booked
+    and s.date >= (now() at time zone 'America/New_York')::date
+    and extract(isodow from s.date) = o.isodow
+    and s.start_time = o.start_time
+    and s.end_time = o.end_time
+    and not exists (
+      select 1 from public.weekly_windows(new.weekly_availability) n
+      where n.isodow = o.isodow
+        and n.start_time = o.start_time
+        and n.end_time = o.end_time
+    )
+    and not exists (select 1 from public.bookings b where b.slot_id = s.id);
+
+  perform public.fill_weekly_slots(new.id);
+  return null;
+end;
+$$;
+
+drop trigger if exists sync_weekly_slots on public.photographer_profiles;
+create trigger sync_weekly_slots
+  after update of weekly_availability on public.photographer_profiles
+  for each row
+  when (new.weekly_availability is distinct from old.weekly_availability)
+  execute function public.sync_weekly_slots();
+
+-- Existing profiles get their slots now.
+select public.fill_weekly_slots(id)
+from public.photographer_profiles
+where weekly_availability <> '{}'::jsonb;
+
+-- ─────────────────────────────────────────────
+-- BOOKING CHAT (2026-10) — idempotent.
+-- One thread per booking between its client and its photographer. It opens
+-- when the photographer confirms the booking, stays writable while the
+-- booking is confirmed or completed, and becomes read-only if it's cancelled.
+-- Messages can't be edited or deleted by users (no update/delete policies).
+-- ─────────────────────────────────────────────
+
+create table if not exists public.booking_messages (
+  id          uuid primary key default gen_random_uuid(),
+  booking_id  uuid not null references public.bookings(id) on delete cascade,
+  sender_id   uuid not null references public.profiles(id) on delete cascade,
+  body        text not null check (char_length(btrim(body)) between 1 and 2000),
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists booking_messages_booking_created_idx
+  on public.booking_messages (booking_id, created_at);
+
+alter table public.booking_messages enable row level security;
+
+-- True when the signed-in user is the booking's client or photographer and
+-- the chat is open for reading (p_write = false) or writing (p_write = true).
+create or replace function public.can_use_booking_chat(p_booking_id uuid, p_write boolean)
+returns boolean
+language sql
+stable
+security definer set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.bookings b
+    join public.availability_slots s on s.id = b.slot_id
+    join public.photographer_profiles pp on pp.id = s.photographer_id
+    where b.id = p_booking_id
+      and auth.uid() in (b.client_id, pp.user_id)
+      and b.status in ('confirmed', 'completed', 'cancelled')
+      and (not p_write or b.status in ('confirmed', 'completed'))
+  )
+$$;
+
+revoke all on function public.can_use_booking_chat(uuid, boolean) from public;
+grant execute on function public.can_use_booking_chat(uuid, boolean) to authenticated;
+
+drop policy if exists "Booking participants read their chat" on public.booking_messages;
+create policy "Booking participants read their chat"
+  on public.booking_messages for select to authenticated
+  using (public.can_use_booking_chat(booking_id, false));
+
+drop policy if exists "Booking participants send messages" on public.booking_messages;
+create policy "Booking participants send messages"
+  on public.booking_messages for insert to authenticated
+  with check (
+    sender_id = auth.uid()
+    and public.can_use_booking_chat(booking_id, true)
+  );
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'booking_messages'
+  ) then
+    alter publication supabase_realtime add table public.booking_messages;
+  end if;
+end $$;
+
+-- ─────────────────────────────────────────────
+-- PAYMENT METHOD + DEPOSIT (2026-10) — idempotent.
+-- Replaces deposit_policy with two independent choices: how the client pays
+-- (Stripe link or cash) and whether a deposit confirms the booking. Existing
+-- choices are carried over; deposit_policy stays for old rows but the app no
+-- longer reads or writes it.
+-- ─────────────────────────────────────────────
+
+alter table public.photographer_profiles
+  add column if not exists payment_method text
+    check (payment_method in ('stripe', 'cash')),
+  add column if not exists requires_deposit boolean;
+
+update public.photographer_profiles
+set payment_method = case deposit_policy
+      when 'deposit_50' then 'stripe'
+      when 'cash_on_session' then 'cash'
+    end,
+    requires_deposit = (deposit_policy = 'deposit_50')
+where deposit_policy is not null
+  and payment_method is null;

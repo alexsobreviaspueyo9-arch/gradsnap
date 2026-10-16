@@ -15,15 +15,66 @@ import { normalizeHttpUrl } from '@/lib/url'
 import { WeeklyAvailabilityPicker } from '@/components/photographer/WeeklyAvailabilityPicker'
 import {
   PHOTOGRAPHER_SPECIALTIES,
-  DEPOSIT_POLICIES,
-  DEPOSIT_POLICY_LABELS,
+  type PaymentMethod,
   type PhotographerProfile,
   type SocialLink,
   type WeeklyAvailability,
-  type DepositPolicy,
 } from '@/types/database'
 
 const SPECIALTY_OPTIONS = [...PHOTOGRAPHER_SPECIALTIES, 'Other'] as const
+
+const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string; hint: string }[] = [
+  { value: 'stripe', label: 'Stripe', hint: 'Clients pay through your Stripe Payment Link.' },
+  { value: 'cash', label: 'Cash', hint: 'Clients pay you in person.' },
+]
+
+const DEPOSIT_OPTIONS: { value: boolean; label: string; hint: string }[] = [
+  { value: true, label: 'Ask for a deposit', hint: 'A deposit confirms the booking. Say how much in your payment terms.' },
+  { value: false, label: 'No deposit', hint: 'Clients pay the full amount as agreed.' },
+]
+
+function ChoiceGroup<T extends string | boolean>({
+  id,
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  id: string
+  label: string
+  options: { value: T; label: string; hint: string }[]
+  value: T | null
+  onChange: (next: T) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <Label id={id}>{label}</Label>
+      <div role="radiogroup" aria-labelledby={id} className="grid gap-3 sm:grid-cols-2">
+        {options.map((option) => {
+          const isSelected = value === option.value
+          return (
+            <button
+              key={String(option.value)}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              onClick={() => onChange(option.value)}
+              className={cn(
+                'rounded-2xl border-2 p-4 text-left transition-colors',
+                isSelected
+                  ? 'border-primary bg-accent text-accent-foreground'
+                  : 'border-border hover:border-primary/50'
+              )}
+            >
+              <span className="block text-sm font-medium">{option.label}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">{option.hint}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 function Section({
   title,
@@ -86,8 +137,11 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
   const [paymentTerms, setPaymentTerms] = useState(
     profile.payment_terms ?? ''
   )
-  const [depositPolicy, setDepositPolicy] = useState<DepositPolicy | null>(
-    profile.deposit_policy ?? null
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
+    profile.payment_method ?? null
+  )
+  const [requiresDeposit, setRequiresDeposit] = useState<boolean | null>(
+    profile.requires_deposit ?? null
   )
 
   const [error, setError] = useState<string | null>(null)
@@ -155,6 +209,19 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
       return
     }
 
+    if (paymentMethod !== null && requiresDeposit === null) {
+      setError('Choose whether you ask for a deposit.')
+      return
+    }
+    if (requiresDeposit !== null && paymentMethod === null) {
+      setError('Choose how clients pay you: Stripe or cash.')
+      return
+    }
+    if (paymentMethod === 'stripe' && !paymentLinkUrl) {
+      setError('Add your Stripe Payment Link so clients can pay you.')
+      return
+    }
+
     const instagramHref = normalizeHttpUrl(instagramUrl)
     if (instagramUrl.trim() !== '' && !instagramHref) {
       setError('Instagram link must be a valid web address (https://…).')
@@ -202,7 +269,8 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
         weekly_availability: weeklyAvailability,
         payment_link: paymentLinkUrl,
         payment_terms: paymentTerms.trim() === '' ? null : paymentTerms.trim(),
-        deposit_policy: depositPolicy,
+        payment_method: paymentMethod,
+        requires_deposit: requiresDeposit,
       })
       .eq('user_id', user.id)
 
@@ -343,31 +411,21 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label id="deposit-policy-label">How do you want to get paid?</Label>
-          <div
-            role="radiogroup"
-            aria-labelledby="deposit-policy-label"
-            className="grid gap-3 sm:grid-cols-2"
-          >
-            {DEPOSIT_POLICIES.map((option) => (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={depositPolicy === option}
-                onClick={() => setDepositPolicy(option)}
-                className={cn(
-                  'rounded-2xl border-2 p-4 text-left text-sm font-medium transition-colors',
-                  depositPolicy === option
-                    ? 'border-primary bg-accent text-accent-foreground'
-                    : 'border-border text-muted-foreground hover:border-primary/50'
-                )}
-              >
-                {DEPOSIT_POLICY_LABELS[option]}
-              </button>
-            ))}
-          </div>
+        <div className="space-y-5">
+          <ChoiceGroup
+            id="payment-method-label"
+            label="How do clients pay you?"
+            options={PAYMENT_METHOD_OPTIONS}
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+          />
+          <ChoiceGroup
+            id="deposit-label"
+            label="Do you ask for a deposit?"
+            options={DEPOSIT_OPTIONS}
+            value={requiresDeposit}
+            onChange={setRequiresDeposit}
+          />
           <p className="text-xs text-muted-foreground">
             Shown on your public profile so clients know what to expect before
             booking.
@@ -380,7 +438,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
             <Input
               id="paymentTerms"
               type="text"
-              placeholder="e.g. 50% deposit to confirm, rest on session day"
+              placeholder="e.g. $50 deposit to confirm, rest on session day"
               value={paymentTerms}
               onChange={(e) => setPaymentTerms(e.target.value)}
               maxLength={140}
@@ -475,7 +533,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
 
       <Section
         title="Weekly availability"
-        description="A general sense of when you are usually free. This does not book anything by itself."
+        description="Days and hours you are free every week. They become bookable slots in your availability calendar for the next 12 weeks."
       >
         <WeeklyAvailabilityPicker
           value={weeklyAvailability}

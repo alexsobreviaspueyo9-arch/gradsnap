@@ -13,10 +13,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { normalizeHttpUrl } from '@/lib/url'
 import { formatPriceRange } from '@/lib/price'
+import { paymentSummary, type PaymentSetup } from '@/lib/payment'
 import { BookingWidget } from '@/components/client/BookingWidget'
 import {
   WEEKDAYS,
-  DEPOSIT_POLICY_LABELS,
   type AvailabilitySlot,
   type PhotographerProfile,
   type PortfolioPhoto,
@@ -63,6 +63,11 @@ export function PhotographerDetailView({
     return href ? [{ label: link.label, href }] : []
   })
   const hasLinks = instagramHref !== null || socialLinks.length > 0
+  const payment: PaymentSetup = {
+    method: photographer.payment_method,
+    requiresDeposit: photographer.requires_deposit,
+  }
+  const paymentLabel = paymentSummary(payment)
   const hasWeekly = Object.keys(photographer.weekly_availability ?? {}).length > 0
 
   return (
@@ -121,12 +126,12 @@ export function PhotographerDetailView({
               </p>
             )}
 
-            {(photographer.deposit_policy || photographer.payment_terms) && (
+            {(paymentLabel || photographer.payment_terms) && (
               <div className="mt-4 space-y-2 text-sm">
-                {photographer.deposit_policy && (
+                {paymentLabel && (
                   <p className="inline-flex items-center gap-2 rounded-full bg-muted px-3.5 py-1.5 font-medium">
                     <CreditCard className="size-4" />
-                    {DEPOSIT_POLICY_LABELS[photographer.deposit_policy]}
+                    {paymentLabel}
                   </p>
                 )}
                 {photographer.payment_terms && (
@@ -237,7 +242,7 @@ export function PhotographerDetailView({
             photographerName={photographer.display_name ?? 'this photographer'}
             basePrice={photographer.base_price}
             priceLabel={priceRange}
-            depositPolicy={photographer.deposit_policy}
+            payment={payment}
             paymentTerms={photographer.payment_terms}
             paymentsEnabled={paymentsEnabled}
             paymentLink={normalizeHttpUrl(photographer.payment_link)}

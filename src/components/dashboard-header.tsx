@@ -11,10 +11,12 @@ const NAV_BY_ROLE: Record<'photographer' | 'client', readonly NavItem[]> = {
   client: [
     { href: '/dashboard/client', label: 'Overview', exact: true },
     { href: '/dashboard/client/photographers', label: 'Find a photographer' },
+    { href: '/dashboard/client/messages', label: 'Messages' },
   ],
   photographer: [
     { href: '/dashboard/photographer', label: 'Overview', exact: true },
     { href: '/dashboard/photographer/bookings', label: 'Bookings' },
+    { href: '/dashboard/photographer/messages', label: 'Messages' },
     { href: '/dashboard/photographer/availability', label: 'Availability' },
     { href: '/dashboard/photographer/portfolio', label: 'Portfolio' },
     { href: '/dashboard/photographer/profile', label: 'Profile' },

@@ -13,7 +13,8 @@ import { formatDateHeading, isoDateToLocalDate, localDateToISODate } from '@/lib
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
 import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
-import type { AvailabilitySlot, DepositPolicy } from '@/types/database'
+import type { PaymentSetup } from '@/lib/payment'
+import type { AvailabilitySlot } from '@/types/database'
 
 const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
 
@@ -22,7 +23,7 @@ export function BookingWidget({
   photographerName,
   basePrice,
   priceLabel,
-  depositPolicy,
+  payment,
   paymentTerms,
   paymentsEnabled,
   paymentLink,
@@ -32,7 +33,7 @@ export function BookingWidget({
   photographerName: string
   basePrice: number | null
   priceLabel: string | null
-  depositPolicy: DepositPolicy | null
+  payment: PaymentSetup
   paymentTerms: string | null
   paymentsEnabled: boolean
   paymentLink: string | null
@@ -92,7 +93,7 @@ export function BookingWidget({
           startTime: slot.start_time,
           endTime: slot.end_time,
           priceLabel,
-          depositPolicy,
+          payment,
           paymentTerms,
           paymentLink,
         },
