@@ -50,7 +50,10 @@ src/lib/
   supabase/{client,server,service}.ts   date.ts  price.ts  url.ts  site.ts  chat.ts
   email-templates.ts  resend.ts  posthog.ts  stripe.ts  actions/auth.ts
 supabase/schema.sql         whole schema, run by hand in the SQL Editor
+supabase/migrations/        newer changes (e.g. leads), run by hand like schema.sql
 supabase/tests/launch-hardening.sql   rolled-back RLS/trigger attack suite
+src/app/admin/leads/        admin-only (404 otherwise) outreach list, ADMIN_EMAILS
+src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
 docs/HISTORY.md             full history (not auto-loaded)
 ```
 
@@ -59,7 +62,8 @@ docs/HISTORY.md             full history (not auto-loaded)
 - **Clients:** browser components use `@/lib/supabase/client`; Server
   Components / actions / route handlers use `await createClient()` from
   `@/lib/supabase/server`. Never import the server client in a client file.
-  `service.ts` (service role) is only for the Stripe webhook; its key is NOT in Vercel.
+  `service.ts` (service role) is only for the Stripe webhook and `/admin/leads`
+  (after `requireAdmin()` checks `ADMIN_EMAILS`); never use it elsewhere.
 - **Pattern:** `page.tsx` (server) fetches with the user's session and passes
   props to a presentational or client component; client components write
   directly with the browser client and update local state optimistically.
@@ -90,7 +94,8 @@ docs/HISTORY.md             full history (not auto-loaded)
   throwaway `hardening_test` schema (temp tables/`pg_temp` break there).
 - **Never commit secrets.** `.env*` is ignored. Vercel env holds only:
   Supabase URL + anon key, `RESEND_API_KEY`, PostHog key/host,
-  `PAYMENTS_ENABLED=false`, `APP_URL`.
+  `PAYMENTS_ENABLED=false`, `APP_URL`, plus (server-only, for `/admin/leads`)
+  `ADMIN_EMAILS` and `SUPABASE_SERVICE_ROLE_KEY`.
 - **One account = one role, forever.** Both roles = two accounts, two emails.
   No "switch role" feature.
 - **Clients need an account before browsing** photographers or calendars
@@ -225,10 +230,12 @@ behind `PAYMENTS_ENABLED=false`; enabling it needs a product decision first.
 ## Open items before the official launch
 
 Details and reasoning in `docs/HISTORY.md` ("Launch checklist").
-1. Domain: buy it, verify in Resend (sender is still `onboarding@resend.dev`)
-   and set Resend as Supabase custom SMTP (built-in SMTP is rate-limited).
+1. Domain `gradsnap.app` (Cloudflare) is live; canonical `https://www.gradsnap.app`,
+   `APP_URL` and Supabase Auth URLs updated, verified in Resend (sender
+   `no-reply@gradsnap.app`). Still to confirm: Resend as Supabase custom SMTP.
 2. Legal: privacy/terms pages + PostHog cookieless. Needs owner, country, contact email.
-3. Production URLs: confirm `APP_URL` in Vercel and Supabase Auth Site URL /
-   Redirect URLs include `https://gradsnap.vercel.app/**` (and the domain later).
-4. Supabase free tier pauses after ~7 idle days (DNS stops resolving): Pro plan or accept the risk.
-5. Booking confirmation email to the client (not built; needs item 1).
+3. Supabase free tier pauses after ~7 idle days (DNS stops resolving): Pro plan or accept the risk.
+4. Booking confirmation email to the client (not built; the domain is ready now).
+5. Photographer recruitment (phase 1 built: `leads`, `/admin/leads`, `/fotografos?src=`).
+   Next: a weekly agent that finds and drafts leads, sending the outreach emails,
+   and a concierge onboarding for the first photographers.

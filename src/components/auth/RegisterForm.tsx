@@ -18,6 +18,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Camera, GraduationCap } from 'lucide-react'
 import { trackEvent } from '@/lib/posthog'
+import { SIGNUP_SRC_STORAGE_KEY, parseSignupSrc } from '@/lib/signup-src'
 import type { UserRole } from '@/types/database'
 
 export function RegisterForm() {
@@ -27,6 +28,7 @@ export function RegisterForm() {
 
   const requestedRole = searchParams.get('role')
   const initialRole: UserRole = requestedRole === 'photographer' ? 'photographer' : 'client'
+  const signupSrc = parseSignupSrc(searchParams.get('src'))
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -44,7 +46,7 @@ export function RegisterForm() {
       email,
       password,
       options: {
-        data: { full_name: fullName, role },
+        data: { full_name: fullName, role, signup_src: signupSrc },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
@@ -61,6 +63,11 @@ export function RegisterForm() {
 
   async function handleGoogleRegister() {
     setError(null)
+    try {
+      if (signupSrc) localStorage.setItem(SIGNUP_SRC_STORAGE_KEY, signupSrc)
+    } catch {
+      // Storage blocked: the signup still works, only the source is lost.
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

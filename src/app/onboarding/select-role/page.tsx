@@ -16,6 +16,7 @@ import { Camera, GraduationCap } from 'lucide-react'
 import { IconChip } from '@/components/icon-chip'
 import { CenteredShell } from '@/components/brand/centered-shell'
 import { trackEvent } from '@/lib/posthog'
+import { takeStoredSignupSrc } from '@/lib/signup-src'
 import type { UserRole } from '@/types/database'
 
 export default function SelectRolePage() {
@@ -57,6 +58,7 @@ export default function SelectRolePage() {
       role,
       full_name: user.user_metadata?.full_name ?? user.email ?? null,
       email: user.email ?? null,
+      signup_src: takeStoredSignupSrc(),
     })
 
     if (profileError && profileError.code !== '23505') {

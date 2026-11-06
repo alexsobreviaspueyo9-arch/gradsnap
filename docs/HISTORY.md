@@ -450,6 +450,12 @@ this; don't start these items without asking.
    after `book_slot()` succeeds, but it only reaches real users once item 2
    (verified sending domain) is done.
 
+9. **Photographer recruitment, after phase 1** (2026-11: `leads` table,
+   `/admin/leads`, `/fotografos?src=`):
+   - **Weekly agent**: finds new photographer leads and drafts the message.
+   - **Email sending**: send the outreach emails instead of copy-pasting drafts.
+   - **Concierge**: hands-on onboarding for the first photographers.
+
 Open questions for the user: which domain, who the legal owner is and in
 which country, and when to commit/push.
 

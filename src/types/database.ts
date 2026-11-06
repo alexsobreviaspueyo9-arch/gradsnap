@@ -19,6 +19,22 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 // in the DB for old rows but the app no longer reads or writes it.
 type DepositPolicy = 'deposit_50' | 'cash_on_session'
 
+export const SIGNUP_SOURCES = ['instagram', 'email', 'web', 'referido'] as const
+export type SignupSrc = (typeof SIGNUP_SOURCES)[number]
+
+export const LEAD_PRIORIDADES = ['A', 'B', 'C'] as const
+export type LeadPrioridad = (typeof LEAD_PRIORIDADES)[number]
+
+export const LEAD_ESTADOS = [
+  'encontrado',
+  'contactado',
+  'respondio',
+  'cuenta_creada',
+  'perfil_completo',
+  'no_contactar',
+] as const
+export type LeadEstado = (typeof LEAD_ESTADOS)[number]
+
 export type Database = {
   public: {
     Tables: {
@@ -28,6 +44,7 @@ export type Database = {
           role: 'photographer' | 'client'
           full_name: string | null
           email: string | null
+          signup_src: SignupSrc | null
           created_at: string
         }
         Insert: {
@@ -35,6 +52,7 @@ export type Database = {
           role: 'photographer' | 'client'
           full_name?: string | null
           email?: string | null
+          signup_src?: SignupSrc | null
           created_at?: string
         }
         Update: {
@@ -42,6 +60,7 @@ export type Database = {
           role?: 'photographer' | 'client'
           full_name?: string | null
           email?: string | null
+          signup_src?: SignupSrc | null
           created_at?: string
         }
         Relationships: []
@@ -226,6 +245,57 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          id: string
+          nombre: string
+          instagram_handle: string | null
+          website: string | null
+          contact_email: string | null
+          zona: string | null
+          fuente: string | null
+          prioridad: LeadPrioridad
+          motivo_encaje: string | null
+          estado: LeadEstado
+          borrador_mensaje: string | null
+          notas: string | null
+          created_at: string
+          contacted_at: string | null
+        }
+        Insert: {
+          id?: string
+          nombre: string
+          instagram_handle?: string | null
+          website?: string | null
+          contact_email?: string | null
+          zona?: string | null
+          fuente?: string | null
+          prioridad?: LeadPrioridad
+          motivo_encaje?: string | null
+          estado?: LeadEstado
+          borrador_mensaje?: string | null
+          notas?: string | null
+          created_at?: string
+          contacted_at?: string | null
+        }
+        Update: {
+          id?: string
+          nombre?: string
+          instagram_handle?: string | null
+          website?: string | null
+          contact_email?: string | null
+          zona?: string | null
+          fuente?: string | null
+          prioridad?: LeadPrioridad
+          motivo_encaje?: string | null
+          estado?: LeadEstado
+          borrador_mensaje?: string | null
+          notas?: string | null
+          created_at?: string
+          contacted_at?: string | null
+        }
+        Relationships: []
+      }
       booking_messages: {
         Row: {
           id: string
@@ -323,3 +393,4 @@ export type PortfolioPhoto = Database['public']['Tables']['portfolio_photos']['R
 export type AvailabilitySlot = Database['public']['Tables']['availability_slots']['Row']
 export type Booking = Database['public']['Tables']['bookings']['Row']
 export type BookingMessage = Database['public']['Tables']['booking_messages']['Row']
+export type Lead = Database['public']['Tables']['leads']['Row']
