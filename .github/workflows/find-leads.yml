@@ -1,0 +1,50 @@
+# Weekly photographer lead finder (scripts/find-leads.mjs), run by GitHub so
+# it works with the user's computer off. It searches public pages only and
+# inserts drafts into public.leads; nothing is ever sent to anyone.
+#
+# Repository secrets needed (Settings -> Secrets and variables -> Actions):
+#   CLAUDE_CODE_OAUTH_TOKEN    from `claude setup-token` (uses the Claude Pro plan)
+#   SUPABASE_SERVICE_ROLE_KEY  same value as in Vercel
+name: Find photographer leads
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays 13:00 UTC = 9:00 in Virginia (8:00 in winter)
+  workflow_dispatch: {} # "Run workflow" button for a manual run
+
+permissions:
+  contents: read
+
+concurrency:
+  group: find-leads
+  cancel-in-progress: false
+
+jobs:
+  find-leads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The script only needs supabase-js and the claude CLI, so it runs from a
+      # scratch folder instead of installing the whole Next.js app.
+      - name: Install the script's tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/leads"
+          cp scripts/find-leads.mjs "$RUNNER_TEMP/leads/"
+          cd "$RUNNER_TEMP/leads"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund @supabase/supabase-js@2.110.7
+          npm install --global --no-audit --no-fund @anthropic-ai/claude-code@2.1.215
+
+      - name: Find and insert new leads
+        working-directory: ${{ runner.temp }}/leads
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: https://nrokuqgrjrkfxqbkcyyi.supabase.co
+        run: node find-leads.mjs

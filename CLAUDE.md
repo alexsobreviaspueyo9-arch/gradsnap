@@ -54,6 +54,11 @@ supabase/migrations/        newer changes (e.g. leads), run by hand like schema.
 supabase/tests/launch-hardening.sql   rolled-back RLS/trigger attack suite
 src/app/admin/leads/        admin-only (404 otherwise) outreach list, ADMIN_EMAILS
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
+scripts/find-leads.mjs      weekly lead finder: headless `claude -p` (Haiku, WebSearch+WebFetch
+                            only, hard limits 8 searches/15 fetches/15 leads, $0.50 cap), checks
+                            emails/handles on the public site, dedupes, `--dry-run` prints only.
+                            Runs Mondays 13:00 UTC in `.github/workflows/find-leads.yml` (secrets
+                            CLAUDE_CODE_OAUTH_TOKEN + SUPABASE_SERVICE_ROLE_KEY)
 docs/HISTORY.md             full history (not auto-loaded)
 ```
 
