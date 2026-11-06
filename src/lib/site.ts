@@ -1,6 +1,6 @@
 // Canonical public origin, used for metadata, robots and sitemap.
 export const SITE_URL = (
-  process.env.APP_URL ?? 'https://gradsnap.vercel.app'
+  process.env.APP_URL ?? 'https://www.gradsnap.app'
 ).replace(/\/$/, '')
 
 export const SITE_NAME = 'GradSnap'

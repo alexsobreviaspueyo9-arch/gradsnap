@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
-// TODO: switch to a verified domain sender once one is set up.
-const FROM = 'GradSnap <onboarding@resend.dev>'
+// gradsnap.app is verified in Resend; the same sender is used by Supabase SMTP.
+const FROM = 'GradSnap <no-reply@gradsnap.app>'
 
 export async function sendEmail(input: {
   to: string
