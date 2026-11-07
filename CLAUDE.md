@@ -54,6 +54,7 @@ supabase/migrations/        newer changes (e.g. leads), run by hand like schema.
 supabase/tests/launch-hardening.sql   rolled-back RLS/trigger attack suite
 src/app/admin/leads/        admin-only (404 otherwise) outreach list, ADMIN_EMAILS
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
+src/app/reclamar/[token]/   concierge claim page (get/claim_photographer_invite RPCs)
 scripts/find-leads.mjs      weekly lead finder: headless `claude -p` (Haiku, WebSearch+WebFetch
                             only, hard limits 8 searches/15 fetches/15 leads, $0.50 cap), checks
                             emails/handles on the public site, dedupes, `--dry-run` prints only.
@@ -245,5 +246,8 @@ Details and reasoning in `docs/HISTORY.md` ("Launch checklist").
    weekly agent built: `scripts/find-leads.mjs` + GitHub Actions). Phase 2 in progress:
    import box in `/admin/leads` (`lib/leads/parse.ts`), local enrichment
    (`scripts/enrich-leads.mjs`, shares `scripts/lib/leads-shared.mjs`), draft profiles
-   (`status` draft|claimed, client listings show only claimed). Pending: concierge
-   claim flow (`/reclamar/<token>`), sending the outreach emails.
+   (`status` draft|claimed, client listings show only claimed), concierge: "Crear perfil
+   borrador" on `respondio` leads -> one-time `/reclamar/<token>` link (14 days); the claim
+   is the `claim_photographer_invite` RPC (merges into the user's profile, uses the token
+   up, marks the lead `cuenta_creada`). Login/register/callback/select-role keep a safe
+   `?next=` (`safeNextPath`). Pending: sending the outreach emails.

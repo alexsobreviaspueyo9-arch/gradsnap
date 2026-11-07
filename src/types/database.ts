@@ -92,6 +92,7 @@ export type Database = {
           status: PhotographerProfileStatus
           invite_token: string | null
           invite_expires_at: string | null
+          lead_id: string | null
           created_at: string
         }
         Insert: {
@@ -118,6 +119,7 @@ export type Database = {
           status?: PhotographerProfileStatus
           invite_token?: string | null
           invite_expires_at?: string | null
+          lead_id?: string | null
           created_at?: string
         }
         Update: {
@@ -144,6 +146,7 @@ export type Database = {
           status?: PhotographerProfileStatus
           invite_token?: string | null
           invite_expires_at?: string | null
+          lead_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -379,6 +382,14 @@ export type Database = {
       }
       sign_photographer_contract: {
         Args: { [_ in never]: never }
+        Returns: undefined
+      }
+      get_photographer_invite: {
+        Args: { p_token: string }
+        Returns: { display_name: string | null; state: 'valid' | 'expired' }[]
+      }
+      claim_photographer_invite: {
+        Args: { p_token: string }
         Returns: undefined
       }
       refresh_weekly_slots: {

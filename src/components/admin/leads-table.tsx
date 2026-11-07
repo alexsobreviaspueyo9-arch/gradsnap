@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { normalizeHttpUrl } from '@/lib/url'
-import { setLeadEstado } from '@/app/admin/leads/actions'
+import { createDraftProfile, setLeadEstado } from '@/app/admin/leads/actions'
 import { LEAD_ESTADOS, type Lead, type LeadEstado } from '@/types/database'
 
 type Props = {
@@ -19,6 +19,8 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [isCopied, setIsCopied] = useState(false)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [isLinkCopied, setIsLinkCopied] = useState(false)
   const website = normalizeHttpUrl(lead.website)
 
   function changeEstado(estado: LeadEstado) {
@@ -27,6 +29,26 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
       const result = await setLeadEstado(lead.id, estado)
       if (result.error) setError(result.error)
     })
+  }
+
+  function createDraft() {
+    setError(null)
+    startTransition(async () => {
+      const result = await createDraftProfile(lead.id)
+      if (result.error) setError(result.error)
+      else setInviteLink(result.link)
+    })
+  }
+
+  async function copyInviteLink() {
+    if (!inviteLink) return
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setIsLinkCopied(true)
+      setTimeout(() => setIsLinkCopied(false), 2000)
+    } catch {
+      setError('No se pudo copiar. Selecciona el enlace a mano.')
+    }
   }
 
   async function copyDraft() {
@@ -101,7 +123,31 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
               No contactar
             </Button>
           )}
+          {lead.estado === 'respondio' && (
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 px-3"
+              disabled={isPending}
+              onClick={createDraft}
+            >
+              Crear perfil borrador
+            </Button>
+          )}
         </div>
+        {inviteLink && (
+          <div className="mt-3 rounded-2xl bg-muted p-3">
+            <p className="text-xs text-muted-foreground">
+              Enlace para reclamar el perfil (un solo uso, caduca en 14 días). Envíalo tú:
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <code className="min-w-0 flex-1 text-xs break-all">{inviteLink}</code>
+              <Button type="button" variant="outline" size="sm" className="h-9 px-3" onClick={copyInviteLink}>
+                {isLinkCopied ? 'Copiado' : 'Copiar enlace'}
+              </Button>
+            </div>
+          </div>
+        )}
         {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
       </td>
     </tr>

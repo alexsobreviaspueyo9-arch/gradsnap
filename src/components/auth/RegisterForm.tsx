@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Camera, GraduationCap } from 'lucide-react'
 import { trackEvent } from '@/lib/posthog'
 import { SIGNUP_SRC_STORAGE_KEY, parseSignupSrc } from '@/lib/signup-src'
+import { authCallbackUrl, safeNextPath } from '@/lib/url'
 import type { UserRole } from '@/types/database'
 
 export function RegisterForm() {
@@ -29,6 +30,7 @@ export function RegisterForm() {
   const requestedRole = searchParams.get('role')
   const initialRole: UserRole = requestedRole === 'photographer' ? 'photographer' : 'client'
   const signupSrc = parseSignupSrc(searchParams.get('src'))
+  const next = safeNextPath(searchParams.get('next'))
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -47,7 +49,7 @@ export function RegisterForm() {
       password,
       options: {
         data: { full_name: fullName, role, signup_src: signupSrc },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: authCallbackUrl(window.location.origin, next),
       },
     })
 
@@ -71,7 +73,7 @@ export function RegisterForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: authCallbackUrl(window.location.origin, next),
       },
     })
     if (error) setError(error.message)
@@ -192,7 +194,7 @@ export function RegisterForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="inline-block py-2.5 text-primary underline underline-offset-4">
+          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="inline-block py-2.5 text-primary underline underline-offset-4">
             Sign in
           </Link>
         </p>

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,11 +17,23 @@ import { IconChip } from '@/components/icon-chip'
 import { CenteredShell } from '@/components/brand/centered-shell'
 import { trackEvent } from '@/lib/posthog'
 import { takeStoredSignupSrc } from '@/lib/signup-src'
+import { safeNextPath } from '@/lib/url'
 import type { UserRole } from '@/types/database'
 
+// useSearchParams (for ?next=) needs a Suspense boundary.
 export default function SelectRolePage() {
+  return (
+    <Suspense>
+      <SelectRole />
+    </Suspense>
+  )
+}
+
+function SelectRole() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+  const next = safeNextPath(searchParams.get('next'))
 
   const [role, setRole] = useState<UserRole>('client')
   const [loading, setLoading] = useState(false)
@@ -81,7 +93,7 @@ export default function SelectRolePage() {
         setLoading(false)
         return
       }
-      router.push('/onboarding/photographer/contract')
+      router.push(next ?? '/onboarding/photographer/contract')
     } else {
       router.push('/dashboard/client')
     }

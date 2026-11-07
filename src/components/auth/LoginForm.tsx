@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -16,10 +16,13 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { authCallbackUrl, safeNextPath } from '@/lib/url'
 
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+  const next = safeNextPath(searchParams.get('next'))
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -49,7 +52,9 @@ export function LoginForm() {
       .maybeSingle()
 
     const role = profile?.role
-    if (role === 'photographer') {
+    if (next && role) {
+      router.push(next)
+    } else if (role === 'photographer') {
       router.push('/dashboard/photographer')
     } else if (role === 'client') {
       router.push('/dashboard/client')
@@ -64,7 +69,7 @@ export function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: authCallbackUrl(window.location.origin, next),
       },
     })
     if (error) setError(error.message)
@@ -147,7 +152,7 @@ export function LoginForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="inline-block py-2.5 text-primary underline underline-offset-4">
+          <Link href={next ? `/register?role=photographer&next=${encodeURIComponent(next)}` : '/register'} className="inline-block py-2.5 text-primary underline underline-offset-4">
             Sign up
           </Link>
         </p>

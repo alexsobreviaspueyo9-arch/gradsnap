@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeHttpUrl } from '@/lib/url'
+import { normalizeHttpUrl, safeNextPath } from '@/lib/url'
 
 describe('normalizeHttpUrl', () => {
   it('keeps valid https and http links', () => {
@@ -34,5 +34,22 @@ describe('normalizeHttpUrl', () => {
     expect(normalizeHttpUrl('mailto:a@b.com')).toBeNull()
     expect(normalizeHttpUrl('not a url')).toBeNull()
     expect(normalizeHttpUrl('localhost')).toBeNull()
+  })
+})
+
+describe('safeNextPath', () => {
+  it('keeps same-site paths', () => {
+    expect(safeNextPath('/reclamar/abc123?src=instagram')).toBe('/reclamar/abc123?src=instagram')
+    expect(safeNextPath('/dashboard/photographer')).toBe('/dashboard/photographer')
+  })
+
+  it('rejects other sites and junk', () => {
+    expect(safeNextPath('https://evil.com')).toBeNull()
+    expect(safeNextPath('//evil.com')).toBeNull()
+    expect(safeNextPath('/\\evil.com')).toBeNull()
+    expect(safeNextPath('javascript:alert(1)')).toBeNull()
+    expect(safeNextPath('/path with space')).toBeNull()
+    expect(safeNextPath(null)).toBeNull()
+    expect(safeNextPath('')).toBeNull()
   })
 })

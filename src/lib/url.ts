@@ -21,3 +21,19 @@ export function normalizeHttpUrl(input: string | null | undefined): string | nul
   }
   return url.href
 }
+
+// `?next=` after sign-in/sign-up: only same-site paths, so the parameter can't
+// send someone to another site ("//evil.com" and "/\evil.com" are rejected).
+export function safeNextPath(input: string | null | undefined): string | null {
+  const value = input?.trim() ?? ''
+  if (!value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) return null
+  if (value.length > 300 || /[\s\u0000-\u001f]/.test(value)) return null
+  return value
+}
+
+// Where Supabase sends the user back after email confirmation or Google;
+// a safe ?next= (e.g. a /reclamar invite) survives the round trip.
+export function authCallbackUrl(origin: string, next: string | null): string {
+  const base = `${origin}/auth/callback`
+  return next ? `${base}?next=${encodeURIComponent(next)}` : base
+}

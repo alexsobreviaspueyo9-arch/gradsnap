@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeNextPath } from '@/lib/url'
 import type { Database } from '@/types/database'
 
 export async function GET(request: NextRequest) {
@@ -8,6 +9,8 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
   const origin = requestUrl.origin
+  // e.g. a /reclamar invite the user signed up from
+  const next = safeNextPath(requestUrl.searchParams.get('next'))
 
   if (error) {
     return NextResponse.redirect(
@@ -62,8 +65,11 @@ export async function GET(request: NextRequest) {
 
   if (!profile) {
     // New Google OAuth user — needs to pick a role
-    return NextResponse.redirect(`${origin}/onboarding/select-role`)
+    const query = next ? `?next=${encodeURIComponent(next)}` : ''
+    return NextResponse.redirect(`${origin}/onboarding/select-role${query}`)
   }
+
+  if (next) return NextResponse.redirect(`${origin}${next}`)
 
   // Route to the correct dashboard
   if (profile.role === 'photographer') {
