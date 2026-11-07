@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { cn } from '@/lib/utils'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { LeadsTable } from '@/components/admin/leads-table'
+import { ImportLeads } from '@/components/admin/import-leads'
 import { LEAD_ESTADOS, type Lead, type LeadEstado } from '@/types/database'
 
 export const metadata: Metadata = { robots: { index: false, follow: false } }
@@ -18,10 +19,12 @@ const ESTADO_LABELS: Record<LeadEstado, string> = {
   no_contactar: 'No contactar',
 }
 
+// A, B, C, then leads without a priority yet (imported, not enriched).
 function byPriority(a: Lead, b: Lead): number {
-  return a.prioridad === b.prioridad
-    ? b.created_at.localeCompare(a.created_at)
-    : a.prioridad.localeCompare(b.prioridad)
+  if (a.prioridad === b.prioridad) return b.created_at.localeCompare(a.created_at)
+  if (!a.prioridad) return 1
+  if (!b.prioridad) return -1
+  return a.prioridad.localeCompare(b.prioridad)
 }
 
 export default async function AdminLeadsPage({
@@ -51,6 +54,8 @@ export default async function AdminLeadsPage({
     <div className="min-h-[100dvh] bg-background">
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <PageHeader title="Leads" description="Fotógrafos para contactar, por estado y prioridad." />
+
+        <ImportLeads />
 
         <nav aria-label="Filtrar por estado" className="gs-scrollbar-none -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <ul className="inline-flex gap-1 rounded-full bg-foreground/[0.06] p-1">

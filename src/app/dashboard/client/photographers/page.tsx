@@ -26,6 +26,7 @@ export default async function ClientPhotographersPage() {
       'id, display_name, city, base_price, price_max, specialty, specialty_other, payment_method, requires_deposit, payment_terms, payment_link'
     )
     .eq('has_signed_contract', true)
+    .eq('status', 'claimed')
 
   const photographerIds = (photographers ?? []).map((p) => p.id)
 

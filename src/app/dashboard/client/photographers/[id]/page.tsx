@@ -24,6 +24,7 @@ export default async function PhotographerDetailPage({
     .from('photographer_profiles')
     .select('*')
     .eq('id', id)
+    .eq('status', 'claimed')
     .single()
 
   if (!photographer) redirect('/dashboard/client/photographers')

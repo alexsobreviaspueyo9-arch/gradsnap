@@ -35,6 +35,8 @@ export const LEAD_ESTADOS = [
 ] as const
 export type LeadEstado = (typeof LEAD_ESTADOS)[number]
 
+export type PhotographerProfileStatus = 'draft' | 'claimed'
+
 export type Database = {
   public: {
     Tables: {
@@ -68,7 +70,7 @@ export type Database = {
       photographer_profiles: {
         Row: {
           id: string
-          user_id: string
+          user_id: string | null
           display_name: string | null
           bio: string | null
           city: string | null
@@ -87,11 +89,14 @@ export type Database = {
           requires_deposit: boolean | null
           has_signed_contract: boolean
           contract_signed_at: string | null
+          status: PhotographerProfileStatus
+          invite_token: string | null
+          invite_expires_at: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string | null
           display_name?: string | null
           bio?: string | null
           city?: string | null
@@ -110,11 +115,14 @@ export type Database = {
           requires_deposit?: boolean | null
           has_signed_contract?: boolean
           contract_signed_at?: string | null
+          status?: PhotographerProfileStatus
+          invite_token?: string | null
+          invite_expires_at?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          user_id?: string | null
           display_name?: string | null
           bio?: string | null
           city?: string | null
@@ -133,6 +141,9 @@ export type Database = {
           requires_deposit?: boolean | null
           has_signed_contract?: boolean
           contract_signed_at?: string | null
+          status?: PhotographerProfileStatus
+          invite_token?: string | null
+          invite_expires_at?: string | null
           created_at?: string
         }
         Relationships: []
@@ -254,7 +265,7 @@ export type Database = {
           contact_email: string | null
           zona: string | null
           fuente: string | null
-          prioridad: LeadPrioridad
+          prioridad: LeadPrioridad | null
           motivo_encaje: string | null
           estado: LeadEstado
           borrador_mensaje: string | null
@@ -270,7 +281,7 @@ export type Database = {
           contact_email?: string | null
           zona?: string | null
           fuente?: string | null
-          prioridad?: LeadPrioridad
+          prioridad?: LeadPrioridad | null
           motivo_encaje?: string | null
           estado?: LeadEstado
           borrador_mensaje?: string | null
@@ -286,7 +297,7 @@ export type Database = {
           contact_email?: string | null
           zona?: string | null
           fuente?: string | null
-          prioridad?: LeadPrioridad
+          prioridad?: LeadPrioridad | null
           motivo_encaje?: string | null
           estado?: LeadEstado
           borrador_mensaje?: string | null

@@ -35,7 +35,7 @@ jobs:
       - name: Install the script's tools
         run: |
           mkdir -p "$RUNNER_TEMP/leads"
-          cp scripts/find-leads.mjs "$RUNNER_TEMP/leads/"
+          cp -r scripts "$RUNNER_TEMP/leads/"
           cd "$RUNNER_TEMP/leads"
           npm init -y > /dev/null
           npm install --no-audit --no-fund @supabase/supabase-js@2.110.7
@@ -47,4 +47,4 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: https://nrokuqgrjrkfxqbkcyyi.supabase.co
-        run: node find-leads.mjs
+        run: node scripts/find-leads.mjs

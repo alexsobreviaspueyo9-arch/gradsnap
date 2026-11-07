@@ -43,7 +43,7 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
   return (
     <tr className="border-t align-top">
       <td className="px-4 py-3">
-        <Badge variant="secondary">{lead.prioridad}</Badge>
+        <Badge variant="secondary">{lead.prioridad ?? '—'}</Badge>
       </td>
       <td className="px-4 py-3">
         <p className="font-medium">{lead.nombre}</p>

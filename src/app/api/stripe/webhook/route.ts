@@ -25,7 +25,7 @@ async function notifyPhotographerOfSlot(
     .eq('id', slot.photographer_id)
     .single()
 
-  if (!photographerProfile) return
+  if (!photographerProfile?.user_id) return
 
   const { data: photographerAccount } = await supabase
     .from('profiles')
@@ -77,7 +77,7 @@ async function notifyPhotographerOfBalance(
     .eq('id', slot.photographer_id)
     .single()
 
-  if (!photographerProfile) return
+  if (!photographerProfile?.user_id) return
 
   const { data: photographerAccount } = await supabase
     .from('profiles')

@@ -241,6 +241,9 @@ Details and reasoning in `docs/HISTORY.md` ("Launch checklist").
 2. Legal: privacy/terms pages + PostHog cookieless. Needs owner, country, contact email.
 3. Supabase free tier pauses after ~7 idle days (DNS stops resolving): Pro plan or accept the risk.
 4. Booking confirmation email to the client (not built; the domain is ready now).
-5. Photographer recruitment (phase 1 built: `leads`, `/admin/leads`, `/fotografos?src=`).
-   Next: a weekly agent that finds and drafts leads, sending the outreach emails,
-   and a concierge onboarding for the first photographers.
+5. Photographer recruitment (phase 1 built: `leads`, `/admin/leads`, `/fotografos?src=`;
+   weekly agent built: `scripts/find-leads.mjs` + GitHub Actions). Phase 2 in progress:
+   import box in `/admin/leads` (`lib/leads/parse.ts`), local enrichment
+   (`scripts/enrich-leads.mjs`, shares `scripts/lib/leads-shared.mjs`), draft profiles
+   (`status` draft|claimed, client listings show only claimed). Pending: concierge
+   claim flow (`/reclamar/<token>`), sending the outreach emails.
