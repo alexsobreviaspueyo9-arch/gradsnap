@@ -6,9 +6,11 @@ import {
   bookSlotFree,
 } from '@/app/dashboard/client/photographers/[id]/actions'
 import { trackEvent } from '@/lib/posthog'
+import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { BookingSummary } from '@/components/client/booking-confirmation'
 
 export function useBookSlot(paymentsEnabled: boolean) {
+  const isPreview = usePreviewMode()
   const [bookingSlotId, setBookingSlotId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<BookingSummary | null>(null)
@@ -24,6 +26,12 @@ export function useBookSlot(paymentsEnabled: boolean) {
     onSettled: () => void
   ) {
     if (paymentsEnabled && input.basePrice == null) return
+    if (isPreview) {
+      // Admin preview: show the confirmation without booking or tracking.
+      onSettled()
+      setConfirmation(input.summary)
+      return
+    }
 
     setBookingSlotId(input.slotId)
     setError(null)

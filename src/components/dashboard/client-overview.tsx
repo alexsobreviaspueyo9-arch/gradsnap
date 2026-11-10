@@ -1,6 +1,7 @@
 import { CalendarDays, ClipboardList } from 'lucide-react'
 import { StatTile } from '@/components/dashboard/stat-tile'
 import { WelcomeBanner } from '@/components/dashboard/welcome-banner'
+import { DASHBOARD_BASE } from '@/lib/routing'
 
 export type ClientOverviewProps = {
   displayName: string
@@ -8,6 +9,8 @@ export type ClientOverviewProps = {
   fullName: string | null
   upcomingCount: number
   pastCount: number
+  /** Where in-app links point; the admin preview passes its own. */
+  basePath?: string
 }
 
 export function ClientOverview({
@@ -16,6 +19,7 @@ export function ClientOverview({
   fullName,
   upcomingCount,
   pastCount,
+  basePath = DASHBOARD_BASE.client,
 }: ClientOverviewProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -24,7 +28,7 @@ export function ClientOverview({
         name={displayName}
         subtitle="Browse photographers, pick an open slot and lock in your session."
         cta={{
-          href: '/dashboard/client/photographers',
+          href: `${basePath}/photographers`,
           label: 'Find a photographer',
         }}
       />

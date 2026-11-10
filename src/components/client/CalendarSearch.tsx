@@ -22,6 +22,7 @@ import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
 import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
 import { formatPriceRange } from '@/lib/price'
+import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import {
   PHOTOGRAPHER_SPECIALTIES,
   type AvailabilitySlot,
@@ -57,6 +58,8 @@ export function CalendarSearch({
   paymentsEnabled: boolean
 }) {
   const supabase = createClient()
+  const isPreview = usePreviewMode()
+  const clientBase = useDashboardBase('client')
   const [slots, setSlots] = useState(initialSlots)
   const [cityFilter, setCityFilter] = useState('')
   const [maxPriceFilter, setMaxPriceFilter] = useState('')
@@ -65,6 +68,7 @@ export function CalendarSearch({
   // Live-remove a slot the moment anyone books or deletes it, so a client
   // never tries to book something another client just took.
   useEffect(() => {
+    if (isPreview) return
     const channel = supabase
       .channel('client-search-availability')
       .on(
@@ -87,7 +91,7 @@ export function CalendarSearch({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase])
+  }, [supabase, isPreview])
 
   const filteredSlots = useMemo(() => {
     const maxPrice =
@@ -280,7 +284,7 @@ export function CalendarSearch({
                       </span>
                       <div className="min-w-0">
                         <Link
-                          href={`/dashboard/client/photographers/${photographerId}`}
+                          href={`${clientBase}/photographers/${photographerId}`}
                           className="block truncate text-lg font-semibold tracking-tight hover:text-primary"
                         >
                           {name}

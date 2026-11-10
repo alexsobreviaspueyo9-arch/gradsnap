@@ -2,6 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 import { safeNextPath } from '@/lib/url'
+import { isAdminEmail } from '@/lib/admin-email'
+import { afterSignInPath } from '@/lib/routing'
 import type { Database } from '@/types/database'
 
 export async function GET(request: NextRequest) {
@@ -56,24 +58,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login`)
   }
 
-  // Check if this user already has a profile (returning OAuth user)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  // Admins (ADMIN_EMAILS) have no profile and go to /admin. Everyone else:
+  // no profile yet = new Google user who still has to pick a role.
+  const isAdmin = isAdminEmail(user.email)
+  const { data: profile } = isAdmin
+    ? { data: null }
+    : await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
 
-  if (!profile) {
-    // New Google OAuth user — needs to pick a role
-    const query = next ? `?next=${encodeURIComponent(next)}` : ''
-    return NextResponse.redirect(`${origin}/onboarding/select-role${query}`)
-  }
-
-  if (next) return NextResponse.redirect(`${origin}${next}`)
-
-  // Route to the correct dashboard
-  if (profile.role === 'photographer') {
-    return NextResponse.redirect(`${origin}/dashboard/photographer`)
-  }
-  return NextResponse.redirect(`${origin}/dashboard/client`)
+  return NextResponse.redirect(
+    `${origin}${afterSignInPath({ isAdmin, role: profile?.role ?? null }, next)}`
+  )
 }

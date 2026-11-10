@@ -15,6 +15,7 @@ import { normalizeHttpUrl } from '@/lib/url'
 import { formatPriceRange } from '@/lib/price'
 import { paymentSummary, type PaymentSetup } from '@/lib/payment'
 import { BookingWidget } from '@/components/client/BookingWidget'
+import { DASHBOARD_BASE } from '@/lib/routing'
 import {
   WEEKDAYS,
   type AvailabilitySlot,
@@ -41,12 +42,15 @@ export function PhotographerDetailView({
   slots,
   justBooked,
   paymentsEnabled,
+  basePath = DASHBOARD_BASE.client,
 }: {
   photographer: PhotographerProfile
   photos: PortfolioPhoto[]
   slots: AvailabilitySlot[]
   justBooked: boolean
   paymentsEnabled: boolean
+  /** Where in-app links point; the admin preview passes its own. */
+  basePath?: string
 }) {
   const name = photographer.display_name ?? 'Photographer'
   const style =
@@ -73,7 +77,7 @@ export function PhotographerDetailView({
   return (
     <>
       <Link
-        href="/dashboard/client/photographers"
+        href={`${basePath}/photographers`}
         className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />

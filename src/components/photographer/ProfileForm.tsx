@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/posthog'
+import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import { normalizeHttpUrl } from '@/lib/url'
 import { WeeklyAvailabilityPicker } from '@/components/photographer/WeeklyAvailabilityPicker'
 import {
@@ -102,6 +103,8 @@ function Section({
 
 export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
   const supabase = createClient()
+  const isPreview = usePreviewMode()
+  const photographerBase = useDashboardBase('photographer')
 
   const [displayName, setDisplayName] = useState(profile.display_name ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
@@ -239,6 +242,12 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
         return
       }
       cleanedSocialLinks.push({ label: link.label, url: href })
+    }
+
+    if (isPreview) {
+      // Admin preview: validation ran as usual; nothing is saved or tracked.
+      setSaved(true)
+      return
     }
 
     setLoading(true)
@@ -542,7 +551,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
         <p className="text-xs text-muted-foreground">
           Bookable slots are managed from your{' '}
           <Link
-            href="/dashboard/photographer/availability"
+            href={`${photographerBase}/availability`}
             className="font-medium text-primary underline underline-offset-4"
           >
             availability calendar
@@ -569,8 +578,11 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
           >
             {saved ? (
               <>
-                <Check className="size-4" /> Profile updated
+                <Check className="size-4" />{' '}
+                {isPreview ? 'Looks valid, not saved in preview' : 'Profile updated'}
               </>
+            ) : isPreview ? (
+              'Preview: changes are checked, never saved.'
             ) : (
               'Changes are saved when you press the button.'
             )}

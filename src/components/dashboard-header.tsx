@@ -7,7 +7,7 @@ import {
 } from '@/components/dashboard/dashboard-nav'
 import { signOut } from '@/lib/actions/auth'
 
-const NAV_BY_ROLE: Record<'photographer' | 'client', readonly NavItem[]> = {
+export const NAV_BY_ROLE: Record<'photographer' | 'client', readonly NavItem[]> = {
   client: [
     { href: '/dashboard/client', label: 'Overview', exact: true },
     { href: '/dashboard/client/photographers', label: 'Find a photographer' },
@@ -23,19 +23,25 @@ const NAV_BY_ROLE: Record<'photographer' | 'client', readonly NavItem[]> = {
   ],
 }
 
-export function DashboardHeader({
-  role,
+// Sticky glass bar shared by the dashboards and the admin area: wordmark,
+// a neutral badge, sign out, then the nav row(s) passed as children.
+export function AppHeader({
+  homeHref,
+  badge,
+  children,
 }: {
-  role: 'photographer' | 'client'
+  homeHref: string
+  badge: string
+  children: React.ReactNode
 }) {
   return (
     <header className="gs-glass gs-glass-bar sticky top-0 z-30">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <Wordmark href={`/dashboard/${role}`} />
+            <Wordmark href={homeHref} />
             <Badge variant="secondary" className="max-[359px]:hidden">
-              {role === 'photographer' ? 'Photographer' : 'Client'}
+              {badge}
             </Badge>
           </div>
           <form action={signOut}>
@@ -49,8 +55,23 @@ export function DashboardHeader({
             </Button>
           </form>
         </div>
-        <DashboardNav items={NAV_BY_ROLE[role]} />
+        {children}
       </div>
     </header>
+  )
+}
+
+export function DashboardHeader({
+  role,
+}: {
+  role: 'photographer' | 'client'
+}) {
+  return (
+    <AppHeader
+      homeHref={`/dashboard/${role}`}
+      badge={role === 'photographer' ? 'Photographer' : 'Client'}
+    >
+      <DashboardNav items={NAV_BY_ROLE[role]} />
+    </AppHeader>
   )
 }

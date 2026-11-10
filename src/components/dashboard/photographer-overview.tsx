@@ -11,6 +11,7 @@ import {
 import { ActionTile } from '@/components/dashboard/action-tile'
 import { StatTile } from '@/components/dashboard/stat-tile'
 import { WelcomeBanner } from '@/components/dashboard/welcome-banner'
+import { DASHBOARD_BASE } from '@/lib/routing'
 
 export type PhotographerOverviewProps = {
   displayName: string
@@ -22,29 +23,31 @@ export type PhotographerOverviewProps = {
   photoCount: number
   availableSlotCount: number
   totalBookingCount: number
+  /** Where in-app links point; the admin preview passes its own. */
+  basePath?: string
 }
 
 const NAV_TILES = [
   {
-    href: '/dashboard/photographer/profile',
+    path: '/profile',
     icon: UserCircle,
     title: 'Edit profile',
     description: 'Update your display name, bio, city and base price.',
   },
   {
-    href: '/dashboard/photographer/portfolio',
+    path: '/portfolio',
     icon: Images,
     title: 'Manage portfolio',
     description: 'Upload and organize the photos clients will see.',
   },
   {
-    href: '/dashboard/photographer/availability',
+    path: '/availability',
     icon: CalendarClock,
     title: 'Manage availability',
     description: 'Add open time slots for clients to book.',
   },
   {
-    href: '/dashboard/photographer/bookings',
+    path: '/bookings',
     icon: ClipboardList,
     title: 'Bookings',
     description: 'Confirm or cancel pending booking requests.',
@@ -61,6 +64,7 @@ export function PhotographerOverview({
   photoCount,
   availableSlotCount,
   totalBookingCount,
+  basePath = DASHBOARD_BASE.photographer,
 }: PhotographerOverviewProps) {
   const profileRows = [
     { label: 'Email', value: email ?? 'Not set' },
@@ -77,7 +81,7 @@ export function PhotographerOverview({
           name={displayName}
           subtitle="Keep your calendar open and your portfolio fresh to get booked."
           cta={{
-            href: '/dashboard/photographer/bookings',
+            href: `${basePath}/bookings`,
             label: 'View bookings',
           }}
         />
@@ -132,8 +136,8 @@ export function PhotographerOverview({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {NAV_TILES.map((tile) => (
-          <ActionTile key={tile.href} {...tile} />
+        {NAV_TILES.map(({ path, ...tile }) => (
+          <ActionTile key={path} href={`${basePath}${path}`} {...tile} />
         ))}
       </div>
     </div>

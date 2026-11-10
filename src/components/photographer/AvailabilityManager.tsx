@@ -23,6 +23,7 @@ import {
   todayISODate,
   weeklyDates,
 } from '@/lib/date'
+import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { AvailabilitySlot } from '@/types/database'
 
 const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
@@ -45,6 +46,7 @@ export function AvailabilityManager({
   initialSlots: AvailabilitySlot[]
 }) {
   const supabase = createClient()
+  const isPreview = usePreviewMode()
 
   const [slots, setSlots] = useState(() => sortSlots(initialSlots))
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
@@ -76,6 +78,17 @@ export function AvailabilityManager({
   const daySlots = selectedDateISO
     ? slots.filter((s) => s.date === selectedDateISO)
     : []
+
+  // Admin preview: mimic the upsert locally (same start time on the same day
+  // is skipped) without touching the database.
+  function previewInsert(
+    rows: Pick<AvailabilitySlot, 'photographer_id' | 'date' | 'start_time' | 'end_time'>[]
+  ): AvailabilitySlot[] {
+    return rows
+      .map((row) => ({ ...row, start_time: `${row.start_time}:00`, end_time: `${row.end_time}:00` }))
+      .filter((row) => !slots.some((s) => s.date === row.date && s.start_time === row.start_time))
+      .map((row) => ({ ...row, id: crypto.randomUUID(), is_booked: false }) as AvailabilitySlot)
+  }
 
   async function handleAddSlot(e: React.FormEvent) {
     e.preventDefault()
@@ -109,13 +122,15 @@ export function AvailabilityManager({
 
     // ON CONFLICT DO NOTHING: weeks that already have a slot at this start
     // time are skipped instead of failing the whole batch.
-    const { data: inserted, error: insertError } = await supabase
-      .from('availability_slots')
-      .upsert(rows, {
-        onConflict: 'photographer_id,date,start_time',
-        ignoreDuplicates: true,
-      })
-      .select()
+    const { data: inserted, error: insertError } = isPreview
+      ? { data: previewInsert(rows), error: null }
+      : await supabase
+          .from('availability_slots')
+          .upsert(rows, {
+            onConflict: 'photographer_id,date,start_time',
+            ignoreDuplicates: true,
+          })
+          .select()
 
     setSubmitting(false)
 
@@ -135,7 +150,7 @@ export function AvailabilityManager({
       return
     }
 
-    added.forEach(() => trackEvent('availability_slot_added'))
+    if (!isPreview) added.forEach(() => trackEvent('availability_slot_added'))
     setSlots((prev) => sortSlots([...prev, ...added]))
     setStartTime('')
     setEndTime('')
@@ -158,10 +173,9 @@ export function AvailabilityManager({
     setDeletingId(slot.id)
     setError(null)
 
-    const { error: deleteError } = await supabase
-      .from('availability_slots')
-      .delete()
-      .eq('id', slot.id)
+    const { error: deleteError } = isPreview
+      ? { error: null }
+      : await supabase.from('availability_slots').delete().eq('id', slot.id)
 
     setDeletingId(null)
 

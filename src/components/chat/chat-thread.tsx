@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { MESSAGE_MAX_LENGTH, formatMessageTime } from '@/lib/chat'
+import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { BookingMessage } from '@/types/database'
 
 type Props = {
@@ -21,6 +22,7 @@ function appendUnique(list: BookingMessage[], message: BookingMessage): BookingM
 
 export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages }: Props) {
   const [supabase] = useState(createClient)
+  const isPreview = usePreviewMode()
   const [messages, setMessages] = useState(initialMessages)
   const [draft, setDraft] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -28,6 +30,7 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (isPreview) return
     const channel = supabase
       .channel(`booking-chat-${bookingId}`)
       .on(
@@ -47,7 +50,7 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, bookingId])
+  }, [supabase, bookingId, isPreview])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -57,6 +60,19 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
   async function send() {
     const body = draft.trim()
     if (!body || isSending) return
+    if (isPreview) {
+      // Admin preview: show the message on this page only; nothing is sent.
+      const local = {
+        id: crypto.randomUUID(),
+        booking_id: bookingId,
+        sender_id: currentUserId,
+        body,
+        created_at: new Date().toISOString(),
+      }
+      setMessages((prev) => appendUnique(prev, local))
+      setDraft('')
+      return
+    }
     setError(null)
     setIsSending(true)
 

@@ -13,6 +13,7 @@ import { formatDateHeading, isoDateToLocalDate, localDateToISODate } from '@/lib
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
 import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
+import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { PaymentSetup } from '@/lib/payment'
 import type { AvailabilitySlot } from '@/types/database'
 
@@ -40,6 +41,7 @@ export function BookingWidget({
   initialSlots: AvailabilitySlot[]
 }) {
   const supabase = createClient()
+  const isPreview = usePreviewMode()
   const [slots, setSlots] = useState(initialSlots)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
     initialSlots.length > 0 ? isoDateToLocalDate(initialSlots[0].date) : undefined
@@ -51,6 +53,7 @@ export function BookingWidget({
   // Live-remove a slot the moment it's booked or deleted, so this
   // photographer's calendar never shows a slot that's already gone.
   useEffect(() => {
+    if (isPreview) return
     const channel = supabase
       .channel(`photographer-availability-${photographerId}`)
       .on(
@@ -78,7 +81,7 @@ export function BookingWidget({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, photographerId])
+  }, [supabase, photographerId, isPreview])
 
   function handleBook(slot: AvailabilitySlot) {
     bookSlot(

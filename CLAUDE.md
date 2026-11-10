@@ -35,7 +35,7 @@ Analytics · Framer Motion · pnpm 11 · Vitest.
 src/app/
   page.tsx                  landing (composes components/landing/*)
   (auth)/                   login, register, verify-email (split-screen layout)
-  auth/callback/route.ts    OAuth + email-confirmation exchange -> dashboard
+  auth/callback/route.ts    OAuth + email-confirmation exchange -> dashboard (admins -> /admin)
   onboarding/               select-role (Google users), photographer/contract
   dashboard/client/         overview, photographers (search), photographers/[id], messages
   dashboard/photographer/   overview, profile, portfolio, availability, bookings, messages
@@ -52,7 +52,15 @@ src/lib/
 supabase/schema.sql         whole schema, run by hand in the SQL Editor
 supabase/migrations/        newer changes (e.g. leads), run by hand like schema.sql
 supabase/tests/launch-hardening.sql   rolled-back RLS/trigger attack suite
-src/app/admin/leads/        admin-only (404 otherwise) outreach list, ADMIN_EMAILS
+src/app/admin/              admin area (ADMIN_EMAILS; requireAdmin() in layout AND every page, 404 otherwise)
+  page.tsx                  admin home (tiles); layout = DashboardShell + AdminHeader (Preview, Leads)
+  leads/                    outreach list (?estado=, import, concierge)
+  preview/{photographer,client}/**  read-only previews mirroring the dashboard routes;
+                            sample data in preview/preview-data.ts
+src/components/admin/       admin-header, preview-bar, leads-table, import-leads
+src/components/preview/preview-mode.tsx  PreviewModeProvider / usePreviewMode / useDashboardBase
+src/lib/routing.ts          homePath, redirectFor (proxy), afterSignInPath (callback), toPreviewHref
+src/lib/admin-email.ts      isAdminEmail (pure; proxy-safe). lib/admin.ts = requireAdmin()
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
 src/app/reclamar/[token]/   concierge claim page (get/claim_photographer_invite RPCs)
 scripts/find-leads.mjs      weekly lead finder: headless `claude -p` (Haiku, WebSearch+WebFetch
@@ -103,7 +111,7 @@ docs/HISTORY.md             full history (not auto-loaded)
   `PAYMENTS_ENABLED=false`, `APP_URL`, plus (server-only, for `/admin/leads`)
   `ADMIN_EMAILS` and `SUPABASE_SERVICE_ROLE_KEY`.
 - **One account = one role, forever.** Both roles = two accounts, two emails.
-  No "switch role" feature.
+  No "switch role" feature. Admins (ADMIN_EMAILS) are a third kind: no profile, no role.
 - **Clients need an account before browsing** photographers or calendars
   (user decision). Don't make the listing public.
 - **Market: Virginia, USA.** Prices are **US dollars** (`$`, `formatPriceRange()` in
@@ -224,6 +232,27 @@ confirmed or completed, read-only once cancelled (RLS via
 `MessagesView` (list + thread, `?booking=` selects) and `ChatThread`
 (realtime insert subscription, Enter sends). No unread badges or email
 notifications yet (emails need the domain).
+
+**Admin (`/admin/**`).** For the emails in `ADMIN_EMAILS` only; there is no
+admin role: admins have no `profiles` row, and `profiles.role` stays
+client|photographer. `requireAdmin()` (cached per render) runs in the admin
+layout and in every admin page; everyone else gets a 404. `proxy.ts`
+(`redirectFor`) sends admins from `/login`, `/register`, `/dashboard/**` and
+`/onboarding/**` to `/admin`; the auth callback (`afterSignInPath`) does too and
+follows `?next=` only inside `/admin`. The admin header (`AdminHeader` in
+`DashboardShell`) has Preview and Leads tabs (44px). **Preview** renders the REAL
+dashboard components with the hard-coded sample data in
+`app/admin/preview/preview-data.ts` (one photographer, slots, two bookings, one
+chat), routes mirroring `/dashboard/<role>/**` under `/admin/preview/<role>/**`,
+with a "Preview mode" badge and a Photographer/Client toggle (`PreviewBar`).
+`PreviewModeProvider` (only in `app/admin/preview/layout.tsx`) makes those
+components skip every DB write, server action, realtime subscription and
+`trackEvent`; they change local state only (booking shows the confirmation,
+chat shows the message, profile save only validates, portfolio upload is
+disabled). In-app links use `useDashboardBase()` (client components) or a
+`basePath` prop defaulting to the real dashboard (server components). Without
+the provider, real users get the exact old behaviour. Admin accounts are created
+by hand in Supabase Auth (never via `/register`, whose trigger would create a profile).
 
 ## Payments
 

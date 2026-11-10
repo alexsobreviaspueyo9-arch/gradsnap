@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { PortfolioPhoto } from '@/types/database'
 
 const BUCKET = 'portfolio-photos'
@@ -27,6 +28,7 @@ export function PortfolioManager({
   initialPhotos: PortfolioPhoto[]
 }) {
   const supabase = createClient()
+  const isPreview = usePreviewMode()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [photos, setPhotos] = useState(initialPhotos)
@@ -83,7 +85,7 @@ export function PortfolioManager({
   }
 
   async function handleConfirmUpload() {
-    if (pending.length === 0) return
+    if (pending.length === 0 || isPreview) return
 
     setError(null)
     setUploading(true)
@@ -152,6 +154,11 @@ export function PortfolioManager({
   async function handleDelete(photo: PortfolioPhoto) {
     if (!window.confirm('Delete this photo?')) return
 
+    if (isPreview) {
+      setPhotos((prev) => prev.filter((p) => p.id !== photo.id))
+      return
+    }
+
     const { error: deleteError } = await supabase
       .from('portfolio_photos')
       .delete()
@@ -175,6 +182,11 @@ export function PortfolioManager({
   async function handleCaptionBlur(photo: PortfolioPhoto, caption: string) {
     const trimmed = caption.trim() === '' ? null : caption.trim()
     if (trimmed === photo.caption) return
+
+    if (isPreview) {
+      setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, caption: trimmed } : p)))
+      return
+    }
 
     const { error: updateError } = await supabase
       .from('portfolio_photos')
@@ -265,7 +277,10 @@ export function PortfolioManager({
               </div>
             ))}
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {isPreview && (
+              <p className="mr-auto text-sm text-muted-foreground">Uploads are off in preview.</p>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -279,7 +294,7 @@ export function PortfolioManager({
               type="button"
               className="h-10 px-5"
               onClick={handleConfirmUpload}
-              disabled={uploading}
+              disabled={uploading || isPreview}
             >
               {uploading
                 ? 'Uploading…'

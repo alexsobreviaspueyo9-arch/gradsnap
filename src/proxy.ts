@@ -1,5 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAdminEmail } from '@/lib/admin-email'
+import { redirectFor } from '@/lib/routing'
+import type { UserRole } from '@/types/database'
 
 // When Supabase is unreachable (e.g. a paused project), auth-js keeps
 // retrying a session refresh for ~26s, freezing every navigation. Past this
@@ -48,38 +51,30 @@ export async function proxy(request: NextRequest) {
   }
 
   const isAuthPage = pathname === '/login' || pathname === '/register'
-  if (!user || (!isAuthPage && !pathname.startsWith('/dashboard'))) {
+  const isDashboard = pathname.startsWith('/dashboard')
+  const isOnboarding = pathname.startsWith('/onboarding')
+  if (!user || !(isAuthPage || isDashboard || isOnboarding)) {
     return supabaseResponse
   }
 
+  // Admins come from ADMIN_EMAILS and have no profile; they live in /admin.
+  const isAdmin = isAdminEmail(user.email)
+
   // Role comes from profiles, not user_metadata: users can rewrite their own
   // metadata with supabase.auth.updateUser(), but profiles.role is locked by
-  // the guard_profile trigger.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  const role = profile?.role
-  const home =
-    role === 'photographer'
-      ? '/dashboard/photographer'
-      : role === 'client'
-        ? '/dashboard/client'
-        : '/onboarding/select-role'
-
-  if (isAuthPage) {
-    return NextResponse.redirect(new URL(home, request.url))
+  // the guard_profile trigger. Onboarding never needs it.
+  let role: UserRole | null = null
+  if (!isAdmin && (isAuthPage || isDashboard)) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+    role = (profile?.role as UserRole | undefined) ?? null
   }
 
-  const allowedPrefix =
-    role === 'photographer' ? '/dashboard/photographer' : '/dashboard/client'
-  if (!role || !pathname.startsWith(allowedPrefix)) {
-    return NextResponse.redirect(new URL(home, request.url))
-  }
-
-  return supabaseResponse
+  const target = redirectFor(pathname, { isAdmin, role })
+  return target ? NextResponse.redirect(new URL(target, request.url)) : supabaseResponse
 }
 
 export const config = {

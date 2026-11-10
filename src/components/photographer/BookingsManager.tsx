@@ -14,6 +14,7 @@ import {
   cancelBooking,
   setBookingPaymentStatus,
 } from '@/app/dashboard/photographer/bookings/actions'
+import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import type {
   Booking,
   AvailabilitySlot,
@@ -70,6 +71,8 @@ export function BookingsManager({
 }: {
   initialBookings: BookingWithDetails[]
 }) {
+  const isPreview = usePreviewMode()
+  const photographerBase = useDashboardBase('photographer')
   const [bookings, setBookings] = useState(initialBookings)
   const [error, setError] = useState<string | null>(null)
   const [actingId, setActingId] = useState<string | null>(null)
@@ -96,7 +99,7 @@ export function BookingsManager({
     setError(null)
 
     try {
-      await setBookingPaymentStatus(booking.id, next)
+      if (!isPreview) await setBookingPaymentStatus(booking.id, next)
       patchPaymentStatus(booking.id, next)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -110,7 +113,7 @@ export function BookingsManager({
     setError(null)
 
     try {
-      await confirmBooking(booking.id)
+      if (!isPreview) await confirmBooking(booking.id)
       patchStatus(booking.id, 'confirmed')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -124,7 +127,7 @@ export function BookingsManager({
     setError(null)
 
     try {
-      await completeBooking(booking.id)
+      if (!isPreview) await completeBooking(booking.id)
       patchStatus(booking.id, 'completed')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -140,7 +143,7 @@ export function BookingsManager({
     setError(null)
 
     try {
-      await cancelBooking(booking.id)
+      if (!isPreview) await cancelBooking(booking.id)
       patchStatus(booking.id, 'cancelled')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -251,7 +254,7 @@ export function BookingsManager({
                 {(booking.status === 'confirmed' ||
                   booking.status === 'completed') && (
                   <Link
-                    href={`/dashboard/photographer/messages?booking=${booking.id}`}
+                    href={`${photographerBase}/messages?booking=${booking.id}`}
                     className={cn(
                       buttonVariants({ variant: 'outline', size: 'sm' }),
                       'h-9 px-4'

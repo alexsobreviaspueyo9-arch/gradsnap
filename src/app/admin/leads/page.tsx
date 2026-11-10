@@ -8,7 +8,7 @@ import { LeadsTable } from '@/components/admin/leads-table'
 import { ImportLeads } from '@/components/admin/import-leads'
 import { LEAD_ESTADOS, type Lead, type LeadEstado } from '@/types/database'
 
-export const metadata: Metadata = { robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: 'Leads · GradSnap admin' }
 
 const ESTADO_LABELS: Record<LeadEstado, string> = {
   encontrado: 'Encontrado',
@@ -51,60 +51,58 @@ export default async function AdminLeadsPage({
   const tabs = [{ value: null, label: 'Todos' }, ...LEAD_ESTADOS.map((e) => ({ value: e, label: ESTADO_LABELS[e] }))]
 
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-        <PageHeader title="Leads" description="Fotógrafos para contactar, por estado y prioridad." />
+    <>
+      <PageHeader title="Leads" description="Fotógrafos para contactar, por estado y prioridad." />
 
-        <ImportLeads />
+      <ImportLeads />
 
-        <nav aria-label="Filtrar por estado" className="gs-scrollbar-none -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          <ul className="inline-flex gap-1 rounded-full bg-foreground/[0.06] p-1">
-            {tabs.map((tab) => {
-              const isActive = tab.value === filter
-              return (
-                <li key={tab.label}>
-                  <Link
-                    href={tab.value ? `/admin/leads?estado=${tab.value}` : '/admin/leads'}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={cn(
-                      'flex h-9 shrink-0 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors',
-                      isActive
-                        ? 'bg-card text-foreground shadow-[0_1px_3px_var(--shadow-tint)]'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    {tab.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
+      <nav aria-label="Filtrar por estado" className="gs-scrollbar-none -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <ul className="inline-flex gap-1 rounded-full bg-foreground/[0.06] p-1">
+          {tabs.map((tab) => {
+            const isActive = tab.value === filter
+            return (
+              <li key={tab.label}>
+                <Link
+                  href={tab.value ? `/admin/leads?estado=${tab.value}` : '/admin/leads'}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    'flex h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors',
+                    isActive
+                      ? 'bg-card text-foreground shadow-[0_1px_3px_var(--shadow-tint)]'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {tab.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
 
-        {error && (
-          <p className="mb-6 rounded-2xl bg-card p-4 text-sm text-destructive">
-            No se pudieron cargar los leads. Revisa SUPABASE_SERVICE_ROLE_KEY y que la migración esté aplicada.
-          </p>
-        )}
+      {error && (
+        <p className="mb-6 rounded-2xl bg-card p-4 text-sm text-destructive">
+          No se pudieron cargar los leads. Revisa SUPABASE_SERVICE_ROLE_KEY y que la migración esté aplicada.
+        </p>
+      )}
 
-        {groups.length === 0 ? (
-          <p className="rounded-3xl bg-card p-10 text-center text-sm text-muted-foreground">
-            No hay leads {filter ? `en "${ESTADO_LABELS[filter]}"` : 'todavía'}.
-          </p>
-        ) : (
-          <div className="space-y-8">
-            {groups.map((group) => (
-              <section key={group.estado} aria-labelledby={`estado-${group.estado}`}>
-                <h2 id={`estado-${group.estado}`} className="mb-3 text-lg font-semibold tracking-tight">
-                  {ESTADO_LABELS[group.estado]}{' '}
-                  <span className="text-muted-foreground tabular-nums">({group.leads.length})</span>
-                </h2>
-                <LeadsTable leads={group.leads} estadoLabels={ESTADO_LABELS} />
-              </section>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+      {groups.length === 0 ? (
+        <p className="rounded-3xl bg-card p-10 text-center text-sm text-muted-foreground">
+          No hay leads {filter ? `en "${ESTADO_LABELS[filter]}"` : 'todavía'}.
+        </p>
+      ) : (
+        <div className="space-y-8">
+          {groups.map((group) => (
+            <section key={group.estado} aria-labelledby={`estado-${group.estado}`}>
+              <h2 id={`estado-${group.estado}`} className="mb-3 text-lg font-semibold tracking-tight">
+                {ESTADO_LABELS[group.estado]}{' '}
+                <span className="text-muted-foreground tabular-nums">({group.leads.length})</span>
+              </h2>
+              <LeadsTable leads={group.leads} estadoLabels={ESTADO_LABELS} />
+            </section>
+          ))}
+        </div>
+      )}
+    </>
   )
 }

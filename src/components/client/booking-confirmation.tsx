@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useDashboardBase } from '@/components/preview/preview-mode'
 import { formatDateHeading } from '@/lib/date'
 import { normalizeHttpUrl } from '@/lib/url'
 import { nextPaymentStep, type PaymentSetup } from '@/lib/payment'
@@ -52,6 +53,7 @@ export function BookingConfirmation({
   booking: BookingSummary
   onBookAnother: () => void
 }) {
+  const clientBase = useDashboardBase('client')
   const paymentHref = normalizeHttpUrl(booking.paymentLink)
   const nextStep = nextPaymentStep(booking.payment, paymentHref !== null)
   const time = `${booking.startTime.slice(0, 5)} - ${booking.endTime.slice(0, 5)}`
@@ -112,7 +114,7 @@ export function BookingConfirmation({
 
       <div className="mt-6 flex flex-col gap-2 sm:flex-row">
         <Link
-          href="/dashboard/client"
+          href={clientBase}
           className={cn(buttonVariants({ variant: 'outline' }), 'h-10 flex-1')}
         >
           Go to my dashboard
