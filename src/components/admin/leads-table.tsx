@@ -47,7 +47,7 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
       setIsLinkCopied(true)
       setTimeout(() => setIsLinkCopied(false), 2000)
     } catch {
-      setError('No se pudo copiar. Selecciona el enlace a mano.')
+      setError("Couldn't copy. Select the link by hand.")
     }
   }
 
@@ -58,7 +58,7 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     } catch {
-      setError('No se pudo copiar. Selecciona el texto a mano.')
+      setError("Couldn't copy. Select the text by hand.")
     }
   }
 
@@ -93,10 +93,10 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
             disabled={!lead.borrador_mensaje}
             onClick={copyDraft}
           >
-            {isCopied ? 'Copiado' : 'Copiar borrador'}
+            {isCopied ? 'Copied' : 'Copy draft'}
           </Button>
           <label className="sr-only" htmlFor={`estado-${lead.id}`}>
-            Estado de {lead.nombre}
+            Status of {lead.nombre}
           </label>
           <select
             id={`estado-${lead.id}`}
@@ -120,7 +120,7 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
               disabled={isPending}
               onClick={() => changeEstado('no_contactar')}
             >
-              No contactar
+              Do not contact
             </Button>
           )}
           {lead.estado === 'respondio' && (
@@ -131,19 +131,19 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
               disabled={isPending}
               onClick={createDraft}
             >
-              Crear perfil borrador
+              Create draft profile
             </Button>
           )}
         </div>
         {inviteLink && (
           <div className="mt-3 rounded-2xl bg-muted p-3">
             <p className="text-xs text-muted-foreground">
-              Enlace para reclamar el perfil (un solo uso, caduca en 14 días). Envíalo tú:
+              Claim link for this profile (single use, expires in 14 days). Send it yourself:
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <code className="min-w-0 flex-1 text-xs break-all">{inviteLink}</code>
               <Button type="button" variant="outline" size="sm" className="h-9 px-3" onClick={copyInviteLink}>
-                {isLinkCopied ? 'Copiado' : 'Copiar enlace'}
+                {isLinkCopied ? 'Copied' : 'Copy link'}
               </Button>
             </div>
           </div>
@@ -160,10 +160,10 @@ export function LeadsTable({ leads, estadoLabels }: Props) {
       <table className="w-full min-w-[720px] text-left">
         <thead className="text-xs text-muted-foreground">
           <tr>
-            <th scope="col" className="px-4 py-3 font-medium">Prioridad</th>
-            <th scope="col" className="px-4 py-3 font-medium">Fotógrafo</th>
-            <th scope="col" className="px-4 py-3 font-medium">Contacto</th>
-            <th scope="col" className="px-4 py-3 font-medium">Acciones</th>
+            <th scope="col" className="px-4 py-3 font-medium">Priority</th>
+            <th scope="col" className="px-4 py-3 font-medium">Photographer</th>
+            <th scope="col" className="px-4 py-3 font-medium">Contact</th>
+            <th scope="col" className="px-4 py-3 font-medium">Actions</th>
           </tr>
         </thead>
         <tbody>

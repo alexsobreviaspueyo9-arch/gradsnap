@@ -11,12 +11,12 @@ import { LEAD_ESTADOS, type Lead, type LeadEstado } from '@/types/database'
 export const metadata: Metadata = { title: 'Leads · GradSnap admin' }
 
 const ESTADO_LABELS: Record<LeadEstado, string> = {
-  encontrado: 'Encontrado',
-  contactado: 'Contactado',
-  respondio: 'Respondió',
-  cuenta_creada: 'Cuenta creada',
-  perfil_completo: 'Perfil completo',
-  no_contactar: 'No contactar',
+  encontrado: 'Found',
+  contactado: 'Contacted',
+  respondio: 'Replied',
+  cuenta_creada: 'Account created',
+  perfil_completo: 'Profile complete',
+  no_contactar: 'Do not contact',
 }
 
 // A, B, C, then leads without a priority yet (imported, not enriched).
@@ -48,15 +48,15 @@ export default async function AdminLeadsPage({
     .map((e) => ({ estado: e, leads: sorted.filter((l) => l.estado === e) }))
     .filter((g) => g.leads.length > 0)
 
-  const tabs = [{ value: null, label: 'Todos' }, ...LEAD_ESTADOS.map((e) => ({ value: e, label: ESTADO_LABELS[e] }))]
+  const tabs = [{ value: null, label: 'All' }, ...LEAD_ESTADOS.map((e) => ({ value: e, label: ESTADO_LABELS[e] }))]
 
   return (
     <>
-      <PageHeader title="Leads" description="Fotógrafos para contactar, por estado y prioridad." />
+      <PageHeader title="Leads" description="Photographers to contact, by status and priority." />
 
       <ImportLeads />
 
-      <nav aria-label="Filtrar por estado" className="gs-scrollbar-none -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <nav aria-label="Filter by status" className="gs-scrollbar-none -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <ul className="inline-flex gap-1 rounded-full bg-foreground/[0.06] p-1">
           {tabs.map((tab) => {
             const isActive = tab.value === filter
@@ -82,13 +82,13 @@ export default async function AdminLeadsPage({
 
       {error && (
         <p className="mb-6 rounded-2xl bg-card p-4 text-sm text-destructive">
-          No se pudieron cargar los leads. Revisa SUPABASE_SERVICE_ROLE_KEY y que la migración esté aplicada.
+          Couldn&apos;t load the leads. Check SUPABASE_SERVICE_ROLE_KEY and that the migration has been run.
         </p>
       )}
 
       {groups.length === 0 ? (
         <p className="rounded-3xl bg-card p-10 text-center text-sm text-muted-foreground">
-          No hay leads {filter ? `en "${ESTADO_LABELS[filter]}"` : 'todavía'}.
+          No leads {filter ? `in "${ESTADO_LABELS[filter]}"` : 'yet'}.
         </p>
       ) : (
         <div className="space-y-8">

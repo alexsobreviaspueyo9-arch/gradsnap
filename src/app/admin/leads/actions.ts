@@ -115,7 +115,7 @@ export async function createDraftProfile(
     .eq('id', leadId)
     .single()
   if (!lead || lead.estado !== 'respondio') {
-    return { error: 'Only leads in "Respondió" can get a draft profile.', link: null }
+    return { error: 'Only leads in "Replied" can get a draft profile.', link: null }
   }
 
   const token = randomBytes(32).toString('base64url')
