@@ -152,7 +152,7 @@ export function LoginForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href={next ? `/register?role=photographer&next=${encodeURIComponent(next)}` : '/register'} className="inline-block py-2.5 text-primary underline underline-offset-4">
+          <Link href={next?.startsWith('/reclamar/') ? `/register?role=photographer&next=${encodeURIComponent(next)}` : '/register'} className="inline-block py-2.5 text-primary underline underline-offset-4">
             Sign up
           </Link>
         </p>

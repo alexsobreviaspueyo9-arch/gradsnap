@@ -50,8 +50,14 @@ export default async function PhotographerBookingsPage() {
             .in('id', clientIds)
         : { data: [] }
 
+    const { data: conversations } = await supabase
+      .from('conversations')
+      .select('id, client_id')
+      .eq('photographer_id', photographerProfile.id)
+
     const slotsById = new Map((slots ?? []).map((s) => [s.id, s]))
     const clientsById = new Map((clients ?? []).map((c) => [c.id, c]))
+    const conversationByClient = new Map((conversations ?? []).map((c) => [c.client_id, c.id]))
 
     bookings = (bookingRows ?? [])
       .map((booking) => {
@@ -62,6 +68,7 @@ export default async function PhotographerBookingsPage() {
           ...booking,
           slot,
           clientName: client?.full_name ?? 'Client',
+          conversationId: conversationByClient.get(booking.client_id) ?? null,
         }
       })
       .filter((b): b is BookingWithDetails => b !== null)

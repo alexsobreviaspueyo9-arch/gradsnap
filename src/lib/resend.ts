@@ -1,12 +1,13 @@
 import { Resend } from 'resend'
 
 // gradsnap.app is verified in Resend; the same sender is used by Supabase SMTP.
-const FROM = 'GradSnap <no-reply@gradsnap.app>'
+const FROM = process.env.EMAIL_FROM || 'GradSnap <no-reply@gradsnap.app>'
 
 export async function sendEmail(input: {
   to: string
   subject: string
   html: string
+  text?: string
 }): Promise<void> {
   const resend = new Resend(process.env.RESEND_API_KEY!)
   const { error } = await resend.emails.send({
@@ -14,6 +15,7 @@ export async function sendEmail(input: {
     to: input.to,
     subject: input.subject,
     html: input.html,
+    text: input.text,
   })
 
   if (error) {

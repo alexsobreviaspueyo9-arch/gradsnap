@@ -1,60 +1,36 @@
 import { describe, expect, it } from 'vitest'
-import { buildConversations, canWriteToChat, formatMessageTime, type ChatBooking } from './chat'
+import { buildConversations, formatMessageTime, type ChatConversation } from './chat'
 
-function booking(overrides: Partial<ChatBooking>): ChatBooking {
+function conversation(overrides: Partial<ChatConversation>): ChatConversation {
   return {
-    id: 'b1',
-    status: 'confirmed',
+    id: 'c1',
     created_at: '2026-10-01T10:00:00Z',
-    date: '2026-10-20',
-    start_time: '17:00:00',
     counterpartName: 'Sam',
     ...overrides,
   }
 }
 
-describe('canWriteToChat', () => {
-  it('allows writing only on confirmed or completed bookings', () => {
-    expect(canWriteToChat('confirmed')).toBe(true)
-    expect(canWriteToChat('completed')).toBe(true)
-    expect(canWriteToChat('pending')).toBe(false)
-    expect(canWriteToChat('cancelled')).toBe(false)
-  })
-})
-
 describe('buildConversations', () => {
-  it('attaches the newest message of each booking', () => {
-    const [conversation] = buildConversations(
-      [booking({})],
+  it('attaches the newest message of each conversation', () => {
+    const [result] = buildConversations(
+      [conversation({})],
       [
-        { booking_id: 'b1', body: 'first', created_at: '2026-10-02T10:00:00Z', sender_id: 'u1' },
-        { booking_id: 'b1', body: 'latest', created_at: '2026-10-03T10:00:00Z', sender_id: 'u2' },
+        { conversation_id: 'c1', body: 'first', created_at: '2026-10-02T10:00:00Z', sender_id: 'u1' },
+        { conversation_id: 'c1', body: 'latest', created_at: '2026-10-03T10:00:00Z', sender_id: 'u2' },
       ]
     )
-    expect(conversation.lastMessage?.body).toBe('latest')
-    expect(conversation.canWrite).toBe(true)
+    expect(result.lastMessage?.body).toBe('latest')
+    expect(result.canWrite).toBe(true)
   })
 
-  it('drops cancelled bookings nobody wrote in but keeps cancelled ones with history', () => {
+  it('sorts by latest activity, falling back to when the conversation started', () => {
     const result = buildConversations(
       [
-        booking({ id: 'empty', status: 'cancelled' }),
-        booking({ id: 'history', status: 'cancelled' }),
+        conversation({ id: 'old-quiet', created_at: '2026-09-01T10:00:00Z' }),
+        conversation({ id: 'new-quiet', created_at: '2026-10-05T10:00:00Z' }),
+        conversation({ id: 'active', created_at: '2026-08-01T10:00:00Z' }),
       ],
-      [{ booking_id: 'history', body: 'hi', created_at: '2026-10-02T10:00:00Z', sender_id: 'u1' }]
-    )
-    expect(result.map((c) => c.id)).toEqual(['history'])
-    expect(result[0].canWrite).toBe(false)
-  })
-
-  it('sorts by latest activity, falling back to when the booking was made', () => {
-    const result = buildConversations(
-      [
-        booking({ id: 'old-quiet', created_at: '2026-09-01T10:00:00Z' }),
-        booking({ id: 'new-quiet', created_at: '2026-10-05T10:00:00Z' }),
-        booking({ id: 'active', created_at: '2026-08-01T10:00:00Z' }),
-      ],
-      [{ booking_id: 'active', body: 'hey', created_at: '2026-10-06T10:00:00Z', sender_id: 'u1' }]
+      [{ conversation_id: 'active', body: 'hey', created_at: '2026-10-06T10:00:00Z', sender_id: 'u1' }]
     )
     expect(result.map((c) => c.id)).toEqual(['active', 'new-quiet', 'old-quiet'])
   })

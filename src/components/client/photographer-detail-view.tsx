@@ -15,6 +15,7 @@ import { normalizeHttpUrl } from '@/lib/url'
 import { formatPriceRange } from '@/lib/price'
 import { paymentSummary, type PaymentSetup } from '@/lib/payment'
 import { BookingWidget } from '@/components/client/BookingWidget'
+import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
 import { DASHBOARD_BASE } from '@/lib/routing'
 import {
   WEEKDAYS,
@@ -118,6 +119,9 @@ export function PhotographerDetailView({
                     </span>
                   )}
                 </p>
+                <div className="mt-4">
+                  <MessagePhotographerButton photographerId={photographer.id} />
+                </div>
               </div>
             </div>
 

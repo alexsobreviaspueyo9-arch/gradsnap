@@ -7,11 +7,11 @@ import { previewThread, viewers } from '@/app/admin/preview/preview-data'
 export default async function PhotographerMessagesPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ booking?: string }>
+  searchParams: Promise<{ conversation?: string }>
 }) {
   await requireAdmin()
   const { userId, conversations } = viewers.photographer
-  const { selected, messages } = previewThread(conversations, (await searchParams).booking)
+  const { selected, messages } = previewThread(conversations, (await searchParams).conversation)
   return (
     <>
       <PageHeader title="Messages" description="Talk to your clients about their sessions." />

@@ -4,16 +4,16 @@ import { bookings, openSlots, photographer, previewThread, searchSlots, slots, v
 describe('previewThread', () => {
   const { conversations } = viewers.client
 
-  it('opens the thread picked by ?booking=', () => {
+  it('opens the thread picked by ?conversation=', () => {
     const { selected, messages } = previewThread(conversations, conversations[0].id)
     expect(selected?.counterpartName).toBe('Maya Chen')
     expect(messages.length).toBeGreaterThan(0)
-    expect(messages.every((m) => m.booking_id === conversations[0].id)).toBe(true)
+    expect(messages.every((m) => m.conversation_id === conversations[0].id)).toBe(true)
   })
 
-  it('shows only the list when nothing or an unknown booking is picked', () => {
+  it('shows only the list when nothing or an unknown conversation is picked', () => {
     expect(previewThread(conversations, undefined)).toEqual({ selected: null, messages: [] })
-    expect(previewThread(conversations, 'not-a-booking')).toEqual({ selected: null, messages: [] })
+    expect(previewThread(conversations, 'not-a-conversation')).toEqual({ selected: null, messages: [] })
   })
 })
 

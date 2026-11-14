@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ChevronLeft, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { formatDateHeading } from '@/lib/date'
 import { formatMessageTime, type Conversation } from '@/lib/chat'
 import { ChatThread } from '@/components/chat/chat-thread'
 import type { BookingMessage } from '@/types/database'
@@ -13,10 +12,6 @@ type Props = {
   selected: Conversation | null
   initialMessages: BookingMessage[]
   emptyText: string
-}
-
-function sessionLabel(c: Conversation): string {
-  return `${formatDateHeading(c.date)} · ${c.start_time.slice(0, 5)}`
 }
 
 function ConversationList({
@@ -40,7 +35,7 @@ function ConversationList({
         return (
           <li key={c.id}>
             <Link
-              href={`${basePath}?booking=${c.id}`}
+              href={`${basePath}?conversation=${c.id}`}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'block rounded-2xl px-4 py-3 transition-colors',
@@ -55,10 +50,6 @@ function ConversationList({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                {sessionLabel(c)}
-                {c.status === 'cancelled' ? ' · Cancelled' : ''}
-              </p>
               <p className="mt-1 truncate text-sm text-muted-foreground">{preview}</p>
             </Link>
           </li>
@@ -119,14 +110,11 @@ export function MessagesView({
             </Link>
             <div className="min-w-0 px-2">
               <h2 className="truncate font-semibold">{selected.counterpartName}</h2>
-              <p className="text-xs text-muted-foreground">
-                Session: {sessionLabel(selected)}
-              </p>
             </div>
           </header>
           <ChatThread
             key={selected.id}
-            bookingId={selected.id}
+            conversationId={selected.id}
             currentUserId={currentUserId}
             canWrite={selected.canWrite}
             initialMessages={initialMessages}

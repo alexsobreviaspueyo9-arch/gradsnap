@@ -47,7 +47,10 @@ export async function proxy(request: NextRequest) {
     !user &&
     (pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding'))
   ) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    // Keep where they were going (e.g. a message email's link) through login.
+    const login = new URL('/login', request.url)
+    login.searchParams.set('next', `${pathname}${request.nextUrl.search}`)
+    return NextResponse.redirect(login)
   }
 
   const isAuthPage = pathname === '/login' || pathname === '/register'

@@ -21,6 +21,7 @@ import {
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
 import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
+import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
 import { formatPriceRange } from '@/lib/price'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import {
@@ -282,7 +283,7 @@ export function CalendarSearch({
                       >
                         {name.charAt(0).toUpperCase()}
                       </span>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <Link
                           href={`${clientBase}/photographers/${photographerId}`}
                           className="block truncate text-lg font-semibold tracking-tight hover:text-primary"
@@ -309,6 +310,7 @@ export function CalendarSearch({
                           )}
                         </p>
                       </div>
+                      <MessagePhotographerButton photographerId={photographerId} />
                     </div>
                     <div className="mt-4">
                       <SlotPicker

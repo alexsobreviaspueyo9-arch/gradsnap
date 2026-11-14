@@ -25,6 +25,8 @@ import type {
 export type BookingWithDetails = Booking & {
   slot: Pick<AvailabilitySlot, 'id' | 'date' | 'start_time' | 'end_time'>
   clientName: string
+  // Set only when the client has started a chat; photographers can't start one.
+  conversationId: string | null
 }
 
 const STATUS_STYLES: Record<BookingStatus, string> = {
@@ -251,10 +253,9 @@ export function BookingsManager({
                     {busy ? 'Completing…' : 'Mark completed'}
                   </Button>
                 )}
-                {(booking.status === 'confirmed' ||
-                  booking.status === 'completed') && (
+                {booking.conversationId && (
                   <Link
-                    href={`${photographerBase}/messages?booking=${booking.id}`}
+                    href={`${photographerBase}/messages?conversation=${booking.conversationId}`}
                     className={cn(
                       buttonVariants({ variant: 'outline', size: 'sm' }),
                       'h-9 px-4'

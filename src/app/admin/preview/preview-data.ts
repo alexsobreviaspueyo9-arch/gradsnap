@@ -1,7 +1,7 @@
 // Hard-coded sample data for the admin preview. Never read from or written to
 // the database; ids are fixed strings, dates are relative to today.
 import { todayISODate, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
-import { canWriteToChat, type Conversation } from '@/lib/chat'
+import type { Conversation } from '@/lib/chat'
 import type { SlotWithPhotographer } from '@/components/client/CalendarSearch'
 import type { BookingWithDetails } from '@/components/photographer/BookingsManager'
 import type {
@@ -93,6 +93,7 @@ export const photos: PortfolioPhoto[] = Array.from({ length: 6 }, (_, i) => ({
 })) as PortfolioPhoto[]
 
 const CHAT_BOOKING_ID = 'preview-booking-1'
+const CONVERSATION_ID = 'preview-conversation'
 
 function booking(
   id: string,
@@ -120,6 +121,7 @@ function booking(
     deposit_refund_id: null,
     slot: bookedSlot,
     clientName,
+    conversationId: id === CHAT_BOOKING_ID ? CONVERSATION_ID : null,
   }
 }
 
@@ -133,18 +135,15 @@ export const thread: BookingMessage[] = [
   { id: 'preview-msg-2', sender_id: PHOTOGRAPHER_USER_ID, body: 'Absolutely, family shots are included. Bring your cap and gown, and maybe a second outfit.', created_at: '2026-10-15T18:05:00Z' },
   { id: 'preview-msg-3', sender_id: PREVIEW_CLIENT_ID, body: 'Great, thanks!', created_at: '2026-10-15T18:12:00Z' },
   { id: 'preview-msg-4', sender_id: PHOTOGRAPHER_USER_ID, body: 'See you by the fountain at 10!', created_at: '2026-10-15T18:20:00Z' },
-].map((m) => ({ ...m, booking_id: CHAT_BOOKING_ID }) as BookingMessage)
+].map((m) => ({ ...m, booking_id: null, conversation_id: CONVERSATION_ID }) as BookingMessage)
 
 function conversation(counterpartName: string): Conversation {
   const last = thread[thread.length - 1]
   return {
-    id: CHAT_BOOKING_ID,
-    status: 'confirmed',
+    id: CONVERSATION_ID,
     created_at: '2026-10-10T10:00:00Z',
-    date: slots[0].date,
-    start_time: slots[0].start_time,
     counterpartName,
-    canWrite: canWriteToChat('confirmed'),
+    canWrite: true,
     lastMessage: { body: last.body, created_at: last.created_at, sender_id: last.sender_id },
   }
 }
@@ -154,11 +153,11 @@ export const viewers = {
   client: { userId: PREVIEW_CLIENT_ID, conversations: [conversation('Maya Chen')] },
 }
 
-// Mirrors the real messages pages: ?booking= picks the open thread.
+// Mirrors the real messages pages: ?conversation= picks the open thread.
 export function previewThread(
   conversations: Conversation[],
-  bookingId: string | undefined
+  conversationId: string | undefined
 ): { selected: Conversation | null; messages: BookingMessage[] } {
-  const selected = conversations.find((c) => c.id === bookingId) ?? null
-  return { selected, messages: selected ? thread.filter((m) => m.booking_id === selected.id) : [] }
+  const selected = conversations.find((c) => c.id === conversationId) ?? null
+  return { selected, messages: selected ? thread.filter((m) => m.conversation_id === selected.id) : [] }
 }

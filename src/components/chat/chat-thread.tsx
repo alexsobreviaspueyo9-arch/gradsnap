@@ -7,10 +7,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { MESSAGE_MAX_LENGTH, formatMessageTime } from '@/lib/chat'
 import { usePreviewMode } from '@/components/preview/preview-mode'
+import { markConversationRead, sendMessage } from '@/lib/actions/chat'
 import type { BookingMessage } from '@/types/database'
 
 type Props = {
-  bookingId: string
+  conversationId: string
   currentUserId: string
   canWrite: boolean
   initialMessages: BookingMessage[]
@@ -20,7 +21,7 @@ function appendUnique(list: BookingMessage[], message: BookingMessage): BookingM
   return list.some((m) => m.id === message.id) ? list : [...list, message]
 }
 
-export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages }: Props) {
+export function ChatThread({ conversationId, currentUserId, canWrite, initialMessages }: Props) {
   const [supabase] = useState(createClient)
   const isPreview = usePreviewMode()
   const [messages, setMessages] = useState(initialMessages)
@@ -32,17 +33,20 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
   useEffect(() => {
     if (isPreview) return
     const channel = supabase
-      .channel(`booking-chat-${bookingId}`)
+      .channel(`conversation-${conversationId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'booking_messages',
-          filter: `booking_id=eq.${bookingId}`,
+          filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((prev) => appendUnique(prev, payload.new as BookingMessage))
+          const message = payload.new as BookingMessage
+          setMessages((prev) => appendUnique(prev, message))
+          // Seen live, so the recipient doesn't also get an email for it.
+          if (message.sender_id !== currentUserId) markConversationRead(conversationId)
         }
       )
       .subscribe()
@@ -50,7 +54,7 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, bookingId, isPreview])
+  }, [supabase, conversationId, currentUserId, isPreview])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -64,7 +68,8 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
       // Admin preview: show the message on this page only; nothing is sent.
       const local = {
         id: crypto.randomUUID(),
-        booking_id: bookingId,
+        booking_id: null,
+        conversation_id: conversationId,
         sender_id: currentUserId,
         body,
         created_at: new Date().toISOString(),
@@ -76,18 +81,16 @@ export function ChatThread({ bookingId, currentUserId, canWrite, initialMessages
     setError(null)
     setIsSending(true)
 
-    const { data, error: insertError } = await supabase
-      .from('booking_messages')
-      .insert({ booking_id: bookingId, sender_id: currentUserId, body })
-      .select()
-      .single()
+    // Server action: inserts with the user's session and emails the other
+    // person (throttled) without ever blocking the send.
+    const { message, error: sendError } = await sendMessage(conversationId, body)
 
     setIsSending(false)
-    if (insertError || !data) {
-      setError("Your message couldn't be sent. Check your connection and try again.")
+    if (sendError || !message) {
+      setError(sendError ?? "Your message couldn't be sent. Check your connection and try again.")
       return
     }
-    setMessages((prev) => appendUnique(prev, data))
+    setMessages((prev) => appendUnique(prev, message))
     setDraft('')
   }
 

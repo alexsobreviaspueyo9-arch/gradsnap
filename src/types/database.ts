@@ -313,24 +313,55 @@ export type Database = {
       booking_messages: {
         Row: {
           id: string
-          booking_id: string
+          booking_id: string | null
+          conversation_id: string
           sender_id: string
           body: string
           created_at: string
         }
         Insert: {
           id?: string
-          booking_id: string
+          booking_id?: string | null
+          conversation_id: string
           sender_id: string
           body: string
           created_at?: string
         }
         Update: {
           id?: string
-          booking_id?: string
+          booking_id?: string | null
+          conversation_id?: string
           sender_id?: string
           body?: string
           created_at?: string
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          id: string
+          client_id: string
+          photographer_id: string
+          created_by: string | null
+          created_at: string
+          client_last_read_at: string | null
+          photographer_last_read_at: string | null
+          client_last_notified_at: string | null
+          photographer_last_notified_at: string | null
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          photographer_id: string
+          created_by?: string | null
+          created_at?: string
+          client_last_read_at?: string | null
+          photographer_last_read_at?: string | null
+          client_last_notified_at?: string | null
+          photographer_last_notified_at?: string | null
+        }
+        Update: {
+          [_ in never]: never
         }
         Relationships: []
       }
@@ -391,6 +422,24 @@ export type Database = {
       claim_photographer_invite: {
         Args: { p_token: string }
         Returns: undefined
+      }
+      start_conversation: {
+        Args: { p_photographer_id: string }
+        Returns: string
+      }
+      mark_conversation_read: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
+      }
+      claim_message_notification: {
+        Args: { p_message_id: string; p_sender_id: string }
+        Returns: {
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_role: 'client' | 'photographer'
+          sender_name: string | null
+          conversation_id: string
+        }[]
       }
       refresh_weekly_slots: {
         Args: { [_ in never]: never }
