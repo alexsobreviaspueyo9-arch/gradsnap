@@ -688,3 +688,22 @@ events inside day cells, not just a highlighted date.
 - Booking failures now say the time may have been taken and refresh the page
   (server-action messages are hidden in production anyway).
 - `sitemap.ts` is request-time (`force-dynamic`) so builds never query Supabase.
+
+
+## Photographer terms, versioned (2026-11-17)
+
+- The onboarding "contract" is now "Photographer terms", version
+  `2026-11-17`. `photographer_profiles.terms_version` + `terms_accepted_at`,
+  locked by `guard_photographer_profile` (browser can't set them);
+  `accept_photographer_terms(p_version)` rejects anything but
+  `photographer_terms_version()`. Migration
+  `20261117_photographer_terms_version.sql` (migrations only, like the other
+  guard changes, so a fresh install keeps the latest guard).
+- Everyone who signed the 2026-10 agreement has no `terms_version`, so they
+  accept again on their next dashboard visit (they stay listed meanwhile:
+  the listing still uses `has_signed_contract`).
+- Sections 1-5 are the old text verbatim (archived in
+  `docs/legal/photographer-agreement-2026-10.md`); 6 public profile, 7 photo
+  licence, 8 independent contractor, 9 non-circumvention (GradSnap-sourced
+  clients only) are visible placeholders for the lawyer.
+- New event: `photographer_terms_accepted` `{ version }`.

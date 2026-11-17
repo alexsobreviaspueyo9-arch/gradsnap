@@ -114,7 +114,7 @@ export default async function ClaimInvitePage({
     <CenteredShell>
       <Panel title={`Claim the profile for ${name}`}>
         <p>
-          It will be added to your account. Next you&apos;ll review the photographer agreement, then
+          It will be added to your account. Next you&apos;ll review the photographer terms, then
           edit your profile and upload your own photos.
         </p>
         <ClaimProfileButton token={token} src={src} />

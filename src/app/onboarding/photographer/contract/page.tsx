@@ -1,183 +1,120 @@
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
+import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+  BadgePercent,
+  Briefcase,
+  CalendarX2,
+  Globe,
+  Images,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import {
+  PHOTOGRAPHER_TERMS_VERSION,
+  isTermsUpdate,
+  needsTermsAcceptance,
+} from '@/lib/photographer-terms'
 import { CenteredShell } from '@/components/brand/centered-shell'
+import { PhotographerTermsText } from '@/components/photographer/terms-text'
+import { AcceptTermsForm } from '@/components/photographer/accept-terms-form'
 
-export default function ContractPage() {
-  const router = useRouter()
-  const supabase = createClient()
+export const metadata: Metadata = {
+  title: 'Photographer terms | GradSnap',
+  robots: { index: false, follow: false },
+}
 
-  const [accepted, setAccepted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+// Plain-language summary of the full text below; "(draft)" items point at
+// sections that are still placeholders for the lawyer.
+const SUMMARY: { icon: LucideIcon; title: string; body: string }[] = [
+  {
+    icon: BadgePercent,
+    title: 'Commission',
+    body: '0% today. If GradSnap ever adds a commission, you hear about it before it applies and can leave.',
+  },
+  {
+    icon: Wallet,
+    title: 'Getting paid',
+    body: 'Clients pay you directly, by your Stripe link or in cash. GradSnap never holds your money, so there is no payout to wait for.',
+  },
+  {
+    icon: CalendarX2,
+    title: 'Cancellations',
+    body: 'Cancel at least 48 hours before a session to avoid penalties. Repeated last-minute cancellations can suspend your account.',
+  },
+  {
+    icon: Globe,
+    title: 'Public profile (draft)',
+    body: 'Your profile, portfolio and open times are visible to anyone, including search engines.',
+  },
+  {
+    icon: Images,
+    title: 'Your photos',
+    body: 'You confirm you own them. GradSnap shows them on your profile and may use thumbnails to promote GradSnap.',
+  },
+  {
+    icon: Briefcase,
+    title: 'Independent contractor (draft)',
+    body: 'You run your own business; you are not employed by GradSnap.',
+  },
+]
 
-  async function handleAccept() {
-    if (!accepted) return
-    setError(null)
-    setLoading(true)
+export default async function PhotographerTermsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
-    const { error: signError } = await supabase.rpc(
-      'sign_photographer_contract'
-    )
-
-    if (signError) {
-      setError(signError.message)
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard/photographer')
-  }
+  const { data: profile } = await supabase
+    .from('photographer_profiles')
+    .select('has_signed_contract, terms_version')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!profile) redirect('/dashboard/photographer')
+  if (!needsTermsAcceptance(profile)) redirect('/dashboard/photographer')
 
   return (
     <CenteredShell className="max-w-2xl">
-      <div>
-        <Card className="rounded-3xl py-6">
-          <CardHeader>
-            <CardTitle className="text-2xl">Photographer Agreement</CardTitle>
-            <CardDescription>
-              Read and accept the terms before accessing your dashboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="rounded-2xl bg-accent p-5 text-center">
-              <p className="text-4xl font-bold tracking-tight text-primary">
-                0% commission
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Right now, every dollar your clients pay goes to you. GradSnap
-                is an additional channel on top of your existing marketing —
-                not a replacement for it — to bring you more clients.
-              </p>
-            </div>
+      <section className="space-y-6 rounded-3xl bg-card p-6 sm:p-8">
+        <header>
+          <h1 className="text-2xl font-semibold tracking-tight">Photographer terms</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isTermsUpdate(profile)
+              ? 'We updated the terms. Review and accept them to keep using your dashboard.'
+              : 'Read and accept the terms before using your dashboard.'}{' '}
+            Version {PHOTOGRAPHER_TERMS_VERSION}.
+          </p>
+        </header>
 
-            <div className="max-h-80 space-y-4 overflow-y-auto rounded-2xl border bg-muted/40 p-5 text-sm text-muted-foreground">
-              <h3 className="font-semibold text-foreground">
-                1. Commission Structure
-              </h3>
-              <p>
-                GradSnap currently charges <strong>0% commission</strong> on
-                bookings made through the platform. Whatever you set as your
-                price is what you get paid.
-              </p>
-              <p>
-                GradSnap may introduce a commission or other fees in the
-                future. If it does, we will tell you in advance, before any
-                change applies to your bookings, and you will be free to stop
-                using the platform.
-              </p>
-              <p>
-                GradSnap is not a replacement for your existing marketing —
-                it&apos;s an additional channel to reach graduating students
-                who are actively looking for a photographer.
-              </p>
-              <Separator />
-              <h3 className="font-semibold text-foreground">2. Payments</h3>
-              <p>
-                GradSnap does not process payments and never holds your
-                money — there are no payouts for us to send you, because the
-                money never passes through us in the first place. Clients pay
-                you directly.
-              </p>
-              <p>
-                You choose how you want to get paid, and that choice is shown
-                on your public profile so clients know what to expect before
-                booking:
-              </p>
-              <ul className="list-disc space-y-1 pl-5">
-                <li>
-                  <strong>Stripe</strong> — through a Stripe Payment Link you
-                  set up yourself and add to your profile settings.
-                </li>
-                <li>
-                  <strong>Cash</strong> — paid to you in person.
-                </li>
-              </ul>
-              <p>
-                You also decide whether you ask for a deposit to confirm the
-                booking, and how much.
-              </p>
-              <p>
-                Since payment happens outside GradSnap, we have no way to
-                verify it automatically — you mark a booking as paid yourself
-                from your bookings dashboard once you&apos;ve actually
-                received the money.
-              </p>
-              <Separator />
-              <h3 className="font-semibold text-foreground">3. Cancellations</h3>
-              <p>
-                Photographers must cancel at least 48 hours before a session to
-                avoid penalties. Repeated last-minute cancellations may result in
-                account suspension.
-              </p>
-              <Separator />
-              <h3 className="font-semibold text-foreground">4. Content</h3>
-              <p>
-                By listing your work on GradSnap you confirm you own or have the
-                right to use all portfolio images uploaded. GradSnap may use
-                portfolio thumbnails for promotional purposes.
-              </p>
-              <Separator />
-              <h3 className="font-semibold text-foreground">
-                5. Account Suspension
-              </h3>
-              <p>
-                GradSnap reserves the right to suspend or terminate accounts that
-                violate these terms, engage in fraudulent activity or receive
-                repeated negative reviews.
-              </p>
-            </div>
+        <div>
+          <h2 className="mb-3 font-semibold">In short</h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {SUMMARY.map(({ icon: Icon, title, body }) => (
+              <li key={title} className="flex gap-3 rounded-2xl bg-muted p-4">
+                <Icon className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
+                <div>
+                  <p className="font-medium">{title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        <div>
+          <h2 className="mb-3 font-semibold">Full terms</h2>
+          <div
+            tabIndex={0}
+            aria-label="Full photographer terms"
+            className="max-h-96 space-y-4 overflow-y-auto rounded-2xl border border-input p-5 text-sm text-muted-foreground"
+          >
+            <PhotographerTermsText />
+          </div>
+        </div>
 
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="accept"
-                checked={accepted}
-                onCheckedChange={(v) => setAccepted(v === true)}
-              />
-              <Label htmlFor="accept" className="leading-relaxed cursor-pointer">
-                I have read and agree to the GradSnap Photographer Agreement.
-              </Label>
-            </div>
-
-            <Button
-              className="h-12 w-full text-base"
-              onClick={handleAccept}
-              disabled={!accepted || loading}
-            >
-              {loading ? 'Saving…' : 'Accept and go to my dashboard'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+        <AcceptTermsForm />
+      </section>
     </CenteredShell>
   )
 }

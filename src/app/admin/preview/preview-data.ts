@@ -2,6 +2,7 @@
 // the database; ids are fixed strings, dates are relative to today.
 import { todayISODate, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
 import type { Conversation } from '@/lib/chat'
+import { PHOTOGRAPHER_TERMS_VERSION } from '@/lib/photographer-terms'
 import type { SlotWithPhotographer } from '@/components/client/CalendarSearch'
 import type { BookingWithDetails } from '@/components/photographer/BookingsManager'
 import type {
@@ -47,6 +48,8 @@ export const photographer: PhotographerProfile = {
   requires_deposit: true,
   has_signed_contract: true,
   contract_signed_at: null,
+  terms_version: PHOTOGRAPHER_TERMS_VERSION,
+  terms_accepted_at: null,
   status: 'claimed',
   invite_token: null,
   invite_expires_at: null,

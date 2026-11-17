@@ -100,15 +100,15 @@ export function PhotographerOverview({
               </div>
             ))}
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-muted-foreground">Contract</dt>
+              <dt className="text-muted-foreground">Photographer terms</dt>
               <dd className="font-medium">
                 {hasSignedContract ? (
                   <span className="inline-flex items-center gap-1 text-success">
-                    <CheckCircle2 className="size-4" /> Signed
+                    <CheckCircle2 className="size-4" /> Accepted
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    <XCircle className="size-4" /> Not signed
+                    <XCircle className="size-4" /> Not accepted
                   </span>
                 )}
               </dd>

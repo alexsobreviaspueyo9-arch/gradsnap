@@ -188,6 +188,35 @@ from hardening_test.t_ids;
 select hardening_test.expect_ok('photographer signs the contract via sign_photographer_contract()',
   'select public.sign_photographer_contract()');
 
+select hardening_test.expect_error('photographer sets its terms version directly',
+  format('update public.photographer_profiles set terms_version = ''2099-01-01'' where user_id = %L', photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer accepts a future terms version',
+  'select public.accept_photographer_terms(''2099-01-01'')');
+
+select hardening_test.expect_ok('photographer accepts the current terms version',
+  'select public.accept_photographer_terms(public.photographer_terms_version())');
+
+-- Another photographer's acceptance: RLS leaves those rows untouchable.
+do $$
+declare
+  v_count bigint;
+begin
+  with u as (
+    update public.photographer_profiles set terms_accepted_at = now()
+    where user_id is distinct from auth.uid() returning id
+  )
+  select count(*) into v_count from u;
+  if v_count > 0 then
+    raise exception 'FAIL: photographer changed % other profiles'' terms acceptance', v_count;
+  end if;
+  raise notice 'ok (no rows changed): photographer sets another photographer''s terms acceptance';
+exception when raise_exception then
+  if sqlerrm like 'FAIL:%' then raise; end if;
+  raise notice 'ok (blocked): photographer sets another photographer''s terms acceptance  [%]', sqlerrm;
+end $$;
+
 select hardening_test.expect_error('photographer saves a javascript: payment link',
   format('update public.photographer_profiles set payment_link = ''javascript:alert(1)'' where user_id = %L', photographer_uid))
 from hardening_test.t_ids;
@@ -275,6 +304,12 @@ begin
     where pp.has_signed_contract and pp.contract_signed_at is not null
   ) then
     raise exception 'FAIL: sign_photographer_contract() did not record the signature';
+  end if;
+  if not exists (
+    select 1 from public.photographer_profiles pp join hardening_test.t_ids t on pp.user_id = t.photographer_uid
+    where pp.terms_version = public.photographer_terms_version() and pp.terms_accepted_at is not null
+  ) then
+    raise exception 'FAIL: accept_photographer_terms() did not record the version';
   end if;
 end $$;
 

@@ -89,6 +89,8 @@ export type Database = {
           requires_deposit: boolean | null
           has_signed_contract: boolean
           contract_signed_at: string | null
+          terms_version: string | null
+          terms_accepted_at: string | null
           status: PhotographerProfileStatus
           invite_token: string | null
           invite_expires_at: string | null
@@ -458,6 +460,10 @@ export type Database = {
           caption: string | null
           sort_order: number
         }[]
+      }
+      accept_photographer_terms: {
+        Args: { p_version: string }
+        Returns: undefined
       }
       start_conversation: {
         Args: { p_photographer_id: string }

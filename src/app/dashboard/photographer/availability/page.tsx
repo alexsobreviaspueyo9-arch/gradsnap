@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PHOTOGRAPHER_TERMS_PATH, needsTermsAcceptance } from '@/lib/photographer-terms'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { AvailabilityManager } from '@/components/photographer/AvailabilityManager'
 
@@ -20,8 +21,8 @@ export default async function PhotographerAvailabilityPage() {
 
   if (!photographerProfile) redirect('/dashboard/photographer')
 
-  if (!photographerProfile.has_signed_contract) {
-    redirect('/onboarding/photographer/contract')
+  if (needsTermsAcceptance(photographerProfile)) {
+    redirect(PHOTOGRAPHER_TERMS_PATH)
   }
 
   // Rolls the profile's weekly hours forward so the next 12 weeks are always

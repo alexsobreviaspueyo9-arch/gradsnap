@@ -36,7 +36,7 @@ src/app/
   page.tsx                  landing (composes components/landing/*)
   (auth)/                   login, register, verify-email (split-screen layout)
   auth/callback/route.ts    OAuth + email-confirmation exchange -> dashboard (admins -> /admin)
-  onboarding/               select-role (Google users), photographer/contract
+  onboarding/               select-role (Google users), photographer/contract (= "Photographer terms")
   dashboard/client/         overview, photographers (search), photographers/[id], messages
   dashboard/photographer/   overview, profile, portfolio, availability, bookings, messages
   booking/balance-paid/     Stripe return page (dormant, see Payments)
@@ -64,6 +64,9 @@ src/lib/admin-email.ts      isAdminEmail (pure; proxy-safe). lib/admin.ts = requ
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
 src/app/photographers/      PUBLIC guest browsing: list + [id] (indexable), data via public_* RPCs
 src/lib/public-photographers.ts  loadPublicListing / loadPublicPhotographer / loadViewerRole
+src/lib/photographer-terms.ts  PHOTOGRAPHER_TERMS_VERSION (= DB photographer_terms_version()), needsTermsAcceptance
+src/components/photographer/terms-text.tsx  full terms: 2026-10 sections verbatim + lawyer placeholders
+docs/legal/                 archived legal text for lawyer review
 src/lib/guest-booking.ts    guest Book -> /register?role=client&next=/photographers/<id>?date=&slot=
 src/components/client/book-button.tsx  Book action per viewer (client | guest | photographer)
 src/components/brand/public-shell.tsx  header + footer for public pages
@@ -181,10 +184,16 @@ via the `handle_new_user` trigger; Google users get no profile and are sent
 to `/onboarding/select-role`. Don't change this flow without being asked.
 
 **Onboarding.** `select-role` (Google users) inserts `profiles` and, for
-photographers, `photographer_profiles`. Photographers must accept
-`/onboarding/photographer/contract` (RPC `sign_photographer_contract`)
-before any photographer page; each photographer page checks
-`has_signed_contract` server-side. Contract legal copy is not to be edited casually.
+photographers, `photographer_profiles`. Photographers must accept the
+**Photographer terms** at `/onboarding/photographer/contract` (URL kept) before
+any photographer page: plain-language summary, full text, one checkbox, one
+primary button; RPC `accept_photographer_terms(PHOTOGRAPHER_TERMS_VERSION)`
+(only the current version; `sign_photographer_contract()` still works and
+accepts the current one). Every photographer page checks
+`needsTermsAcceptance()` server-side (`has_signed_contract` AND
+`terms_version` = current), so bumping the version (TS constant + SQL function
+together) asks everyone again. Legal copy is not to be edited casually;
+sections 6-9 are marked lawyer placeholders.
 
 **Client overview (`/dashboard/client`).** Welcome banner and stats
 (upcoming bookings). All dashboards share `DashboardShell` (sticky header +

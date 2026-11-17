@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { PHOTOGRAPHER_TERMS_PATH, needsTermsAcceptance } from '@/lib/photographer-terms'
 import { todayISODate } from '@/lib/date'
 import { PhotographerOverview } from '@/components/dashboard/photographer-overview'
 
@@ -20,8 +21,8 @@ export default async function PhotographerDashboard() {
     .single()
 
   // Redirect to contract if not signed yet
-  if (photographerProfile && !photographerProfile.has_signed_contract) {
-    redirect('/onboarding/photographer/contract')
+  if (photographerProfile && needsTermsAcceptance(photographerProfile)) {
+    redirect(PHOTOGRAPHER_TERMS_PATH)
   }
 
   const { data: profile } = await supabase
