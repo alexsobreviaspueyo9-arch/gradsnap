@@ -707,3 +707,23 @@ events inside day cells, not just a highlighted date.
   licence, 8 independent contractor, 9 non-circumvention (GradSnap-sourced
   clients only) are visible placeholders for the lawyer.
 - New event: `photographer_terms_accepted` `{ version }`.
+
+
+## Fees and cancellation policy disclosure (2026-11-17, dormant)
+
+- Decided numbers (constants only, nothing charges anyone yet): client fee 6%
+  of the session price, minimum $6; commission 15% on GradSnap-sourced
+  clients, 0% on the photographer's own; 50% deposit + whole fee at booking,
+  other 50% auto-charged 72h before (or at booking if later), photographer
+  paid 48h after.
+- Client refunds of the session price: >=14d 100%, 7-13d 75%, 72h-6d 50%,
+  <72h or no-show 0%; 24h grace after booking (100% incl. fee) if the session
+  is >=7d away; fee otherwise non-refundable. Photographer cancels: client
+  gets 100% incl. fee; photographer penalty $25 (7-13d), $50 (<7d), $100
+  (<72h or no-show).
+- `lib/fees.ts` + `lib/cancellation-policy.ts` are pure and tested (cents
+  math, tier boundaries, grace, DST via `zonedDateTime`).
+- Everything renders only with `PAYMENTS_ENABLED=true`; `/tarifas` and
+  `/politica-de-cancelacion` 404 otherwise. Spanish URLs, English copy. The
+  benefits on `/fotografos` still say "0% commission / clients pay you
+  directly": revisit that copy when payments are actually enabled.

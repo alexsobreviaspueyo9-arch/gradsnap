@@ -64,6 +64,11 @@ src/lib/admin-email.ts      isAdminEmail (pure; proxy-safe). lib/admin.ts = requ
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
 src/app/photographers/      PUBLIC guest browsing: list + [id] (indexable), data via public_* RPCs
 src/lib/public-photographers.ts  loadPublicListing / loadPublicPhotographer / loadViewerRole
+src/lib/fees.ts             client fee 6% (min $6), commission 15%/0%, deposit 50% + fee, balance -72h, payout +48h
+src/lib/cancellation-policy.ts  refundFor / refundAmounts / photographerPenalty / freeCancellationDeadline
+src/components/fees/fee-tables.tsx  shared fee/policy copy (numbers from the two modules above)
+src/components/client/fee-summary.tsx  checkout/confirmation total, breakdown, schedule, free-cancel date
+src/app/tarifas/ src/app/politica-de-cancelacion/  static fee + policy pages (404 unless PAYMENTS_ENABLED)
 src/lib/photographer-terms.ts  PHOTOGRAPHER_TERMS_VERSION (= DB photographer_terms_version()), needsTermsAcceptance
 src/components/photographer/terms-text.tsx  full terms: 2026-10 sections verbatim + lawyer placeholders
 docs/legal/                 archived legal text for lawyer review
@@ -289,6 +294,20 @@ GradSnap does not touch money. Photographers set `payment_link` +
 photographer marks bookings paid. The old Stripe Checkout code
 (`lib/stripe.ts`, webhook, `finalize_*` RPCs, `booking/balance-paid`) is dormant
 behind `PAYMENTS_ENABLED=false`; enabling it needs a product decision first.
+
+**Fees and policy disclosure (built 2026-11, dormant).** Everything about
+fees, deposits, refunds and penalties renders ONLY when
+`PAYMENTS_ENABLED=true`; with it false the site is unchanged. Rules live in
+the pure, string-free `lib/fees.ts` and `lib/cancellation-policy.ts` (dates
+via `zonedDateTime()` in `lib/date.ts`, America/New_York); UI copy reads the
+constants, never repeats numbers. When on: all-in prices (session + fee,
+rounded up in lists, exact at checkout, "Includes GradSnap service fee"),
+`FeeSummary` in `BookingWidget`/`CalendarSearch`/`BookingConfirmation`,
+exact refund + penalty in the photographer cancel prompt, "How you get paid"
+on `/fotografos`, footer links and sitemap entries for `/tarifas` and
+`/politica-de-cancelacion`. No Stripe/payment code was added. Those pages are
+static, so flipping the variable needs a redeploy. Founding-photographer
+terms are a TODO (no numbers).
 
 ## Open items before the official launch
 

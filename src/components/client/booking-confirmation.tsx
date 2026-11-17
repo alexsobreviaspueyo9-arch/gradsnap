@@ -10,6 +10,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useDashboardBase } from '@/components/preview/preview-mode'
+import { FeeSummary } from '@/components/client/fee-summary'
 import { formatDateHeading } from '@/lib/date'
 import { normalizeHttpUrl } from '@/lib/url'
 import { nextPaymentStep, type PaymentSetup } from '@/lib/payment'
@@ -23,6 +24,8 @@ export type BookingSummary = {
   payment: PaymentSetup
   paymentTerms: string | null
   paymentLink: string | null
+  /** Set only when PAYMENTS_ENABLED=true: shows the fee summary. */
+  basePrice?: number | null
 }
 
 function SummaryRow({
@@ -88,6 +91,12 @@ export function BookingConfirmation({
           value={booking.priceLabel ?? 'Agreed with the photographer'}
         />
       </dl>
+
+      {booking.basePrice != null && (
+        <div className="mt-6">
+          <FeeSummary basePrice={booking.basePrice} date={booking.date} startTime={booking.startTime} />
+        </div>
+      )}
 
       <div className="mt-6 rounded-2xl bg-muted/60 p-4">
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">

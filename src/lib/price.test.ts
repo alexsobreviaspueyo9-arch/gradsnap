@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPriceRange } from '@/lib/price'
+import { formatAllInPriceRange, formatMoney, formatPriceRange } from '@/lib/price'
 
 describe('formatPriceRange', () => {
   it('shows a range when the max is above the base price', () => {
@@ -14,5 +14,20 @@ describe('formatPriceRange', () => {
 
   it('returns null when no price is set', () => {
     expect(formatPriceRange(null, null)).toBeNull()
+  })
+})
+
+describe('formatAllInPriceRange', () => {
+  it('adds the service fee and rounds up for lists', () => {
+    expect(formatAllInPriceRange(180.5, null)).toBe('$192')
+    expect(formatAllInPriceRange(80, 150)).toBe('$86 - $159')
+    expect(formatAllInPriceRange(null, null)).toBeNull()
+  })
+})
+
+describe('formatMoney', () => {
+  it('shows exact cents', () => {
+    expect(formatMoney(191.33)).toBe('$191.33')
+    expect(formatMoney(6)).toBe('$6.00')
   })
 })

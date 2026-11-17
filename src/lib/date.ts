@@ -72,3 +72,41 @@ export function groupByDate<T extends { date: string }>(
   }
   return Array.from(grouped.entries())
 }
+
+function zoneOffsetMs(instant: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(instant)
+  const get = (type: string): number => Number(parts.find((p) => p.type === type)?.value)
+  const asUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'))
+  return asUtc - instant.getTime()
+}
+
+// The instant a slot starts: its date/time are APP_TIME_ZONE wall clock, so
+// the result is right whatever zone the server or browser runs in (DST too).
+export function zonedDateTime(date: string, time: string, timeZone: string = APP_TIME_ZONE): Date {
+  const [year, month, day] = date.split('-').map(Number)
+  const [hour, minute] = time.split(':').map(Number)
+  const wall = Date.UTC(year, month - 1, day, hour, minute)
+  const first = wall - zoneOffsetMs(new Date(wall), timeZone)
+  return new Date(wall - zoneOffsetMs(new Date(first), timeZone))
+}
+
+// "Sat, Dec 5, 10:00 AM" in the market's zone (same on server and browser).
+export function formatZonedDateTime(instant: Date): string {
+  return instant.toLocaleString('en-US', {
+    timeZone: APP_TIME_ZONE,
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}

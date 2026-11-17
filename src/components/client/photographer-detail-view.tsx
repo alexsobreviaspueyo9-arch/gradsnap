@@ -12,7 +12,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { normalizeHttpUrl } from '@/lib/url'
-import { formatPriceRange } from '@/lib/price'
+import { formatAllInPriceRange, formatPriceRange } from '@/lib/price'
 import { paymentSummary, type PaymentSetup } from '@/lib/payment'
 import { BookingWidget } from '@/components/client/BookingWidget'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
@@ -85,7 +85,7 @@ export function PhotographerDetailView({
     photographer.specialty === 'Other'
       ? photographer.specialty_other
       : photographer.specialty
-  const priceRange = formatPriceRange(
+  const priceRange = (paymentsEnabled ? formatAllInPriceRange : formatPriceRange)(
     photographer.base_price,
     photographer.price_max
   )
@@ -161,6 +161,9 @@ export function PhotographerDetailView({
                   per session
                 </span>
               </p>
+            )}
+            {priceRange && paymentsEnabled && (
+              <p className="mt-1 text-sm text-muted-foreground">Includes GradSnap service fee</p>
             )}
 
             {(paymentLabel || photographer.payment_terms) && (

@@ -86,7 +86,11 @@ export default async function PhotographerBookingsPage() {
         title="Bookings"
         description="Confirm or cancel pending booking requests."
       />
-      <BookingsManager initialBookings={bookings} />
+      <BookingsManager
+        initialBookings={bookings}
+        paymentsEnabled={process.env.PAYMENTS_ENABLED === 'true'}
+        basePrice={photographerProfile.base_price}
+      />
     </div>
   )
 }

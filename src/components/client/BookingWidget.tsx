@@ -13,6 +13,7 @@ import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
 import { SlotPicker } from '@/components/client/slot-picker'
 import { BookButton } from '@/components/client/book-button'
+import { FeeSummary } from '@/components/client/fee-summary'
 import type { BookingViewer } from '@/lib/guest-booking'
 import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { PaymentSetup } from '@/lib/payment'
@@ -109,6 +110,7 @@ export function BookingWidget({
           payment,
           paymentTerms,
           paymentLink,
+          basePrice: paymentsEnabled ? basePrice : null,
         },
       },
       () => setSlots((prev) => prev.filter((s) => s.id !== slot.id))
@@ -146,9 +148,6 @@ export function BookingWidget({
     )
   }
 
-  const depositAmount =
-    basePrice != null ? Math.round((basePrice / 2) * 100) / 100 : null
-
   if (confirmation) {
     return (
       <BookingConfirmation booking={confirmation} onBookAnother={clearConfirmation} />
@@ -181,13 +180,6 @@ export function BookingWidget({
         </div>
       ) : (
         <div className="space-y-4">
-          {paymentsEnabled && depositAmount != null && (
-            <p className="text-sm text-muted-foreground">
-              Booking requires a ${depositAmount.toFixed(2)} deposit (50%)
-              paid up front; the rest is due after the session.
-            </p>
-          )}
-
           <div className={PANEL}>
             <AvailabilityCalendar
               events={events}
@@ -217,6 +209,15 @@ export function BookingWidget({
                     disabled={isBooking}
                   />
                 </div>
+                {selectedSlot && paymentsEnabled && basePrice != null && (
+                  <div className="mt-5">
+                    <FeeSummary
+                      basePrice={basePrice}
+                      date={selectedSlot.date}
+                      startTime={selectedSlot.start_time}
+                    />
+                  </div>
+                )}
                 {selectedSlot ? (
                   <BookButton
                     viewer={viewer}

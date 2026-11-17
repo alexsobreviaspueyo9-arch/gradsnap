@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { CANCELLATION_POLICY_PATH, FEES_PATH } from '@/lib/site'
+import { PhotographerPayFacts, PhotographerPenaltyTable } from '@/components/fees/fee-tables'
 import type { Metadata } from 'next'
 import { CalendarCheck, GraduationCap, HandCoins, type LucideIcon } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
@@ -31,6 +33,39 @@ const BENEFITS: readonly { icon: LucideIcon; title: string; body: string }[] = [
     body: 'GradSnap takes 0% of your bookings during this validation phase.',
   },
 ]
+
+// Only while PAYMENTS_ENABLED=true; the numbers come from lib/fees.ts.
+function HowYouGetPaid() {
+  return (
+    <section aria-labelledby="get-paid" className="mt-14 max-w-3xl space-y-4">
+      <h2 id="get-paid" className="text-2xl font-semibold tracking-tight">
+        How you get paid
+      </h2>
+      <div className="rounded-3xl bg-card p-6">
+        <PhotographerPayFacts />
+      </div>
+      <h3 className="text-lg font-semibold tracking-tight">If you cancel</h3>
+      <PhotographerPenaltyTable />
+      <p className="rounded-3xl border border-dashed border-input p-4 text-sm">
+        <strong>Founding photographers:</strong> TODO, terms to be confirmed. No numbers yet.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Details on{' '}
+        <Link href={FEES_PATH} className="font-medium text-foreground underline underline-offset-4">
+          fees
+        </Link>{' '}
+        and the{' '}
+        <Link
+          href={CANCELLATION_POLICY_PATH}
+          className="font-medium text-foreground underline underline-offset-4"
+        >
+          cancellation policy
+        </Link>
+        .
+      </p>
+    </section>
+  )
+}
 
 export default async function PhotographersLandingPage({
   searchParams,
@@ -81,6 +116,8 @@ export default async function PhotographersLandingPage({
             </li>
           ))}
         </ul>
+
+        {process.env.PAYMENTS_ENABLED === 'true' && <HowYouGetPaid />}
       </main>
 
       <LandingFooter />

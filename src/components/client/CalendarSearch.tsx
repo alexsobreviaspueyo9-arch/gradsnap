@@ -23,7 +23,9 @@ import { SlotPicker } from '@/components/client/slot-picker'
 import { BookButton } from '@/components/client/book-button'
 import type { BookingViewer } from '@/lib/guest-booking'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
-import { formatPriceRange } from '@/lib/price'
+import { formatAllInPriceRange, formatPriceRange } from '@/lib/price'
+import { listTotalPrice } from '@/lib/fees'
+import { FeeSummary } from '@/components/client/fee-summary'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import {
   PHOTOGRAPHER_SPECIALTIES,
@@ -173,13 +175,17 @@ export function CalendarSearch({
           date: slot.date,
           startTime: slot.start_time,
           endTime: slot.end_time,
-          priceLabel: formatPriceRange(photographer.base_price, photographer.price_max),
+          priceLabel: (paymentsEnabled ? formatAllInPriceRange : formatPriceRange)(
+            photographer.base_price,
+            photographer.price_max
+          ),
           payment: {
             method: photographer.payment_method,
             requiresDeposit: photographer.requires_deposit,
           },
           paymentTerms: photographer.payment_terms,
           paymentLink: photographer.payment_link,
+          basePrice: paymentsEnabled ? photographer.base_price : null,
         },
       },
       () => setSlots((prev) => prev.filter((s) => s.id !== slot.id))
@@ -312,7 +318,9 @@ export function CalendarSearch({
                           )}
                           {photographer.base_price != null && (
                             <span className="font-medium text-foreground">
-                              from ${photographer.base_price}
+                              {paymentsEnabled
+                                ? `from $${listTotalPrice(photographer.base_price)}, includes GradSnap service fee`
+                                : `from $${photographer.base_price}`}
                             </span>
                           )}
                         </p>
@@ -330,6 +338,15 @@ export function CalendarSearch({
                         disabled={isBooking}
                       />
                     </div>
+                    {selectedSlot && paymentsEnabled && photographer.base_price != null && (
+                      <div className="mt-4">
+                        <FeeSummary
+                          basePrice={photographer.base_price}
+                          date={selectedSlot.date}
+                          startTime={selectedSlot.start_time}
+                        />
+                      </div>
+                    )}
                     {selectedSlot && (
                       <BookButton
                         viewer={viewer}

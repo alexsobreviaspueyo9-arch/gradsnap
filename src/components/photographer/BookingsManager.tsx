@@ -7,7 +7,10 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
-import { formatDateHeading, isoDateToLocalDate } from '@/lib/date'
+import { formatDateHeading, isoDateToLocalDate, zonedDateTime } from '@/lib/date'
+import { feeBreakdown } from '@/lib/fees'
+import { photographerPenalty, refundAmounts, refundFor } from '@/lib/cancellation-policy'
+import { formatMoney } from '@/lib/price'
 import {
   confirmBooking,
   completeBooking,
@@ -68,10 +71,31 @@ function DateTile({ isoDate, muted }: { isoDate: string; muted: boolean }) {
   )
 }
 
+// When payments are on, the cancel prompt states the exact outcome.
+function cancelMessage(booking: BookingWithDetails, basePrice: number | null, paymentsEnabled: boolean): string {
+  if (!paymentsEnabled || basePrice == null) return 'Cancel this booking?'
+  const now = new Date()
+  const start = zonedDateTime(booking.slot.date, booking.slot.start_time)
+  const { clientRefund } = refundAmounts(feeBreakdown(basePrice), refundFor(start, now, 'photographer'))
+  const penalty = photographerPenalty(start, now)
+  return [
+    'Cancel this booking?',
+    `${booking.clientName} gets a full refund of ${formatMoney(clientRefund)}, service fee included: nothing is kept by you or GradSnap.`,
+    penalty > 0
+      ? `Your cancellation penalty: ${formatMoney(penalty)}.`
+      : 'No cancellation penalty this far ahead.',
+  ].join('\n\n')
+}
+
 export function BookingsManager({
   initialBookings,
+  paymentsEnabled = false,
+  basePrice = null,
 }: {
   initialBookings: BookingWithDetails[]
+  paymentsEnabled?: boolean
+  /** Session price used for refund amounts (payments only). */
+  basePrice?: number | null
 }) {
   const isPreview = usePreviewMode()
   const photographerBase = useDashboardBase('photographer')
@@ -139,7 +163,7 @@ export function BookingsManager({
   }
 
   async function handleCancel(booking: BookingWithDetails) {
-    if (!window.confirm('Cancel this booking?')) return
+    if (!window.confirm(cancelMessage(booking, basePrice, paymentsEnabled))) return
 
     setActingId(booking.id)
     setError(null)
