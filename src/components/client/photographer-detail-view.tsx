@@ -17,6 +17,7 @@ import { paymentSummary, type PaymentSetup } from '@/lib/payment'
 import { BookingWidget } from '@/components/client/BookingWidget'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
 import { DASHBOARD_BASE } from '@/lib/routing'
+import type { BookingViewer } from '@/lib/guest-booking'
 import {
   WEEKDAYS,
   type AvailabilitySlot,
@@ -37,6 +38,26 @@ const DAY_LABELS: Record<Weekday, string> = {
 
 const PANEL = 'rounded-3xl bg-card p-6 sm:p-8'
 
+// What a guest may see (public_photographers RPC); payment details only reach
+// signed-in clients.
+export type PublicPhotographer = Pick<
+  PhotographerProfile,
+  | 'id'
+  | 'display_name'
+  | 'bio'
+  | 'city'
+  | 'specialty'
+  | 'specialty_other'
+  | 'base_price'
+  | 'price_max'
+  | 'session_duration_minutes'
+  | 'instagram_url'
+  | 'social_links'
+  | 'weekly_availability'
+>
+type DetailPhotographer = PublicPhotographer &
+  Partial<Pick<PhotographerProfile, 'payment_method' | 'requires_deposit' | 'payment_terms' | 'payment_link'>>
+
 export function PhotographerDetailView({
   photographer,
   photos,
@@ -44,14 +65,20 @@ export function PhotographerDetailView({
   justBooked,
   paymentsEnabled,
   basePath = DASHBOARD_BASE.client,
+  viewer = 'client',
+  initialDate = null,
+  initialSlotId = null,
 }: {
-  photographer: PhotographerProfile
-  photos: PortfolioPhoto[]
+  photographer: DetailPhotographer
+  photos: Pick<PortfolioPhoto, 'id' | 'image_url' | 'caption'>[]
   slots: AvailabilitySlot[]
   justBooked: boolean
   paymentsEnabled: boolean
-  /** Where in-app links point; the admin preview passes its own. */
+  /** Where in-app links point; the admin preview passes its own, guests ''. */
   basePath?: string
+  viewer?: BookingViewer
+  initialDate?: string | null
+  initialSlotId?: string | null
 }) {
   const name = photographer.display_name ?? 'Photographer'
   const style =
@@ -69,8 +96,8 @@ export function PhotographerDetailView({
   })
   const hasLinks = instagramHref !== null || socialLinks.length > 0
   const payment: PaymentSetup = {
-    method: photographer.payment_method,
-    requiresDeposit: photographer.requires_deposit,
+    method: photographer.payment_method ?? null,
+    requiresDeposit: photographer.requires_deposit ?? null,
   }
   const paymentLabel = paymentSummary(payment)
   const hasWeekly = Object.keys(photographer.weekly_availability ?? {}).length > 0
@@ -119,9 +146,11 @@ export function PhotographerDetailView({
                     </span>
                   )}
                 </p>
-                <div className="mt-4">
-                  <MessagePhotographerButton photographerId={photographer.id} />
-                </div>
+                {viewer === 'client' && (
+                  <div className="mt-4">
+                    <MessagePhotographerButton photographerId={photographer.id} />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -251,10 +280,13 @@ export function PhotographerDetailView({
             basePrice={photographer.base_price}
             priceLabel={priceRange}
             payment={payment}
-            paymentTerms={photographer.payment_terms}
+            paymentTerms={photographer.payment_terms ?? null}
             paymentsEnabled={paymentsEnabled}
             paymentLink={normalizeHttpUrl(photographer.payment_link)}
             initialSlots={slots}
+            viewer={viewer}
+            initialDate={initialDate}
+            initialSlotId={initialSlotId}
           />
         </section>
       </div>

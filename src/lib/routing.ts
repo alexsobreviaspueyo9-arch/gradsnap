@@ -58,3 +58,13 @@ export function toPreviewHref(href: string, role: UserRole): string {
   const base = DASHBOARD_BASE[role]
   return isUnder(href, base) ? PREVIEW_BASE[role] + href.slice(base.length) : href
 }
+
+// Guest browsing pages: the proxy skips the auth round trip for visitors
+// without a Supabase session cookie.
+export function isPublicBrowsePath(pathname: string): boolean {
+  return isUnder(pathname, '/photographers')
+}
+
+export function hasSessionCookie(cookieNames: string[]): boolean {
+  return cookieNames.some((name) => name.startsWith('sb-') && name.includes('-auth-token'))
+}

@@ -10,7 +10,7 @@ begin;
 -- the Supabase SQL Editor can't see those after switching to the
 -- 'authenticated' role). The final rollback removes it again.
 create schema hardening_test;
-grant usage on schema hardening_test to authenticated;
+grant usage on schema hardening_test to authenticated, anon;
 
 -- ── helpers ──────────────────────────────────────────────────────────────
 
@@ -29,6 +29,44 @@ language plpgsql as $$
 begin
   perform set_config('role', 'none', true);
   perform set_config('request.jwt.claims', '', true);
+end $$;
+
+-- Act as a signed-out visitor (PostgREST 'anon').
+create function hardening_test.act_as_anon() returns void
+language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+  perform set_config('role', 'anon', true);
+end $$;
+
+-- Reading must be refused or return nothing.
+create function hardening_test.expect_nothing(p_label text, p_sql text) returns void
+language plpgsql as $$
+declare
+  v_count bigint;
+begin
+  begin
+    execute format('select count(*) from (%s) q', p_sql) into v_count;
+  exception when others then
+    raise notice 'ok (blocked): %  [%]', p_label, sqlerrm;
+    return;
+  end;
+  if v_count > 0 then
+    raise exception 'FAIL: % returned % rows but should return none', p_label, v_count;
+  end if;
+  raise notice 'ok (empty): %', p_label;
+end $$;
+
+create function hardening_test.expect_rows(p_label text, p_sql text) returns void
+language plpgsql as $$
+declare
+  v_count bigint;
+begin
+  execute format('select count(*) from (%s) q', p_sql) into v_count;
+  if v_count = 0 then
+    raise exception 'FAIL: % returned no rows', p_label;
+  end if;
+  raise notice 'ok (rows): %', p_label;
 end $$;
 
 create function hardening_test.expect_error(p_label text, p_sql text) returns void
@@ -62,8 +100,8 @@ select
   gen_random_uuid() as second_slot,
   gen_random_uuid() as past_slot,
   gen_random_uuid() as started_slot;
-grant select on hardening_test.t_ids to authenticated;
-grant execute on all functions in schema hardening_test to authenticated;
+grant select on hardening_test.t_ids to authenticated, anon;
+grant execute on all functions in schema hardening_test to authenticated, anon;
 
 insert into auth.users (id, email, aud, role, raw_user_meta_data)
 select photographer_uid, 'hardening-photographer@test.invalid', 'authenticated', 'authenticated',
@@ -168,6 +206,63 @@ from hardening_test.t_ids;
 
 select hardening_test.expect_ok('photographer frees the slot once the booking is cancelled',
   format('update public.availability_slots set is_booked = false where id = %L', open_slot))
+from hardening_test.t_ids;
+
+-- As a signed-out visitor (guest browsing). A contracted draft profile must
+-- never be listed.
+select hardening_test.act_as_admin();
+insert into public.photographer_profiles (user_id, status, display_name, has_signed_contract, payment_link)
+values (null, 'draft', 'Hardening Draft', true, 'https://paypal.me/draft');
+
+select hardening_test.act_as_anon();
+
+select hardening_test.expect_nothing('anon reads photographer_profiles directly (payment link)',
+  'select payment_link from public.photographer_profiles');
+select hardening_test.expect_nothing('anon reads profiles (emails)', 'select email from public.profiles');
+select hardening_test.expect_nothing('anon reads bookings', 'select id from public.bookings');
+select hardening_test.expect_nothing('anon reads booking_messages', 'select body from public.booking_messages');
+select hardening_test.expect_nothing('anon reads conversations', 'select id from public.conversations');
+select hardening_test.expect_nothing('anon reads leads', 'select id from public.leads');
+select hardening_test.expect_nothing('anon reads availability_slots directly', 'select id from public.availability_slots');
+select hardening_test.expect_nothing('anon reads portfolio_photos directly', 'select id from public.portfolio_photos');
+
+select hardening_test.expect_error('anon books a slot',
+  format('select public.book_slot(%L)', second_slot))
+from hardening_test.t_ids;
+select hardening_test.expect_error('anon inserts a booking',
+  format('insert into public.bookings (slot_id, client_id, status) values (%L, %L, ''pending'')', second_slot, client_uid))
+from hardening_test.t_ids;
+do $$
+declare
+  v_count bigint;
+begin
+  with u as (update public.photographer_profiles set display_name = 'x' returning id)
+  select count(*) into v_count from u;
+  if v_count > 0 then
+    raise exception 'FAIL: anon updated % photographer profiles', v_count;
+  end if;
+  raise notice 'ok (no rows changed): anon edits a photographer profile';
+exception when insufficient_privilege then
+  raise notice 'ok (blocked): anon edits a photographer profile';
+end $$;
+select hardening_test.expect_error('anon signs the contract', 'select public.sign_photographer_contract()');
+select hardening_test.expect_error('anon starts a conversation',
+  'select public.start_conversation(gen_random_uuid())');
+select hardening_test.expect_error('anon asks for payment link through the public function',
+  'select payment_link from public.public_photographers()');
+select hardening_test.expect_error('anon asks for an invite token through the public function',
+  'select invite_token from public.public_photographers()');
+
+select hardening_test.expect_rows('anon lists the contracted photographer',
+  format('select 1 from public.public_photographers() p join public.public_open_slots() s on s.photographer_id = p.id where s.id = %L', second_slot))
+from hardening_test.t_ids;
+select hardening_test.expect_nothing('anon never sees a draft profile',
+  'select 1 from public.public_photographers() where display_name = ''Hardening Draft''');
+select hardening_test.expect_rows('anon sees an open upcoming slot',
+  format('select 1 from public.public_open_slots() where id = %L', second_slot))
+from hardening_test.t_ids;
+select hardening_test.expect_nothing('anon never sees past or started slots',
+  format('select 1 from public.public_open_slots() where id in (%L, %L)', past_slot, started_slot))
 from hardening_test.t_ids;
 
 -- Back to admin: confirm the contract really was recorded

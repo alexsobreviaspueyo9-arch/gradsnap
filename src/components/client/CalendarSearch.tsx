@@ -8,7 +8,6 @@ import {
   AvailabilityCalendar,
   type CalendarEvent,
 } from '@/components/availability-calendar'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -20,7 +19,9 @@ import {
 } from '@/lib/date'
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
-import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
+import { SlotPicker } from '@/components/client/slot-picker'
+import { BookButton } from '@/components/client/book-button'
+import type { BookingViewer } from '@/lib/guest-booking'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
 import { formatPriceRange } from '@/lib/price'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
@@ -54,13 +55,19 @@ const FIELD =
 export function CalendarSearch({
   initialSlots,
   paymentsEnabled,
+  viewer = 'client',
+  photographersPath,
 }: {
   initialSlots: SlotWithPhotographer[]
   paymentsEnabled: boolean
+  viewer?: BookingViewer
+  /** Where photographer names link; defaults to the client dashboard. */
+  photographersPath?: string
 }) {
   const supabase = createClient()
   const isPreview = usePreviewMode()
   const clientBase = useDashboardBase('client')
+  const profilesPath = photographersPath ?? `${clientBase}/photographers`
   const [slots, setSlots] = useState(initialSlots)
   const [cityFilter, setCityFilter] = useState('')
   const [maxPriceFilter, setMaxPriceFilter] = useState('')
@@ -69,7 +76,7 @@ export function CalendarSearch({
   // Live-remove a slot the moment anyone books or deletes it, so a client
   // never tries to book something another client just took.
   useEffect(() => {
-    if (isPreview) return
+    if (isPreview || viewer !== 'client') return
     const channel = supabase
       .channel('client-search-availability')
       .on(
@@ -92,7 +99,7 @@ export function CalendarSearch({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, isPreview])
+  }, [supabase, isPreview, viewer])
 
   const filteredSlots = useMemo(() => {
     const maxPrice =
@@ -285,7 +292,7 @@ export function CalendarSearch({
                       </span>
                       <div className="min-w-0 flex-1">
                         <Link
-                          href={`${clientBase}/photographers/${photographerId}`}
+                          href={`${profilesPath}/${photographerId}`}
                           className="block truncate text-lg font-semibold tracking-tight hover:text-primary"
                         >
                           {name}
@@ -310,7 +317,9 @@ export function CalendarSearch({
                           )}
                         </p>
                       </div>
-                      <MessagePhotographerButton photographerId={photographerId} />
+                      {viewer === 'client' && (
+                        <MessagePhotographerButton photographerId={photographerId} />
+                      )}
                     </div>
                     <div className="mt-4">
                       <SlotPicker
@@ -322,15 +331,15 @@ export function CalendarSearch({
                       />
                     </div>
                     {selectedSlot && (
-                      <Button
-                        type="button"
-                        size="lg"
-                        className="mt-4 h-12 w-full text-base"
-                        disabled={isBooking}
-                        onClick={() => handleBook(selectedSlot)}
-                      >
-                        {isBooking ? 'Booking…' : `Book ${slotTimeLabel(selectedSlot)}`}
-                      </Button>
+                      <BookButton
+                        viewer={viewer}
+                        photographerId={photographerId}
+                        slot={selectedSlot}
+                        isBooking={isBooking}
+                        busyLabel="Booking…"
+                        onBook={() => handleBook(selectedSlot)}
+                        className="mt-4"
+                      />
                     )}
                   </article>
                 )

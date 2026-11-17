@@ -666,3 +666,25 @@ events inside day cells, not just a highlighted date.
   `react-day-picker` dependency) was left in place since it's a generic
   primitive that could still serve some other single-date-picker need
   later; only the booking-specific wrapper was dead code.
+
+
+## Guest browsing (2026-11-17)
+
+- Product decision: clients browse without an account; the account is asked
+  for only when they press Book. Supersedes "clients need an account before
+  browsing" (2026-09).
+- Data: three security-definer RPCs granted to anon (`public_photographers`,
+  `public_open_slots` next 90 days New York time, `public_portfolio` max 20),
+  all filtered to `status = 'claimed' and has_signed_contract`. No anon table
+  policies; guests can't see payment link/terms (payment info is shown to
+  signed-in clients only). Migration `20261117_guest_browsing.sql`, same
+  section at the end of `schema.sql` (with `check_function_bodies = off`,
+  since `status` comes from a later migration). Hardening suite has anon cases.
+- Guests get no realtime; the weekly slot window is refreshed by signed-in
+  traffic (`refresh_weekly_slots` is authenticated-only).
+- Return trip: `next=/photographers/<id>?date=&slot=` (ids and a date only)
+  survives email confirmation, Google + select-role and login; the public page
+  redirects a client to the dashboard page with the slot preselected.
+- Booking failures now say the time may have been taken and refresh the page
+  (server-action messages are hidden in production anyway).
+- `sitemap.ts` is request-time (`force-dynamic`) so builds never query Supabase.

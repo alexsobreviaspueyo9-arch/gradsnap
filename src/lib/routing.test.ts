@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { afterSignInPath, homePath, redirectFor, toPreviewHref, type Viewer } from './routing'
+import {
+  afterSignInPath,
+  hasSessionCookie,
+  homePath,
+  isPublicBrowsePath,
+  redirectFor,
+  toPreviewHref,
+  type Viewer,
+} from './routing'
 
 const admin: Viewer = { isAdmin: true, role: null }
 const client: Viewer = { isAdmin: false, role: 'client' }
@@ -82,5 +90,23 @@ describe('toPreviewHref', () => {
   it('leaves other links untouched', () => {
     expect(toPreviewHref('/dashboard/photographer', 'client')).toBe('/dashboard/photographer')
     expect(toPreviewHref('https://example.com', 'client')).toBe('https://example.com')
+  })
+})
+
+describe('isPublicBrowsePath', () => {
+  it('matches the public photographer pages only', () => {
+    expect(isPublicBrowsePath('/photographers')).toBe(true)
+    expect(isPublicBrowsePath('/photographers/abc')).toBe(true)
+    expect(isPublicBrowsePath('/photographersx')).toBe(false)
+    expect(isPublicBrowsePath('/dashboard/client/photographers')).toBe(false)
+  })
+})
+
+describe('hasSessionCookie', () => {
+  it('detects Supabase auth cookies, including chunked ones', () => {
+    expect(hasSessionCookie(['sb-abc-auth-token'])).toBe(true)
+    expect(hasSessionCookie(['sb-abc-auth-token.0', 'other'])).toBe(true)
+    expect(hasSessionCookie(['ph_session', 'sb-abc-other'])).toBe(false)
+    expect(hasSessionCookie([])).toBe(false)
   })
 })

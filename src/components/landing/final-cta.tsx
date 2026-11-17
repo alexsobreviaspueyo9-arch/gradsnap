@@ -60,7 +60,7 @@ export function FinalCta() {
               <p className="mt-3 text-base text-muted-foreground">{body}</p>
             </div>
             <Link
-              href={`/register?role=${role}`}
+              href={role === 'client' ? '/photographers' : `/register?role=${role}`}
               onClick={() => trackEvent('signup_started', { role })}
               className={cn(
                 buttonVariants({ variant, size: 'lg' }),

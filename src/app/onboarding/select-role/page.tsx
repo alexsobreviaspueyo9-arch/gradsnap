@@ -95,7 +95,7 @@ function SelectRole() {
       }
       router.push(next ?? '/onboarding/photographer/contract')
     } else {
-      router.push('/dashboard/client')
+      router.push(next ?? '/dashboard/client')
     }
   }
 

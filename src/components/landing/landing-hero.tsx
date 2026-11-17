@@ -22,10 +22,10 @@ export function LandingHero() {
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
-            href="/register"
+            href="/photographers"
             className={cn(buttonVariants({ size: 'lg' }), 'h-12 px-7 text-base')}
           >
-            Get started
+            Find a photographer
           </Link>
           <a
             href="#how-it-works"

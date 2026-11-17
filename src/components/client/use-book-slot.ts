@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   startDepositCheckout,
   bookSlotFree,
@@ -11,6 +12,7 @@ import type { BookingSummary } from '@/components/client/booking-confirmation'
 
 export function useBookSlot(paymentsEnabled: boolean) {
   const isPreview = usePreviewMode()
+  const router = useRouter()
   const [bookingSlotId, setBookingSlotId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<BookingSummary | null>(null)
@@ -60,8 +62,11 @@ export function useBookSlot(paymentsEnabled: boolean) {
       }
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message)
+        // Usually someone else took the slot first. Server messages are
+        // hidden in production, so say it plainly and reload the times.
+        setError('That time was just taken or is no longer available. The list has been refreshed, pick another time.')
         onSettled()
+        router.refresh()
       }
     } finally {
       setBookingSlotId(null)

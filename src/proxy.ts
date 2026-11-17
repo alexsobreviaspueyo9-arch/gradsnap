@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdminEmail } from '@/lib/admin-email'
-import { redirectFor } from '@/lib/routing'
+import { hasSessionCookie, isPublicBrowsePath, redirectFor } from '@/lib/routing'
 import type { UserRole } from '@/types/database'
 
 // When Supabase is unreachable (e.g. a paused project), auth-js keeps
@@ -11,6 +11,14 @@ import type { UserRole } from '@/types/database'
 const AUTH_TIMEOUT_MS = 5000
 
 export async function proxy(request: NextRequest) {
+  // Guests browsing photographers: no session to refresh, no role lookup.
+  if (
+    isPublicBrowsePath(request.nextUrl.pathname) &&
+    !hasSessionCookie(request.cookies.getAll().map((c) => c.name))
+  ) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

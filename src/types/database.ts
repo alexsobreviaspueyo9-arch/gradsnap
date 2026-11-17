@@ -423,6 +423,42 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      public_photographers: {
+        Args: { p_id?: string | null }
+        Returns: {
+          id: string
+          display_name: string | null
+          bio: string | null
+          city: string | null
+          specialty: string | null
+          specialty_other: string | null
+          base_price: number | null
+          price_max: number | null
+          session_duration_minutes: number | null
+          instagram_url: string | null
+          social_links: SocialLink[]
+          weekly_availability: WeeklyAvailability
+        }[]
+      }
+      public_open_slots: {
+        Args: { p_photographer_id?: string | null }
+        Returns: {
+          id: string
+          photographer_id: string
+          date: string
+          start_time: string
+          end_time: string
+        }[]
+      }
+      public_portfolio: {
+        Args: { p_photographer_id: string }
+        Returns: {
+          id: string
+          image_url: string
+          caption: string | null
+          sort_order: number
+        }[]
+      }
       start_conversation: {
         Args: { p_photographer_id: string }
         Returns: string

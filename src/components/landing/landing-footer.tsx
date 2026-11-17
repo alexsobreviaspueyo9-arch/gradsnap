@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 const LINKS = [
   { href: '/login', label: 'Log in' },
-  { href: '/register?role=client', label: 'Find a photographer' },
+  { href: '/photographers', label: 'Find a photographer' },
   { href: '/register?role=photographer', label: 'Join as a photographer' },
 ] as const
 

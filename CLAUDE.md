@@ -62,6 +62,11 @@ src/components/preview/preview-mode.tsx  PreviewModeProvider / usePreviewMode / 
 src/lib/routing.ts          homePath, redirectFor (proxy), afterSignInPath (callback), toPreviewHref
 src/lib/admin-email.ts      isAdminEmail (pure; proxy-safe). lib/admin.ts = requireAdmin()
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
+src/app/photographers/      PUBLIC guest browsing: list + [id] (indexable), data via public_* RPCs
+src/lib/public-photographers.ts  loadPublicListing / loadPublicPhotographer / loadViewerRole
+src/lib/guest-booking.ts    guest Book -> /register?role=client&next=/photographers/<id>?date=&slot=
+src/components/client/book-button.tsx  Book action per viewer (client | guest | photographer)
+src/components/brand/public-shell.tsx  header + footer for public pages
 src/app/reclamar/[token]/   concierge claim page (get/claim_photographer_invite RPCs)
 scripts/find-leads.mjs      weekly lead finder: headless `claude -p` (Haiku, WebSearch+WebFetch
                             only, hard limits 8 searches/15 fetches/15 leads, $0.50 cap), checks
@@ -92,6 +97,7 @@ docs/HISTORY.md             full history (not auto-loaded)
 - **Role** comes from `profiles.role` (locked by trigger), never from
   `user_metadata` (users can edit that). `proxy.ts` looks it up for
   `/dashboard/**`, `/login`, `/register`; `getUser()` is capped at 5s.
+  `/photographers/**` without a Supabase auth cookie skips the proxy entirely.
 - **Schema changes:** append an idempotent section to `schema.sql`
   (`if not exists`, `drop ... if exists`, `create or replace`), update
   `types/database.ts`, then the USER runs it in the SQL Editor of the project
@@ -112,8 +118,11 @@ docs/HISTORY.md             full history (not auto-loaded)
   `ADMIN_EMAILS` and `SUPABASE_SERVICE_ROLE_KEY`.
 - **One account = one role, forever.** Both roles = two accounts, two emails.
   No "switch role" feature. Admins (ADMIN_EMAILS) are a third kind: no profile, no role.
-- **Clients need an account before browsing** photographers or calendars
-  (user decision). Don't make the listing public.
+- **Guests browse, accounts book** (2026-11, replaces "account before browsing").
+  Anon reads ONLY via `public_photographers` / `public_open_slots` /
+  `public_portfolio` (security definer, claimed + contracted, fixed public
+  columns, capped). Never add anon SELECT policies or expose payment
+  link/terms, emails, ids of auth users, bookings, messages or drafts.
 - **Market: Virginia, USA.** Prices are **US dollars** (`$`, `formatPriceRange()` in
   `lib/price.ts`; dormant Stripe code uses `usd`).
 - **Time zone:** slot date/time are wall-clock **America/New_York** (Virginia market):
@@ -180,6 +189,16 @@ before any photographer page; each photographer page checks
 **Client overview (`/dashboard/client`).** Welcome banner and stats
 (upcoming bookings). All dashboards share `DashboardShell` (sticky header +
 role tabs); pages don't render their own header.
+
+**Guest browsing (`/photographers`, `/photographers/[id]`).** Public, indexable
+(canonical www, in `sitemap.ts`), `PublicShell` chrome. Same `CalendarSearch` /
+`PhotographerDetailView` with `viewer`: `guest` (no realtime, no payment info,
+no Message button; "Book HH:MM" links to `/register?role=client&next=...`),
+`photographer` (Book disabled: "Photographer accounts cannot book sessions").
+A signed-in client is redirected to the dashboard page with `?date=&slot=`,
+where `BookingWidget` preselects the slot (they still press Book; a gone slot
+shows a notice). Login/signup/Google/select-role keep the `next`. Landing
+client CTAs point here.
 
 **Find a photographer (`/dashboard/client/photographers`).** `CalendarSearch`:
 filters (city substring, max price, style) client-side over upcoming open

@@ -2,16 +2,20 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isUpcomingSlot, todayISODate } from '@/lib/date'
 import { PhotographerDetailView } from '@/components/client/photographer-detail-view'
+import { parseSlotSelection } from '@/lib/guest-booking'
 
 export default async function PhotographerDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ booked?: string }>
+  searchParams: Promise<{ booked?: string; date?: string; slot?: string }>
 }) {
   const { id } = await params
-  const { booked } = await searchParams
+  const query = await searchParams
+  const { booked } = query
+  // Set when a guest picked a time before signing up; they still press Book.
+  const selection = parseSlotSelection(query)
   const supabase = await createClient()
 
   const {
@@ -53,6 +57,8 @@ export default async function PhotographerDetailPage({
       slots={(slots ?? []).filter((slot) => isUpcomingSlot(slot))}
       justBooked={booked === '1'}
       paymentsEnabled={process.env.PAYMENTS_ENABLED === 'true'}
+      initialDate={selection.date}
+      initialSlotId={selection.slotId}
     />
   )
 }

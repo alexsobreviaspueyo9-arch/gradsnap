@@ -18,6 +18,14 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { authCallbackUrl, safeNextPath } from '@/lib/url'
 
+// Keep why someone came to log in: a /reclamar invite signs up as a
+// photographer, a guest booking (/photographers/...) as a client.
+function registerHref(next: string | null): string {
+  if (next?.startsWith('/reclamar/')) return `/register?role=photographer&next=${encodeURIComponent(next)}`
+  if (next?.startsWith('/photographers/')) return `/register?role=client&next=${encodeURIComponent(next)}`
+  return '/register'
+}
+
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -152,7 +160,7 @@ export function LoginForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href={next?.startsWith('/reclamar/') ? `/register?role=photographer&next=${encodeURIComponent(next)}` : '/register'} className="inline-block py-2.5 text-primary underline underline-offset-4">
+          <Link href={registerHref(next)} className="inline-block py-2.5 text-primary underline underline-offset-4">
             Sign up
           </Link>
         </p>

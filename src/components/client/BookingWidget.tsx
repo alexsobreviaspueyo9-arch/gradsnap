@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CalendarX2 } from 'lucide-react'
 import {
@@ -12,7 +11,9 @@ import {
 import { formatDateHeading, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
 import { useBookSlot } from '@/components/client/use-book-slot'
 import { BookingConfirmation } from '@/components/client/booking-confirmation'
-import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
+import { SlotPicker } from '@/components/client/slot-picker'
+import { BookButton } from '@/components/client/book-button'
+import type { BookingViewer } from '@/lib/guest-booking'
 import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { PaymentSetup } from '@/lib/payment'
 import type { AvailabilitySlot } from '@/types/database'
@@ -29,6 +30,9 @@ export function BookingWidget({
   paymentsEnabled,
   paymentLink,
   initialSlots,
+  viewer = 'client',
+  initialDate = null,
+  initialSlotId = null,
 }: {
   photographerId: string
   photographerName: string
@@ -39,21 +43,27 @@ export function BookingWidget({
   paymentsEnabled: boolean
   paymentLink: string | null
   initialSlots: AvailabilitySlot[]
+  viewer?: BookingViewer
+  /** Preselected after a guest signs up (?date=&slot=); never booked automatically. */
+  initialDate?: string | null
+  initialSlotId?: string | null
 }) {
   const supabase = createClient()
   const isPreview = usePreviewMode()
   const [slots, setSlots] = useState(initialSlots)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() =>
-    initialSlots.length > 0 ? isoDateToLocalDate(initialSlots[0].date) : undefined
-  )
+  const preselected = initialSlots.find((s) => s.id === initialSlotId) ?? null
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    const date = preselected?.date ?? initialDate ?? initialSlots[0]?.date
+    return date ? isoDateToLocalDate(date) : undefined
+  })
   const { bookingSlotId, error, confirmation, clearConfirmation, bookSlot } =
     useBookSlot(paymentsEnabled)
-  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(preselected?.id ?? null)
 
   // Live-remove a slot the moment it's booked or deleted, so this
   // photographer's calendar never shows a slot that's already gone.
   useEffect(() => {
-    if (isPreview) return
+    if (isPreview || viewer !== 'client') return
     const channel = supabase
       .channel(`photographer-availability-${photographerId}`)
       .on(
@@ -81,7 +91,7 @@ export function BookingWidget({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, photographerId, isPreview])
+  }, [supabase, photographerId, isPreview, viewer])
 
   function handleBook(slot: AvailabilitySlot) {
     bookSlot(
@@ -126,8 +136,6 @@ export function BookingWidget({
   const selectedSlot = daySlots.find((s) => s.id === selectedSlotId) ?? null
   const isBooking = bookingSlotId !== null
   const busyLabel = paymentsEnabled ? 'Redirecting…' : 'Booking…'
-  const bookLabel =
-    isBooking || !selectedSlot ? busyLabel : `Book ${slotTimeLabel(selectedSlot)}`
 
   if (paymentsEnabled && basePrice == null) {
     return (
@@ -152,6 +160,13 @@ export function BookingWidget({
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {initialSlotId && !preselected && (
+        <Alert>
+          <AlertDescription>
+            The time you picked is no longer available. Choose another one below.
+          </AlertDescription>
         </Alert>
       )}
 
@@ -203,15 +218,15 @@ export function BookingWidget({
                   />
                 </div>
                 {selectedSlot ? (
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="mt-5 h-12 w-full text-base"
-                    disabled={isBooking}
-                    onClick={() => handleBook(selectedSlot)}
-                  >
-                    {bookLabel}
-                  </Button>
+                  <BookButton
+                    viewer={viewer}
+                    photographerId={photographerId}
+                    slot={selectedSlot}
+                    isBooking={isBooking}
+                    busyLabel={busyLabel}
+                    onBook={() => handleBook(selectedSlot)}
+                    className="mt-5"
+                  />
                 ) : (
                   <p className="mt-4 text-sm text-muted-foreground">
                     Choose a time to book it.
