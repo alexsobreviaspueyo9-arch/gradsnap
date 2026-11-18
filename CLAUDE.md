@@ -64,6 +64,13 @@ src/lib/admin-email.ts      isAdminEmail (pure; proxy-safe). lib/admin.ts = requ
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
 src/app/photographers/      PUBLIC guest browsing: list + [id] (indexable), data via public_* RPCs
 src/lib/public-photographers.ts  loadPublicListing / loadPublicPhotographer / loadViewerRole
+src/app/contact/            contact page (hola@gradsnap.app, "who is behind GradSnap" TODO)
+src/lib/gallery.ts          landing gallery photos + credits (null credit = "Example photo"; never invent)
+src/lib/ref-code.ts         personal link ?ref= (gs_ref cookie, 30 days), countBySource
+src/lib/booking-emails.ts   booking request / confirmed emails via claim_booking_email (idempotent)
+src/lib/suggested-policy.ts "Use suggested policy" text for payment_terms
+src/components/brand/pilot-note.tsx  "Free during our launch pilot..." (only while PAYMENTS_ENABLED != true)
+src/components/dashboard/personal-link-card.tsx  photographer link + copy + link/GradSnap counters
 src/lib/fees.ts             client fee 6% (min $6), commission 15%/0%, deposit 50% + fee, balance -72h, payout +48h
 src/lib/cancellation-policy.ts  refundFor / refundAmounts / photographerPenalty / freeCancellationDeadline
 src/components/fees/fee-tables.tsx  shared fee/policy copy (numbers from the two modules above)
@@ -89,8 +96,10 @@ docs/HISTORY.md             full history (not auto-loaded)
 - **Clients:** browser components use `@/lib/supabase/client`; Server
   Components / actions / route handlers use `await createClient()` from
   `@/lib/supabase/server`. Never import the server client in a client file.
-  `service.ts` (service role) is only for the Stripe webhook and `/admin/leads`
-  (after `requireAdmin()` checks `ADMIN_EMAILS`); never use it elsewhere.
+  `service.ts` (service role) is only for the Stripe webhook, `/admin/leads`
+  (after `requireAdmin()` checks `ADMIN_EMAILS`) and the server-only email
+  senders `lib/chat-notify.ts` / `lib/booking-emails.ts` (after the caller's
+  ownership is checked); never use it elsewhere.
 - **Pattern:** `page.tsx` (server) fetches with the user's session and passes
   props to a presentational or client component; client components write
   directly with the browser client and update local state optimistically.
@@ -225,6 +234,28 @@ one primary "Book HH:MM" button. Has a `loading.tsx` skeleton.
 `normalizeHttpUrl`), weekly "usually available" summary, portfolio bento
 (`PortfolioImage` skeletons) and `BookingWidget` (calendar, `SlotPicker`,
 then one primary Book button: choosing a time never books by itself).
+
+**Fall 2026 free pilot.** GradSnap charges nothing; clients pay photographers
+directly (`PilotNote` on the landing hero, `/photographers`, next to prices and
+in `BookingWidget`). `ProfileForm` "Use suggested policy" appends an editable
+cancellation template to `payment_terms` (multi-line, 600 chars), shown to
+signed-in clients on the photographer page as "Set by the photographer"
+(guests never get `payment_terms`). `/contact` is linked from the footer and
+the booking confirmation; the landing gallery captions come from
+`lib/gallery.ts`.
+
+**Booking source + emails.** Each photographer has a fixed `ref_code`
+(guard-locked); the overview shows `/photographers/<id>?ref=<code>` with a
+copy button and "Bookings from your link / from GradSnap". The proxy keeps a
+valid `?ref=` in the httpOnly `gs_ref` cookie (30 days) on photographer pages;
+the guest `next` carries it too. `bookSlotFree` passes it to
+`book_slot(p_slot_id, p_ref_code)`, which sets `bookings.source`
+('photographer_link' only if the code is that slot's photographer's, else
+'marketplace'; browsers can't change it). After a booking, `after()` sends the
+client request email + the photographer's "new booking request"; confirming
+sends the client "confirmed". `claim_booking_email` (service role) sets the
+`*_notified_at` flag first, so each email goes at most once; failures are
+logged with the booking id only and never affect the booking.
 
 **Booking confirmation.** After `book_slot()` succeeds, `useBookSlot` stores a
 `BookingSummary` and the widget/search swaps to `BookingConfirmation`

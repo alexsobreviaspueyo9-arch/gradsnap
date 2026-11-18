@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useDashboardBase } from '@/components/preview/preview-mode'
 import { FeeSummary } from '@/components/client/fee-summary'
+import { CONTACT_PATH } from '@/lib/site'
 import { formatDateHeading } from '@/lib/date'
 import { normalizeHttpUrl } from '@/lib/url'
 import { nextPaymentStep, type PaymentSetup } from '@/lib/payment'
@@ -132,6 +133,12 @@ export function BookingConfirmation({
           Book another session
         </Button>
       </div>
+      <p className="mt-4 text-sm text-muted-foreground">
+        Questions about this booking?{' '}
+        <Link href={CONTACT_PATH} className="font-medium text-foreground underline underline-offset-4">
+          Contact GradSnap
+        </Link>
+      </p>
     </section>
   )
 }

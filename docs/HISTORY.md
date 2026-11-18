@@ -727,3 +727,28 @@ events inside day cells, not just a highlighted date.
   `/politica-de-cancelacion` 404 otherwise. Spanish URLs, English copy. The
   benefits on `/fotografos` still say "0% commission / clients pay you
   directly": revisit that copy when payments are actually enabled.
+
+
+## Fall 2026 free pilot: trust fixes, booking source, booking emails (2026-11-18)
+
+- Business decision: the fall 2026 pilot is FREE. GradSnap charges nothing
+  and clients pay photographers directly; `PAYMENTS_ENABLED` stays false.
+  Commissions are planned for spring 2027 (the dormant fee/policy code from
+  2026-11-17 is for then).
+- Trust: pilot line next to prices and in the booking widget, landing gallery
+  captions from `lib/gallery.ts` (all current photos are Unsplash
+  placeholders labelled "Example photo"; real credits only with the
+  photographer's permission), `/contact` (hola@gradsnap.app; the "who is
+  behind GradSnap" text is a TODO), suggested cancellation policy for
+  photographers' own `payment_terms`.
+- Booking source: `photographer_profiles.ref_code` + `bookings.source`, set
+  only inside `book_slot` (now `book_slot(uuid, text default null)`; the old
+  one-argument function is dropped, callers are unchanged). The point: know
+  which bookings photographers brought themselves (no commission planned on
+  those). Migration `20261118_booking_source_and_emails.sql`; `schema.sql` has
+  the same section minus the guard (guards stay in migrations only).
+- Booking emails: client request confirmation, photographer new-request
+  notification, client "confirmed". Idempotent via `*_notified_at` flags
+  claimed by `claim_booking_email` (service role); sent in `after()` so they
+  never slow down or break a booking. `confirmBooking` no longer emails
+  directly.

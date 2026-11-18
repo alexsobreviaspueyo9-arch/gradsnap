@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { PilotNote } from '@/components/brand/pilot-note'
 import Image from 'next/image'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -20,6 +21,7 @@ export function LandingHero() {
           Book a real photographer for your graduation day, see live
           availability, and reserve your slot in minutes.
         </p>
+        {process.env.PAYMENTS_ENABLED !== 'true' && <PilotNote className="mt-6" />}
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
             href="/photographers"

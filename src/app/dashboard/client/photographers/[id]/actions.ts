@@ -1,6 +1,10 @@
 'use server'
 
+import { after } from 'next/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { REF_COOKIE, parseRefCode } from '@/lib/ref-code'
+import { sendBookingRequestEmails } from '@/lib/booking-emails'
 import { createClient } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe'
 
@@ -80,7 +84,16 @@ export async function bookSlotFree(slotId: string): Promise<void> {
 
   if (!user) redirect('/login')
 
-  const { error } = await supabase.rpc('book_slot', { p_slot_id: slotId })
+  // A personal-link code only counts if book_slot finds it belongs to this
+  // slot's photographer; otherwise the booking is 'marketplace'.
+  const refCode = parseRefCode((await cookies()).get(REF_COOKIE)?.value)
+  const { data: booking, error } = await supabase.rpc('book_slot', {
+    p_slot_id: slotId,
+    p_ref_code: refCode,
+  })
 
   if (error) throw new Error(error.message)
+  if (booking?.client_id === user.id) {
+    after(() => sendBookingRequestEmails(booking.id))
+  }
 }

@@ -16,6 +16,7 @@ import { formatAllInPriceRange, formatPriceRange } from '@/lib/price'
 import { paymentSummary, type PaymentSetup } from '@/lib/payment'
 import { BookingWidget } from '@/components/client/BookingWidget'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
+import { PilotNote } from '@/components/brand/pilot-note'
 import { DASHBOARD_BASE } from '@/lib/routing'
 import type { BookingViewer } from '@/lib/guest-booking'
 import {
@@ -68,6 +69,7 @@ export function PhotographerDetailView({
   viewer = 'client',
   initialDate = null,
   initialSlotId = null,
+  refCode = null,
 }: {
   photographer: DetailPhotographer
   photos: Pick<PortfolioPhoto, 'id' | 'image_url' | 'caption'>[]
@@ -79,6 +81,7 @@ export function PhotographerDetailView({
   viewer?: BookingViewer
   initialDate?: string | null
   initialSlotId?: string | null
+  refCode?: string | null
 }) {
   const name = photographer.display_name ?? 'Photographer'
   const style =
@@ -165,6 +168,7 @@ export function PhotographerDetailView({
             {priceRange && paymentsEnabled && (
               <p className="mt-1 text-sm text-muted-foreground">Includes GradSnap service fee</p>
             )}
+            {priceRange && !paymentsEnabled && <PilotNote className="mt-2" />}
 
             {(paymentLabel || photographer.payment_terms) && (
               <div className="mt-4 space-y-2 text-sm">
@@ -175,9 +179,12 @@ export function PhotographerDetailView({
                   </p>
                 )}
                 {photographer.payment_terms && (
-                  <p className="text-muted-foreground">
-                    {photographer.payment_terms}
-                  </p>
+                  <div className="rounded-2xl bg-muted p-4">
+                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                      Payment and cancellation terms · Set by the photographer
+                    </p>
+                    <p className="mt-1 whitespace-pre-line">{photographer.payment_terms}</p>
+                  </div>
                 )}
               </div>
             )}
@@ -290,6 +297,7 @@ export function PhotographerDetailView({
             viewer={viewer}
             initialDate={initialDate}
             initialSlotId={initialSlotId}
+            refCode={refCode}
           />
         </section>
       </div>

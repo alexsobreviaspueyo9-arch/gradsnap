@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdminEmail } from '@/lib/admin-email'
 import { hasSessionCookie, isPublicBrowsePath, redirectFor } from '@/lib/routing'
+import { REF_COOKIE, REF_MAX_AGE_SECONDS, acceptsRef, parseRefCode } from '@/lib/ref-code'
 import type { UserRole } from '@/types/database'
 
 // When Supabase is unreachable (e.g. a paused project), auth-js keeps
@@ -10,13 +11,29 @@ import type { UserRole } from '@/types/database'
 // protected ones redirect to /login (fail closed).
 const AUTH_TIMEOUT_MS = 5000
 
+// A photographer's personal-link code (?ref=) is kept 30 days so it
+// survives sign-up and login; book_slot decides whether it counts.
+function rememberRef(request: NextRequest, response: NextResponse): NextResponse {
+  const ref = parseRefCode(request.nextUrl.searchParams.get('ref'))
+  if (ref && acceptsRef(request.nextUrl.pathname)) {
+    response.cookies.set(REF_COOKIE, ref, {
+      maxAge: REF_MAX_AGE_SECONDS,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    })
+  }
+  return response
+}
+
 export async function proxy(request: NextRequest) {
   // Guests browsing photographers: no session to refresh, no role lookup.
   if (
     isPublicBrowsePath(request.nextUrl.pathname) &&
     !hasSessionCookie(request.cookies.getAll().map((c) => c.name))
   ) {
-    return NextResponse.next({ request })
+    return rememberRef(request, NextResponse.next({ request }))
   }
 
   let supabaseResponse = NextResponse.next({ request })
@@ -65,7 +82,7 @@ export async function proxy(request: NextRequest) {
   const isDashboard = pathname.startsWith('/dashboard')
   const isOnboarding = pathname.startsWith('/onboarding')
   if (!user || !(isAuthPage || isDashboard || isOnboarding)) {
-    return supabaseResponse
+    return rememberRef(request, supabaseResponse)
   }
 
   // Admins come from ADMIN_EMAILS and have no profile; they live in /admin.
@@ -85,7 +102,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const target = redirectFor(pathname, { isAdmin, role })
-  return target ? NextResponse.redirect(new URL(target, request.url)) : supabaseResponse
+  return target ? NextResponse.redirect(new URL(target, request.url)) : rememberRef(request, supabaseResponse)
 }
 
 export const config = {

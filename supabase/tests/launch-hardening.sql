@@ -99,7 +99,9 @@ select
   gen_random_uuid() as open_slot,
   gen_random_uuid() as second_slot,
   gen_random_uuid() as past_slot,
-  gen_random_uuid() as started_slot;
+  gen_random_uuid() as started_slot,
+  gen_random_uuid() as ref_slot,
+  gen_random_uuid() as wrong_ref_slot;
 grant select on hardening_test.t_ids to authenticated, anon;
 grant execute on all functions in schema hardening_test to authenticated, anon;
 
@@ -120,6 +122,8 @@ cross join lateral (values
   (t.open_slot,    current_date + 7, time '10:00'),
   (t.second_slot,  current_date + 8, time '10:00'),
   (t.past_slot,    current_date - 1, time '10:00'),
+  (t.ref_slot,       current_date + 9,  time '10:00'),
+  (t.wrong_ref_slot, current_date + 10, time '10:00'),
   -- today (New York) at 00:00: always already started
   (t.started_slot, (now() at time zone 'America/New_York')::date, time '00:00')
 ) as s(id, d, t);
@@ -137,6 +141,18 @@ from hardening_test.t_ids;
 select hardening_test.expect_ok('client books an open slot via book_slot()',
   format('select public.book_slot(%L)', open_slot))
 from hardening_test.t_ids;
+
+select hardening_test.expect_ok('client books through the photographer''s personal link',
+  format('select public.book_slot(%L, (select ref_code from public.photographer_profiles where user_id = %L))',
+         ref_slot, photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_ok('client books with a code that is not this photographer''s',
+  format('select public.book_slot(%L, %L)', wrong_ref_slot, 'not-a-real-code'))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('client asks the server for booking email data',
+  'select * from public.claim_booking_email(gen_random_uuid(), ''client_booked'')');
 
 select hardening_test.expect_error('client books the same slot twice',
   format('select public.book_slot(%L)', open_slot))
@@ -171,6 +187,18 @@ from hardening_test.t_ids;
 
 select hardening_test.expect_error('photographer reassigns a booking to another client',
   format('update public.bookings set client_id = %L where slot_id = %L', photographer_uid, open_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer rewrites where a booking came from',
+  format('update public.bookings set source = ''photographer_link'' where slot_id = %L', open_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer marks a booking email as sent',
+  format('update public.bookings set client_confirmed_notified_at = now() where slot_id = %L', open_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer changes its personal link code',
+  format('update public.photographer_profiles set ref_code = ''mine12345'' where user_id = %L', photographer_uid))
 from hardening_test.t_ids;
 
 select hardening_test.expect_ok('photographer confirms a booking and marks it paid',
@@ -275,6 +303,8 @@ exception when insufficient_privilege then
   raise notice 'ok (blocked): anon edits a photographer profile';
 end $$;
 select hardening_test.expect_error('anon signs the contract', 'select public.sign_photographer_contract()');
+select hardening_test.expect_error('anon asks the server for booking email data',
+  'select * from public.claim_booking_email(gen_random_uuid(), ''client_booked'')');
 select hardening_test.expect_error('anon starts a conversation',
   'select public.start_conversation(gen_random_uuid())');
 select hardening_test.expect_error('anon asks for payment link through the public function',
@@ -304,6 +334,18 @@ begin
     where pp.has_signed_contract and pp.contract_signed_at is not null
   ) then
     raise exception 'FAIL: sign_photographer_contract() did not record the signature';
+  end if;
+  if (select b.source from public.bookings b join hardening_test.t_ids t on b.slot_id = t.ref_slot)
+     is distinct from 'photographer_link' then
+    raise exception 'FAIL: a booking through the personal link was not marked photographer_link';
+  end if;
+  if (select b.source from public.bookings b join hardening_test.t_ids t on b.slot_id = t.wrong_ref_slot)
+     is distinct from 'marketplace' then
+    raise exception 'FAIL: a wrong ref code was trusted';
+  end if;
+  if (select b.source from public.bookings b join hardening_test.t_ids t on b.slot_id = t.open_slot)
+     is distinct from 'marketplace' then
+    raise exception 'FAIL: a booking without a code was not marked marketplace';
   end if;
   if not exists (
     select 1 from public.photographer_profiles pp join hardening_test.t_ids t on pp.user_id = t.photographer_uid

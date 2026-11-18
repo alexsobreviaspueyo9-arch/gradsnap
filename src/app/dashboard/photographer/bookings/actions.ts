@@ -1,10 +1,11 @@
 'use server'
 
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendBookingConfirmedEmail } from '@/lib/booking-emails'
 import { getStripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/resend'
 import {
-  bookingConfirmedEmail,
   sessionCompletedBalanceEmail,
   bookingCancelledRefundedEmail,
 } from '@/lib/email-templates'
@@ -60,8 +61,8 @@ async function loadOwnedBooking(bookingId: string) {
 }
 
 export async function confirmBooking(bookingId: string): Promise<void> {
-  const { supabase, slot, client, photographer } =
-    await loadOwnedBooking(bookingId)
+  // Throws unless the signed-in photographer owns this booking.
+  const { supabase } = await loadOwnedBooking(bookingId)
 
   const { error } = await supabase
     .from('bookings')
@@ -70,15 +71,8 @@ export async function confirmBooking(bookingId: string): Promise<void> {
 
   if (error) throw new Error(error.message)
 
-  if (client.email) {
-    const { subject, html } = bookingConfirmedEmail({
-      clientName: client.full_name ?? 'there',
-      photographerName: photographer.display_name ?? 'your photographer',
-      date: slot.date,
-      startTime: slot.start_time,
-    })
-    await sendEmail({ to: client.email, subject, html })
-  }
+  // Once per booking (notified_at flag); never fails the confirmation.
+  after(() => sendBookingConfirmedEmail(bookingId))
 }
 
 export async function completeBooking(bookingId: string): Promise<void> {

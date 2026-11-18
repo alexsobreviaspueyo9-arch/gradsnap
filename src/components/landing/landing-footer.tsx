@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { CANCELLATION_POLICY_PATH, FEES_PATH } from '@/lib/site'
+import { CANCELLATION_POLICY_PATH, CONTACT_PATH, FEES_PATH } from '@/lib/site'
 
 const LINKS = [
   { href: '/login', label: 'Log in' },
   { href: '/photographers', label: 'Find a photographer' },
   { href: '/register?role=photographer', label: 'Join as a photographer' },
+  { href: CONTACT_PATH, label: 'Contact' },
 ] as const
 
 const PAYMENT_LINKS = [

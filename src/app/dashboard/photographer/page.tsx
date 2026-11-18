@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { countBySource, personalLink } from '@/lib/ref-code'
+import { SITE_URL } from '@/lib/site'
 import { PHOTOGRAPHER_TERMS_PATH, needsTermsAcceptance } from '@/lib/photographer-terms'
 import { todayISODate } from '@/lib/date'
 import { PhotographerOverview } from '@/components/dashboard/photographer-overview'
@@ -48,6 +50,7 @@ export default async function PhotographerDashboard() {
     : { count: 0 }
 
   let totalBookingCount = 0
+  let sourceCounts = countBySource([])
   if (photographerProfile) {
     const { data: slotIdRows } = await supabase
       .from('availability_slots')
@@ -57,11 +60,12 @@ export default async function PhotographerDashboard() {
     const slotIds = (slotIdRows ?? []).map((s) => s.id)
 
     if (slotIds.length > 0) {
-      const { count } = await supabase
+      const { data: bookingRows } = await supabase
         .from('bookings')
-        .select('id', { count: 'exact', head: true })
+        .select('source')
         .in('slot_id', slotIds)
-      totalBookingCount = count ?? 0
+      totalBookingCount = bookingRows?.length ?? 0
+      sourceCounts = countBySource(bookingRows ?? [])
     }
   }
 
@@ -82,6 +86,14 @@ export default async function PhotographerDashboard() {
       photoCount={photoCount ?? 0}
       availableSlotCount={availableSlotCount ?? 0}
       totalBookingCount={totalBookingCount}
+      personalLink={
+        photographerProfile
+          ? {
+              link: personalLink(SITE_URL, photographerProfile.id, photographerProfile.ref_code),
+              counts: sourceCounts,
+            }
+          : null
+      }
     />
   )
 }

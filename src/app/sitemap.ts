@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { CANCELLATION_POLICY_PATH, FEES_PATH, SITE_URL } from '@/lib/site'
+import { CANCELLATION_POLICY_PATH, CONTACT_PATH, FEES_PATH, SITE_URL } from '@/lib/site'
 import { PUBLIC_PHOTOGRAPHERS_PATH } from '@/lib/guest-booking'
 import type { Database } from '@/types/database'
 
@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}${PUBLIC_PHOTOGRAPHERS_PATH}`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${SITE_URL}/register`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE_URL}/login`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE_URL}${CONTACT_PATH}`, changeFrequency: 'yearly', priority: 0.3 },
     ...(process.env.PAYMENTS_ENABLED === 'true'
       ? ([
           { url: `${SITE_URL}${FEES_PATH}`, changeFrequency: 'monthly', priority: 0.5 },

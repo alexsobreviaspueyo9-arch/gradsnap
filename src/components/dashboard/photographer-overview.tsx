@@ -12,6 +12,8 @@ import { ActionTile } from '@/components/dashboard/action-tile'
 import { StatTile } from '@/components/dashboard/stat-tile'
 import { WelcomeBanner } from '@/components/dashboard/welcome-banner'
 import { DASHBOARD_BASE } from '@/lib/routing'
+import { PersonalLinkCard } from '@/components/dashboard/personal-link-card'
+import type { BookingSourceCounts } from '@/lib/ref-code'
 
 export type PhotographerOverviewProps = {
   displayName: string
@@ -25,6 +27,7 @@ export type PhotographerOverviewProps = {
   totalBookingCount: number
   /** Where in-app links point; the admin preview passes its own. */
   basePath?: string
+  personalLink?: { link: string; counts: BookingSourceCounts } | null
 }
 
 const NAV_TILES = [
@@ -65,6 +68,7 @@ export function PhotographerOverview({
   availableSlotCount,
   totalBookingCount,
   basePath = DASHBOARD_BASE.photographer,
+  personalLink = null,
 }: PhotographerOverviewProps) {
   const profileRows = [
     { label: 'Email', value: email ?? 'Not set' },
@@ -134,6 +138,8 @@ export function PhotographerOverview({
           icon={ClipboardList}
         />
       </div>
+
+      {personalLink && <PersonalLinkCard link={personalLink.link} counts={personalLink.counts} />}
 
       <div className="grid gap-4 md:grid-cols-2">
         {NAV_TILES.map(({ path, ...tile }) => (

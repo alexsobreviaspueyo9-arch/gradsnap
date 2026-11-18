@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/posthog'
+import { withSuggestedPolicy } from '@/lib/suggested-policy'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import { normalizeHttpUrl } from '@/lib/url'
 import { WeeklyAvailabilityPicker } from '@/components/photographer/WeeklyAvailabilityPicker'
@@ -100,6 +101,8 @@ function Section({
     </section>
   )
 }
+
+const PAYMENT_TERMS_MAX_LENGTH = 600
 
 export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
   const supabase = createClient()
@@ -442,16 +445,31 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="paymentTerms">Payment terms</Label>
-            <Input
+          <div className="space-y-2 sm:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Label htmlFor="paymentTerms">Payment and cancellation terms</Label>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-9 px-4"
+                onClick={() => setPaymentTerms((current) => withSuggestedPolicy(current))}
+              >
+                Use suggested policy
+              </Button>
+            </div>
+            <Textarea
               id="paymentTerms"
-              type="text"
+              rows={6}
               placeholder="e.g. $50 deposit to confirm, rest on session day"
               value={paymentTerms}
               onChange={(e) => setPaymentTerms(e.target.value)}
-              maxLength={140}
+              maxLength={PAYMENT_TERMS_MAX_LENGTH}
             />
+            <p className="text-xs text-muted-foreground">
+              Clients see this before booking, labelled &ldquo;Set by the photographer&rdquo;. Edit
+              the suggested policy as you like.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="paymentLink">Payment link</Label>

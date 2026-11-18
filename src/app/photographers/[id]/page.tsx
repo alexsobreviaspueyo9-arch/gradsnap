@@ -10,6 +10,7 @@ import {
   selectionQuery,
 } from '@/lib/guest-booking'
 import { PublicShell } from '@/components/brand/public-shell'
+import { parseRefCode } from '@/lib/ref-code'
 import { PhotographerDetailView } from '@/components/client/photographer-detail-view'
 
 const META_DESCRIPTION_LENGTH = 155
@@ -22,7 +23,7 @@ const loadProfile = cache(async (id: string) => {
 
 type Props = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ date?: string; slot?: string }>
+  searchParams: Promise<{ date?: string; slot?: string; ref?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -45,7 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicPhotographerPage({ params, searchParams }: Props) {
   const { id } = await params
-  const selection = parseSlotSelection(await searchParams)
+  const query = await searchParams
+  const selection = parseSlotSelection(query)
   const supabase = await createClient()
   const role = await loadViewerRole(supabase)
   // A guest who just signed up lands here; the dashboard page does the booking.
@@ -68,6 +70,7 @@ export default async function PublicPhotographerPage({ params, searchParams }: P
         viewer={role === 'photographer' ? 'photographer' : 'guest'}
         initialDate={selection.date}
         initialSlotId={selection.slotId}
+        refCode={parseRefCode(query.ref)}
       />
     </PublicShell>
   )

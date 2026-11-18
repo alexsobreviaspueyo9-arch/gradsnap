@@ -2,6 +2,8 @@ export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as con
 export type Weekday = (typeof WEEKDAYS)[number]
 
 export type SocialLink = { label: string; url: string }
+export type BookingSource = 'marketplace' | 'photographer_link'
+export type BookingEmailKind = 'client_booked' | 'photographer_booked' | 'client_confirmed'
 export type WeeklyAvailability = Partial<Record<Weekday, { start: string; end: string }>>
 
 export const PHOTOGRAPHER_SPECIALTIES = [
@@ -91,6 +93,7 @@ export type Database = {
           contract_signed_at: string | null
           terms_version: string | null
           terms_accepted_at: string | null
+          ref_code: string
           status: PhotographerProfileStatus
           invite_token: string | null
           invite_expires_at: string | null
@@ -222,6 +225,10 @@ export type Database = {
           deposit_refunded_at: string | null
           deposit_refund_id: string | null
           payment_status: 'pending' | 'paid'
+          source: BookingSource
+          client_booked_notified_at: string | null
+          photographer_booked_notified_at: string | null
+          client_confirmed_notified_at: string | null
         }
         Insert: {
           id?: string
@@ -373,14 +380,30 @@ export type Database = {
     }
     Functions: {
       book_slot: {
-        Args: { p_slot_id: string }
+        Args: { p_slot_id: string; p_ref_code?: string | null }
         Returns: {
           id: string
           slot_id: string
           client_id: string
           status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
           created_at: string
+          source: BookingSource
         }
+      }
+      claim_booking_email: {
+        Args: { p_booking_id: string; p_kind: BookingEmailKind }
+        Returns: {
+          recipient_email: string | null
+          recipient_name: string | null
+          client_name: string | null
+          photographer_name: string | null
+          date: string
+          start_time: string
+          end_time: string
+          base_price: number | null
+          price_max: number | null
+          payment_terms: string | null
+        }[]
       }
       finalize_paid_booking: {
         Args: {

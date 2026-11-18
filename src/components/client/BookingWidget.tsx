@@ -14,6 +14,7 @@ import { BookingConfirmation } from '@/components/client/booking-confirmation'
 import { SlotPicker } from '@/components/client/slot-picker'
 import { BookButton } from '@/components/client/book-button'
 import { FeeSummary } from '@/components/client/fee-summary'
+import { PilotNote } from '@/components/brand/pilot-note'
 import type { BookingViewer } from '@/lib/guest-booking'
 import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { PaymentSetup } from '@/lib/payment'
@@ -34,6 +35,7 @@ export function BookingWidget({
   viewer = 'client',
   initialDate = null,
   initialSlotId = null,
+  refCode = null,
 }: {
   photographerId: string
   photographerName: string
@@ -48,6 +50,7 @@ export function BookingWidget({
   /** Preselected after a guest signs up (?date=&slot=); never booked automatically. */
   initialDate?: string | null
   initialSlotId?: string | null
+  refCode?: string | null
 }) {
   const supabase = createClient()
   const isPreview = usePreviewMode()
@@ -156,6 +159,7 @@ export function BookingWidget({
 
   return (
     <div className="space-y-4">
+      {!paymentsEnabled && <PilotNote />}
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -227,6 +231,7 @@ export function BookingWidget({
                     busyLabel={busyLabel}
                     onBook={() => handleBook(selectedSlot)}
                     className="mt-5"
+                    refCode={refCode}
                   />
                 ) : (
                   <p className="mt-4 text-sm text-muted-foreground">

@@ -50,15 +50,96 @@ export function bookingConfirmedEmail(input: {
   photographerName: string
   date: string
   startTime: string
-}): { subject: string; html: string } {
+  contactUrl?: string
+}): { subject: string; html: string; text: string } {
+  const when = `${sessionTime(input.date, input.startTime)} (New York time)`
   return {
     subject: 'Your session is confirmed',
     html: wrapper(`
       <p>Hi ${escapeHtml(input.clientName)},</p>
       <p><strong>${escapeHtml(input.photographerName)}</strong> confirmed your session on
-      <strong>${sessionTime(input.date, input.startTime)}</strong>.</p>
+      <strong>${escapeHtml(when)}</strong>.</p>
       <p>See you then!</p>
+      ${input.contactUrl ? contactLine(input.contactUrl) : ''}
     `),
+    text: [
+      `Hi ${input.clientName},`,
+      `${input.photographerName} confirmed your session on ${when}.`,
+      'See you then!',
+      ...(input.contactUrl ? [`Questions? ${input.contactUrl}`] : []),
+    ].join('\n\n'),
+  }
+}
+
+function contactLine(contactUrl: string): string {
+  return `<p style="font-size: 13px; color: #636366;">Questions? <a href="${escapeHtml(contactUrl)}">Contact GradSnap</a>.</p>`
+}
+
+// Preserves the photographer's own line breaks without trusting them as HTML.
+function multiline(text: string): string {
+  return escapeHtml(text).replace(/\r?\n/g, '<br />')
+}
+
+// Sent to the client right after book_slot() succeeds (free pilot: the
+// client pays the photographer directly).
+export function bookingRequestedClientEmail(input: {
+  clientName: string
+  photographerName: string
+  date: string
+  startTime: string
+  endTime: string
+  priceLabel: string | null
+  paymentTerms: string | null
+  contactUrl: string
+}): { subject: string; html: string; text: string } {
+  const when = `${sessionTime(input.date, input.startTime)}-${input.endTime.slice(0, 5)} (New York time)`
+  const price = input.priceLabel ?? 'Agreed with the photographer'
+  const terms = input.paymentTerms?.trim() || null
+  return {
+    subject: `Booking request sent to ${input.photographerName.replace(/[\r\n]+/g, ' ')}`,
+    html: wrapper(`
+      <p>Hi ${escapeHtml(input.clientName)},</p>
+      <p>Your booking request is in. <strong>${escapeHtml(input.photographerName)}</strong> will confirm it soon.</p>
+      <p><strong>When:</strong> ${escapeHtml(when)}<br />
+      <strong>Price:</strong> ${escapeHtml(price)} (as listed by the photographer)</p>
+      <p>GradSnap is free during our launch pilot. You pay your photographer directly.</p>
+      ${terms ? `<p><strong>Payment and cancellation terms (set by the photographer):</strong><br />${multiline(terms)}</p>` : ''}
+      ${contactLine(input.contactUrl)}
+    `),
+    text: [
+      `Hi ${input.clientName},`,
+      `Your booking request is in. ${input.photographerName} will confirm it soon.`,
+      `When: ${when}\nPrice: ${price} (as listed by the photographer)`,
+      'GradSnap is free during our launch pilot. You pay your photographer directly.',
+      ...(terms ? [`Payment and cancellation terms (set by the photographer):\n${terms}`] : []),
+      `Questions? ${input.contactUrl}`,
+    ].join('\n\n'),
+  }
+}
+
+// Sent to the photographer when a client books one of their slots.
+export function bookingRequestedPhotographerEmail(input: {
+  photographerName: string
+  clientName: string
+  date: string
+  startTime: string
+  endTime: string
+  bookingsUrl: string
+}): { subject: string; html: string; text: string } {
+  const when = `${sessionTime(input.date, input.startTime)}-${input.endTime.slice(0, 5)} (New York time)`
+  return {
+    subject: 'New booking request on GradSnap',
+    html: wrapper(`
+      <p>Hi ${escapeHtml(input.photographerName)},</p>
+      <p><strong>${escapeHtml(input.clientName)}</strong> requested a session on
+      <strong>${escapeHtml(when)}</strong>.</p>
+      <p><a href="${escapeHtml(input.bookingsUrl)}">Confirm or decline it in your bookings</a>.</p>
+    `),
+    text: [
+      `Hi ${input.photographerName},`,
+      `${input.clientName} requested a session on ${when}.`,
+      `Confirm or decline it: ${input.bookingsUrl}`,
+    ].join('\n\n'),
   }
 }
 

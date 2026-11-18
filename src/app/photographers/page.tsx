@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { loadPublicListing, loadViewerRole } from '@/lib/public-photographers'
 import { PUBLIC_PHOTOGRAPHERS_PATH } from '@/lib/guest-booking'
 import { PublicShell } from '@/components/brand/public-shell'
+import { PilotNote } from '@/components/brand/pilot-note'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { CalendarSearch } from '@/components/client/CalendarSearch'
 
@@ -30,6 +31,7 @@ export default async function PublicPhotographersPage() {
         title="Find a photographer"
         description="Pick a date to see which photographers are available. You only need an account to book."
       />
+      {process.env.PAYMENTS_ENABLED !== 'true' && <PilotNote className="mb-6" />}
       {slots.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-20 text-center">
           <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">

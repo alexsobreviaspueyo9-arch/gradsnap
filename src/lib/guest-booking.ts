@@ -13,8 +13,15 @@ export function isUuid(value: string | null | undefined): value is string {
 }
 
 // Only ids and a date: nothing personal ends up in the URL.
-export function guestBookingNext(photographerId: string, date: string, slotId: string): string {
+export function guestBookingNext(
+  photographerId: string,
+  date: string,
+  slotId: string,
+  ref: string | null = null
+): string {
   const query = new URLSearchParams({ date, slot: slotId })
+  // A photographer's personal-link code rides along (also kept in a cookie).
+  if (ref) query.set('ref', ref)
   return `${PUBLIC_PHOTOGRAPHERS_PATH}/${photographerId}?${query}`
 }
 
