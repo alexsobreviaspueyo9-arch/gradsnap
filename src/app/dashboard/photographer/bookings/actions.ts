@@ -75,6 +75,17 @@ export async function confirmBooking(bookingId: string): Promise<void> {
   after(() => sendBookingConfirmedEmail(bookingId))
 }
 
+// Photos handed over: the client's timeline shows "Photos delivered".
+export async function markDelivered(bookingId: string): Promise<void> {
+  const { supabase } = await loadOwnedBooking(bookingId)
+  const { error } = await supabase
+    .from('bookings')
+    .update({ delivered_at: new Date().toISOString() })
+    .eq('id', bookingId)
+    .eq('status', 'completed')
+  if (error) throw new Error(error.message)
+}
+
 export async function completeBooking(bookingId: string): Promise<void> {
   const { supabase, booking, client, photographer } =
     await loadOwnedBooking(bookingId)

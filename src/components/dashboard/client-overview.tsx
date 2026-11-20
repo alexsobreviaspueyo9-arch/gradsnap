@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { CalendarDays, ClipboardList } from 'lucide-react'
 import { StatTile } from '@/components/dashboard/stat-tile'
 import { WelcomeBanner } from '@/components/dashboard/welcome-banner'
@@ -11,6 +12,7 @@ export type ClientOverviewProps = {
   pastCount: number
   /** Where in-app links point; the admin preview passes its own. */
   basePath?: string
+  saved?: { id: string; name: string }[]
 }
 
 export function ClientOverview({
@@ -20,6 +22,7 @@ export function ClientOverview({
   upcomingCount,
   pastCount,
   basePath = DASHBOARD_BASE.client,
+  saved = [],
 }: ClientOverviewProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -59,6 +62,29 @@ export function ClientOverview({
         value={String(pastCount)}
         icon={ClipboardList}
       />
+      <section aria-labelledby="saved-heading" className="rounded-3xl bg-card p-7 lg:col-span-3">
+        <h2 id="saved-heading" className="text-xl font-semibold tracking-tight">
+          Saved photographers
+        </h2>
+        {saved.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Tap Save on a photographer&apos;s profile to keep them here.
+          </p>
+        ) : (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {saved.map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={`${basePath}/photographers/${p.id}`}
+                  className="inline-flex min-h-11 items-center rounded-full bg-muted px-4 text-sm font-medium hover:bg-secondary"
+                >
+                  {p.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }

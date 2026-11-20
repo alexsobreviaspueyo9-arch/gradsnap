@@ -46,6 +46,16 @@ export default async function ClientDashboard() {
     return date && date < today
   }).length
 
+  const { data: favorites } = await supabase
+    .from('favorites')
+    .select('photographer_id')
+    .eq('user_id', user.id)
+  const favoriteIds = (favorites ?? []).map((f) => f.photographer_id)
+  const { data: savedProfiles } =
+    favoriteIds.length > 0
+      ? await supabase.from('photographer_profiles').select('id, display_name').in('id', favoriteIds)
+      : { data: [] }
+
   return (
     <ClientOverview
       displayName={displayName}
@@ -53,6 +63,7 @@ export default async function ClientDashboard() {
       fullName={profile?.full_name ?? null}
       upcomingCount={upcomingCount}
       pastCount={pastCount}
+      saved={(savedProfiles ?? []).map((p) => ({ id: p.id, name: p.display_name ?? 'Photographer' }))}
     />
   )
 }

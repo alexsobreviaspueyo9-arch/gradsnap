@@ -2,13 +2,20 @@ import { redirect } from 'next/navigation'
 import { CalendarX2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { isUpcomingSlot, todayISODate } from '@/lib/date'
+import { parseSlotSelection } from '@/lib/guest-booking'
+import { loadCardStats } from '@/lib/public-photographers'
 import { PageHeader } from '@/components/dashboard/page-header'
 import {
   CalendarSearch,
   type SlotWithPhotographer,
 } from '@/components/client/CalendarSearch'
 
-export default async function ClientPhotographersPage() {
+export default async function ClientPhotographersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>
+}) {
+  const { date } = parseSlotSelection(await searchParams)
   const supabase = await createClient()
 
   const {
@@ -73,6 +80,8 @@ export default async function ClientPhotographersPage() {
         <CalendarSearch
           initialSlots={slotsWithPhotographer}
           paymentsEnabled={process.env.PAYMENTS_ENABLED === 'true'}
+          cardStats={await loadCardStats(supabase)}
+          initialDate={date}
         />
       )}
     </>

@@ -69,6 +69,24 @@ begin
   raise notice 'ok (rows): %', p_label;
 end $$;
 
+-- A write that must be refused or change no rows (p_sql ends in RETURNING).
+create function hardening_test.expect_unchanged(p_label text, p_sql text) returns void
+language plpgsql as $$
+declare
+  v_count bigint;
+begin
+  begin
+    execute format('with u as (%s) select count(*) from u', p_sql) into v_count;
+  exception when others then
+    raise notice 'ok (blocked): %  [%]', p_label, sqlerrm;
+    return;
+  end;
+  if v_count > 0 then
+    raise exception 'FAIL: % changed % rows but should change none', p_label, v_count;
+  end if;
+  raise notice 'ok (no rows changed): %', p_label;
+end $$;
+
 create function hardening_test.expect_error(p_label text, p_sql text) returns void
 language plpgsql as $$
 begin
@@ -101,7 +119,8 @@ select
   gen_random_uuid() as past_slot,
   gen_random_uuid() as started_slot,
   gen_random_uuid() as ref_slot,
-  gen_random_uuid() as wrong_ref_slot;
+  gen_random_uuid() as wrong_ref_slot,
+  gen_random_uuid() as package_slot;
 grant select on hardening_test.t_ids to authenticated, anon;
 grant execute on all functions in schema hardening_test to authenticated, anon;
 
@@ -124,6 +143,7 @@ cross join lateral (values
   (t.past_slot,    current_date - 1, time '10:00'),
   (t.ref_slot,       current_date + 9,  time '10:00'),
   (t.wrong_ref_slot, current_date + 10, time '10:00'),
+  (t.package_slot,   current_date + 11, time '10:00'),
   -- today (New York) at 00:00: always already started
   (t.started_slot, (now() at time zone 'America/New_York')::date, time '00:00')
 ) as s(id, d, t);
@@ -201,6 +221,35 @@ select hardening_test.expect_error('photographer changes its personal link code'
   format('update public.photographer_profiles set ref_code = ''mine12345'' where user_id = %L', photographer_uid))
 from hardening_test.t_ids;
 
+select hardening_test.expect_ok('photographer adds three packages',
+  format('insert into public.photographer_packages (photographer_id, name, duration_minutes, included_photos, delivery_days, price, sort_order)
+          select pp.id, ''Pkg '' || n, 60, 30, 14, 100 * n, n
+          from public.photographer_profiles pp, generate_series(1, 3) n where pp.user_id = %L', photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer adds a fourth package',
+  format('insert into public.photographer_packages (photographer_id, name, duration_minutes, included_photos, delivery_days, price)
+          select pp.id, ''Too many'', 60, 30, 14, 400 from public.photographer_profiles pp where pp.user_id = %L', photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer forges the response time',
+  format('update public.bookings set responded_at = now() - interval ''1 day'' where slot_id = %L', open_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer changes the booked package price',
+  format('update public.bookings set package_price = 1 where slot_id = %L', open_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_ok('photographer completes the link booking and marks it delivered',
+  format('update public.bookings set status = ''completed'', delivered_at = now() where slot_id = %L', ref_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('photographer writes a review',
+  format('insert into public.reviews (booking_id, photographer_id, client_id, rating)
+          select b.id, s.photographer_id, b.client_id, 5 from public.bookings b
+          join public.availability_slots s on s.id = b.slot_id where b.slot_id = %L', ref_slot))
+from hardening_test.t_ids;
+
 select hardening_test.expect_ok('photographer confirms a booking and marks it paid',
   format('update public.bookings set status = ''confirmed'', payment_status = ''paid'' where slot_id = %L', open_slot))
 from hardening_test.t_ids;
@@ -265,6 +314,50 @@ select hardening_test.expect_ok('photographer frees the slot once the booking is
   format('update public.availability_slots set is_booked = false where id = %L', open_slot))
 from hardening_test.t_ids;
 
+-- The client again: packages, reviews, favorites
+select hardening_test.act_as(client_uid, 'hardening-client@test.invalid') from hardening_test.t_ids;
+
+select hardening_test.expect_error('client books with a package from nobody',
+  format('select public.book_slot(%L, null, gen_random_uuid())', package_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_ok('client books one of the photographer''s packages',
+  format('select public.book_slot(%L, null, (select pk.id from public.photographer_packages pk
+          join public.photographer_profiles pp on pp.id = pk.photographer_id
+          where pp.user_id = %L order by pk.sort_order limit 1))', package_slot, photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('client reviews a session that is not completed',
+  format('select public.submit_review((select id from public.bookings where slot_id = %L), 5, ''Great'')', package_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_ok('client reviews a completed session',
+  format('select public.submit_review((select id from public.bookings where slot_id = %L), 5, ''Great session'')', ref_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('client reviews the same session twice',
+  format('select public.submit_review((select id from public.bookings where slot_id = %L), 1, ''Again'')', ref_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_unchanged('client edits a review afterwards',
+  'update public.reviews set rating = 1 returning id');
+
+select hardening_test.expect_error('client removes a review through the admin function',
+  'select public.remove_review(gen_random_uuid(), ''abuse'', ''x@test.invalid'')');
+
+select hardening_test.expect_ok('client saves a photographer',
+  format('insert into public.favorites (user_id, photographer_id)
+          select %L, pp.id from public.photographer_profiles pp where pp.user_id = %L', client_uid, photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_error('client saves a favorite for someone else',
+  format('insert into public.favorites (user_id, photographer_id)
+          select %L, pp.id from public.photographer_profiles pp where pp.user_id = %L', photographer_uid, photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_unchanged('client edits a photographer''s package',
+  'update public.photographer_packages set price = 1 returning id');
+
 -- As a signed-out visitor (guest browsing). A contracted draft profile must
 -- never be listed.
 select hardening_test.act_as_admin();
@@ -282,6 +375,10 @@ select hardening_test.expect_nothing('anon reads conversations', 'select id from
 select hardening_test.expect_nothing('anon reads leads', 'select id from public.leads');
 select hardening_test.expect_nothing('anon reads availability_slots directly', 'select id from public.availability_slots');
 select hardening_test.expect_nothing('anon reads portfolio_photos directly', 'select id from public.portfolio_photos');
+select hardening_test.expect_nothing('anon reads packages directly', 'select id from public.photographer_packages');
+select hardening_test.expect_nothing('anon reads reviews directly', 'select id from public.reviews');
+select hardening_test.expect_nothing('anon reads favorites', 'select user_id from public.favorites');
+select hardening_test.expect_nothing('anon reads the moderation log', 'select id from public.review_moderation_log');
 
 select hardening_test.expect_error('anon books a slot',
   format('select public.book_slot(%L)', second_slot))
@@ -320,6 +417,13 @@ select hardening_test.expect_nothing('anon never sees a draft profile',
 select hardening_test.expect_rows('anon sees an open upcoming slot',
   format('select 1 from public.public_open_slots() where id = %L', second_slot))
 from hardening_test.t_ids;
+select hardening_test.expect_rows('anon sees the photographer''s packages',
+  format('select 1 from public.public_packages((select photographer_id from public.public_open_slots() where id = %L))', second_slot))
+from hardening_test.t_ids;
+select hardening_test.expect_rows('anon sees the review on the profile',
+  format('select 1 from public.public_reviews((select photographer_id from public.public_open_slots() where id = %L))', second_slot))
+from hardening_test.t_ids;
+select hardening_test.expect_error('anon asks for reminder bookings', 'select * from public.due_booking_reminders(''reminder_day'')');
 select hardening_test.expect_nothing('anon never sees past or started slots',
   format('select 1 from public.public_open_slots() where id in (%L, %L)', past_slot, started_slot))
 from hardening_test.t_ids;

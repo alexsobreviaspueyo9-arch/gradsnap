@@ -3,7 +3,13 @@ export type Weekday = (typeof WEEKDAYS)[number]
 
 export type SocialLink = { label: string; url: string }
 export type BookingSource = 'marketplace' | 'photographer_link'
-export type BookingEmailKind = 'client_booked' | 'photographer_booked' | 'client_confirmed'
+export type BookingEmailKind =
+  | 'client_booked'
+  | 'photographer_booked'
+  | 'client_confirmed'
+  | 'reminder_48h'
+  | 'reminder_day'
+export type ReviewRemovalReason = 'personal_data' | 'abuse'
 export type WeeklyAvailability = Partial<Record<Weekday, { start: string; end: string }>>
 
 export const PHOTOGRAPHER_SPECIALTIES = [
@@ -229,6 +235,13 @@ export type Database = {
           client_booked_notified_at: string | null
           photographer_booked_notified_at: string | null
           client_confirmed_notified_at: string | null
+          package_id: string | null
+          package_name: string | null
+          package_price: number | null
+          responded_at: string | null
+          delivered_at: string | null
+          reminder_48h_sent_at: string | null
+          reminder_day_sent_at: string | null
         }
         Insert: {
           id?: string
@@ -265,6 +278,7 @@ export type Database = {
           deposit_refunded_at?: string | null
           deposit_refund_id?: string | null
           payment_status?: 'pending' | 'paid'
+          delivered_at?: string | null
         }
         Relationships: []
       }
@@ -317,6 +331,61 @@ export type Database = {
           created_at?: string
           contacted_at?: string | null
         }
+        Relationships: []
+      }
+      photographer_packages: {
+        Row: {
+          id: string
+          photographer_id: string
+          name: string
+          duration_minutes: number
+          included_photos: number
+          delivery_days: number
+          price: number
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          photographer_id: string
+          name: string
+          duration_minutes: number
+          included_photos: number
+          delivery_days: number
+          price: number
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          name?: string
+          duration_minutes?: number
+          included_photos?: number
+          delivery_days?: number
+          price?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: { user_id: string; photographer_id: string; created_at: string }
+        Insert: { user_id: string; photographer_id: string; created_at?: string }
+        Update: { [_ in never]: never }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          id: string
+          booking_id: string
+          photographer_id: string
+          client_id: string
+          rating: number
+          body: string | null
+          created_at: string
+          removed_at: string | null
+          removed_reason: ReviewRemovalReason | null
+        }
+        Insert: { [_ in never]: never }
+        Update: { [_ in never]: never }
         Relationships: []
       }
       booking_messages: {
@@ -380,7 +449,7 @@ export type Database = {
     }
     Functions: {
       book_slot: {
-        Args: { p_slot_id: string; p_ref_code?: string | null }
+        Args: { p_slot_id: string; p_ref_code?: string | null; p_package_id?: string | null }
         Returns: {
           id: string
           slot_id: string
@@ -447,6 +516,51 @@ export type Database = {
       claim_photographer_invite: {
         Args: { p_token: string }
         Returns: undefined
+      }
+      public_reviews: {
+        Args: { p_photographer_id: string }
+        Returns: {
+          id: string
+          rating: number
+          body: string | null
+          created_at: string
+          client_first_name: string | null
+        }[]
+      }
+      public_packages: {
+        Args: { p_photographer_id: string }
+        Returns: {
+          id: string
+          name: string
+          duration_minutes: number
+          included_photos: number
+          delivery_days: number
+          price: number
+          sort_order: number
+        }[]
+      }
+      public_photographer_cards: {
+        Args: { [_ in never]: never }
+        Returns: {
+          photographer_id: string
+          cover_image_url: string | null
+          rating_avg: number | null
+          review_count: number
+          response_hours: number | null
+          min_package_price: number | null
+        }[]
+      }
+      submit_review: {
+        Args: { p_booking_id: string; p_rating: number; p_body?: string | null }
+        Returns: Database['public']['Tables']['reviews']['Row']
+      }
+      remove_review: {
+        Args: { p_review_id: string; p_reason: ReviewRemovalReason; p_admin_email: string }
+        Returns: undefined
+      }
+      due_booking_reminders: {
+        Args: { p_kind: 'reminder_48h' | 'reminder_day' }
+        Returns: { booking_id: string }[]
       }
       public_photographers: {
         Args: { p_id?: string | null }
@@ -530,3 +644,5 @@ export type AvailabilitySlot = Database['public']['Tables']['availability_slots'
 export type Booking = Database['public']['Tables']['bookings']['Row']
 export type BookingMessage = Database['public']['Tables']['booking_messages']['Row']
 export type Lead = Database['public']['Tables']['leads']['Row']
+export type PhotographerPackage = Database['public']['Tables']['photographer_packages']['Row']
+export type Review = Database['public']['Tables']['reviews']['Row']

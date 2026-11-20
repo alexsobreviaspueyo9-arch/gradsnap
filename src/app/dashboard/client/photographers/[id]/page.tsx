@@ -3,13 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { isUpcomingSlot, todayISODate } from '@/lib/date'
 import { PhotographerDetailView } from '@/components/client/photographer-detail-view'
 import { parseSlotSelection } from '@/lib/guest-booking'
+import { loadProfileExtras } from '@/lib/public-photographers'
 
 export default async function PhotographerDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ booked?: string; date?: string; slot?: string }>
+  searchParams: Promise<{ booked?: string; date?: string; slot?: string; pkg?: string }>
 }) {
   const { id } = await params
   const query = await searchParams
@@ -50,6 +51,16 @@ export default async function PhotographerDetailPage({
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })
 
+  const [extras, { data: favorite }] = await Promise.all([
+    loadProfileExtras(supabase, id),
+    supabase
+      .from('favorites')
+      .select('photographer_id')
+      .eq('user_id', user.id)
+      .eq('photographer_id', id)
+      .maybeSingle(),
+  ])
+
   return (
     <PhotographerDetailView
       photographer={photographer}
@@ -59,6 +70,11 @@ export default async function PhotographerDetailPage({
       paymentsEnabled={process.env.PAYMENTS_ENABLED === 'true'}
       initialDate={selection.date}
       initialSlotId={selection.slotId}
+      initialPackageId={selection.packageId}
+      packages={extras.packages}
+      reviews={extras.reviews}
+      stats={extras.stats}
+      isFavorite={favorite !== null}
     />
   )
 }

@@ -20,6 +20,7 @@ export function useBookSlot(paymentsEnabled: boolean) {
   async function bookSlot(
     input: {
       slotId: string
+      packageId?: string | null
       photographerId: string
       photographerName: string
       basePrice: number | null
@@ -52,7 +53,7 @@ export function useBookSlot(paymentsEnabled: boolean) {
           basePrice: input.basePrice,
         })
       } else {
-        await bookSlotFree(input.slotId)
+        await bookSlotFree(input.slotId, input.packageId ?? null)
         onSettled()
         trackEvent('booking_completed', {
           slotId: input.slotId,

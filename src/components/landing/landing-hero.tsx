@@ -22,13 +22,33 @@ export function LandingHero() {
           availability, and reserve your slot in minutes.
         </p>
         {process.env.PAYMENTS_ENABLED !== 'true' && <PilotNote className="mt-6" />}
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link
-            href="/photographers"
-            className={cn(buttonVariants({ size: 'lg' }), 'h-12 px-7 text-base')}
-          >
-            Find a photographer
-          </Link>
+        <form action="/photographers" method="get" className="mt-8 max-w-md space-y-2">
+          <label htmlFor="hero-graduation-date" className="block text-sm font-medium">
+            When is your graduation?
+          </label>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              id="hero-graduation-date"
+              name="date"
+              type="date"
+              className="h-12 w-full rounded-lg border border-input bg-card px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
+            <button
+              type="submit"
+              className={cn(buttonVariants({ size: 'lg' }), 'h-12 shrink-0 px-7 text-base')}
+            >
+              Find photographers
+            </button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Leave it empty to{' '}
+            <Link href="/photographers" className="font-medium text-foreground underline underline-offset-4">
+              see everyone
+            </Link>
+            .
+          </p>
+        </form>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
           <a
             href="#how-it-works"
             className={cn(

@@ -4,6 +4,7 @@ import { after } from 'next/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { REF_COOKIE, parseRefCode } from '@/lib/ref-code'
+import { isUuid } from '@/lib/guest-booking'
 import { sendBookingRequestEmails } from '@/lib/booking-emails'
 import { createClient } from '@/lib/supabase/server'
 import { getStripe } from '@/lib/stripe'
@@ -75,7 +76,7 @@ export async function startDepositCheckout(input: {
 // Books the slot directly with no payment involved — same as the Sprint 3
 // flow. Switch PAYMENTS_ENABLED to 'true' once payments are ready; no code
 // changes needed on this path when that happens.
-export async function bookSlotFree(slotId: string): Promise<void> {
+export async function bookSlotFree(slotId: string, packageId: string | null = null): Promise<void> {
   const supabase = await createClient()
 
   const {
@@ -87,9 +88,11 @@ export async function bookSlotFree(slotId: string): Promise<void> {
   // A personal-link code only counts if book_slot finds it belongs to this
   // slot's photographer; otherwise the booking is 'marketplace'.
   const refCode = parseRefCode((await cookies()).get(REF_COOKIE)?.value)
+  // book_slot checks the package belongs to this slot's photographer.
   const { data: booking, error } = await supabase.rpc('book_slot', {
     p_slot_id: slotId,
     p_ref_code: refCode,
+    p_package_id: isUuid(packageId) ? packageId : null,
   })
 
   if (error) throw new Error(error.message)

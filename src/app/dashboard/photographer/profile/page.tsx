@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PHOTOGRAPHER_TERMS_PATH, needsTermsAcceptance } from '@/lib/photographer-terms'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { ProfileForm } from '@/components/photographer/ProfileForm'
+import { PackagesEditor } from '@/components/photographer/packages-editor'
 
 export default async function PhotographerProfilePage() {
   const supabase = await createClient()
@@ -25,6 +26,12 @@ export default async function PhotographerProfilePage() {
     redirect(PHOTOGRAPHER_TERMS_PATH)
   }
 
+  const { data: packages } = await supabase
+    .from('photographer_packages')
+    .select('*')
+    .eq('photographer_id', photographerProfile.id)
+    .order('sort_order')
+
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
@@ -32,6 +39,9 @@ export default async function PhotographerProfilePage() {
         description="This is what clients will see when they view your listing."
       />
       <ProfileForm profile={photographerProfile} />
+      <div className="mt-6">
+        <PackagesEditor photographerId={photographerProfile.id} initialPackages={packages ?? []} />
+      </div>
     </div>
   )
 }

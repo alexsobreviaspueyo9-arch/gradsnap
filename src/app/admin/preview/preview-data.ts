@@ -2,6 +2,7 @@
 // the database; ids are fixed strings, dates are relative to today.
 import { todayISODate, isoDateToLocalDate, localDateToISODate } from '@/lib/date'
 import type { Conversation } from '@/lib/chat'
+import type { ClientBooking } from '@/components/client/client-bookings-list'
 import { PHOTOGRAPHER_TERMS_VERSION } from '@/lib/photographer-terms'
 import type { SlotWithPhotographer } from '@/components/client/CalendarSearch'
 import type { BookingWithDetails } from '@/components/photographer/BookingsManager'
@@ -127,6 +128,13 @@ function booking(
     client_booked_notified_at: null,
     photographer_booked_notified_at: null,
     client_confirmed_notified_at: null,
+    package_id: null,
+    package_name: null,
+    package_price: null,
+    responded_at: null,
+    delivered_at: null,
+    reminder_48h_sent_at: null,
+    reminder_day_sent_at: null,
     slot: bookedSlot,
     clientName,
     conversationId: id === CHAT_BOOKING_ID ? CONVERSATION_ID : null,
@@ -169,3 +177,29 @@ export function previewThread(
   const selected = conversations.find((c) => c.id === conversationId) ?? null
   return { selected, messages: selected ? thread.filter((m) => m.conversation_id === selected.id) : [] }
 }
+
+// Client view of the same bookings (one confirmed, one completed to review).
+export const clientBookings: ClientBooking[] = [
+  {
+    id: 'preview-client-booking-1',
+    status: 'confirmed',
+    date: slots[0].date,
+    startTime: slots[0].start_time,
+    endTime: slots[0].end_time,
+    photographerName: 'Maya Chen',
+    packageName: null,
+    deliveredAt: null,
+    review: null,
+  },
+  {
+    id: 'preview-client-booking-2',
+    status: 'completed',
+    date: '2026-10-03',
+    startTime: '10:00:00',
+    endTime: '11:00:00',
+    photographerName: 'Maya Chen',
+    packageName: null,
+    deliveredAt: null,
+    review: null,
+  },
+]

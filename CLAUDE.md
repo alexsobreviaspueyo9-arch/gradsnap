@@ -64,6 +64,13 @@ src/lib/admin-email.ts      isAdminEmail (pure; proxy-safe). lib/admin.ts = requ
 src/app/fotografos/         photographer landing; ?src= -> profiles.signup_src
 src/app/photographers/      PUBLIC guest browsing: list + [id] (indexable), data via public_* RPCs
 src/lib/public-photographers.ts  loadPublicListing / loadPublicPhotographer / loadViewerRole
+src/app/dashboard/client/bookings/  client bookings: timeline, .ics (`[id]/calendar` route), review form
+src/app/admin/reviews/      review moderation (remove for personal data/abuse; logged)
+src/app/api/cron/reminders/ daily Vercel Cron (vercel.json, CRON_SECRET): 48h + day-of reminder emails
+src/lib/ics.ts booking-timeline.ts photographer-cards.ts booking-steps.ts client-bookings.ts
+src/components/client/      BookingWidget (3 steps), CalendarSearch (date-first cards), favorite/share
+                            buttons, profile-reviews, review-form, client-bookings-list
+src/components/photographer/packages-editor.tsx  up to 3 packages (photographer_packages)
 src/app/contact/            contact page (hola@gradsnap.app, "who is behind GradSnap" TODO)
 src/lib/gallery.ts          landing gallery photos + credits (null credit = "Example photo"; never invent)
 src/lib/ref-code.ts         personal link ?ref= (gs_ref cookie, 30 days), countBySource
@@ -222,6 +229,25 @@ A signed-in client is redirected to the dashboard page with `?date=&slot=`,
 where `BookingWidget` preselects the slot (they still press Book; a gone slot
 shows a notice). Login/signup/Google/select-role keep the `next`. Landing
 client CTAs point here.
+
+**Client UX (2026-11-20).** Date-first: "When is your graduation?" on the
+landing hero (GET `/photographers?date=`) and in `CalendarSearch`; with a date,
+only photographers free that day show, badged "Available on your date"; without
+one, every photographer with their next open slot. Cards (cover = first
+portfolio photo, "from $X" = lowest package else base price, rating only if
+reviews exist, style tags, response badge from the median request->answer time
+with 3+ samples) come from `public_photographer_cards()`. Booking happens on
+the profile in `BookingWidget`: package (skipped without packages) -> time ->
+review, progress bar, sticky CTA on phones, one primary per step;
+`book_slot(slot, ref, package)` checks the package and snapshots name/price.
+Clients get `/dashboard/client/bookings` (timeline requested -> confirmed ->
+session day -> delivered, "Add to calendar" .ics, one review per completed
+booking via `submit_review`, same neutral prompt for everyone), favorites
+(Save on profiles, list on the overview) and a Share button. Reviews show on
+profiles ("No reviews yet" when none); photographers can't edit/delete them;
+admins remove only for personal data/abuse (`/admin/reviews`, logged in
+`review_moderation_log`). Photographers mark photos delivered; reminders go
+out daily via cron.
 
 **Find a photographer (`/dashboard/client/photographers`).** `CalendarSearch`:
 filters (city substring, max price, style) client-side over upcoming open

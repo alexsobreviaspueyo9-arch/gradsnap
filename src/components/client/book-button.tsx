@@ -16,6 +16,7 @@ export function BookButton({
   onBook,
   className,
   refCode = null,
+  packageId = null,
 }: {
   viewer: BookingViewer
   photographerId: string
@@ -26,6 +27,7 @@ export function BookButton({
   className?: string
   /** Photographer's personal-link code, kept through sign-up. */
   refCode?: string | null
+  packageId?: string | null
 }) {
   const label = `Book ${slotTimeLabel(slot)}`
   const classes = cn('h-12 w-full text-base', className)
@@ -44,7 +46,7 @@ export function BookButton({
   if (viewer === 'guest') {
     return (
       <Link
-        href={guestRegisterHref(guestBookingNext(photographerId, slot.date, slot.id, refCode))}
+        href={guestRegisterHref(guestBookingNext(photographerId, slot.date, slot.id, refCode, packageId))}
         className={cn(buttonVariants({ size: 'lg' }), classes)}
       >
         {label}

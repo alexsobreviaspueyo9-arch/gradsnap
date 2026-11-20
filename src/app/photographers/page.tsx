@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { CalendarX2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { loadPublicListing, loadViewerRole } from '@/lib/public-photographers'
-import { PUBLIC_PHOTOGRAPHERS_PATH } from '@/lib/guest-booking'
+import { loadCardStats, loadPublicListing, loadViewerRole } from '@/lib/public-photographers'
+import { PUBLIC_PHOTOGRAPHERS_PATH, parseSlotSelection } from '@/lib/guest-booking'
 import { PublicShell } from '@/components/brand/public-shell'
 import { PilotNote } from '@/components/brand/pilot-note'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -17,13 +17,19 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-export default async function PublicPhotographersPage() {
+export default async function PublicPhotographersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>
+}) {
+  // ?date= from the landing page's "When is your graduation?" picker.
+  const { date } = parseSlotSelection(await searchParams)
   const supabase = await createClient()
   const role = await loadViewerRole(supabase)
   // Signed-in clients get the full experience (live slots, booking, chat).
-  if (role === 'client') redirect('/dashboard/client/photographers')
+  if (role === 'client') redirect(`/dashboard/client/photographers${date ? `?date=${date}` : ''}`)
 
-  const slots = await loadPublicListing(supabase)
+  const [slots, cardStats] = await Promise.all([loadPublicListing(supabase), loadCardStats(supabase)])
 
   return (
     <PublicShell accountHref={role === 'photographer' ? '/dashboard/photographer' : undefined}>
@@ -48,6 +54,8 @@ export default async function PublicPhotographersPage() {
           paymentsEnabled={false}
           viewer={role === 'photographer' ? 'photographer' : 'guest'}
           photographersPath={PUBLIC_PHOTOGRAPHERS_PATH}
+          cardStats={cardStats}
+          initialDate={date}
         />
       )}
     </PublicShell>

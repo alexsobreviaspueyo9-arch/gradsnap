@@ -752,3 +752,23 @@ events inside day cells, not just a highlighted date.
   claimed by `claim_booking_email` (service role); sent in `after()` so they
   never slow down or break a booking. `confirmBooking` no longer emails
   directly.
+
+
+## Client UX: date-first search, packages, booking steps, reviews (2026-11-20)
+
+- Migration `20261120_client_ux.sql` (migrations only; it depends on
+  `photographer_profiles.status`): `photographer_packages` (max 3, trigger),
+  bookings gain package snapshot, `responded_at` (trigger, can't be forged),
+  `delivered_at` (photographer may set it: guard updated), reminder flags;
+  `favorites`; `reviews` + `review_moderation_log`; `submit_review`,
+  `remove_review` (service role), `public_reviews`, `public_packages`,
+  `public_photographer_cards`, `due_booking_reminders`; `claim_booking_email`
+  learns `reminder_48h` / `reminder_day`. `book_slot` is now
+  `(uuid, text, uuid)`.
+- Search no longer books from the list: every "Book HH:MM" opens the profile
+  with the slot preselected, so all bookings go through the same 3 steps.
+- Response-time badge only with 3+ answered requests in 90 days; rating only
+  with real reviews. No fake or placeholder social proof.
+- Reminders: Vercel Cron daily at 13:00 UTC (Hobby plan allows daily) ->
+  `/api/cron/reminders` with `CRON_SECRET`; "48h" means sessions two New York
+  days ahead.

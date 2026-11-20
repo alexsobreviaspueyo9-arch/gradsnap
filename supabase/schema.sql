@@ -1294,3 +1294,8 @@ $$;
 
 revoke all on function public.claim_booking_email(uuid, text) from public, anon, authenticated;
 grant execute on function public.claim_booking_email(uuid, text) to service_role;
+
+-- 2026-11-20 CLIENT UX (packages, reviews, favorites, booking timeline,
+-- reminders, public cards): see supabase/migrations/20261120_client_ux.sql.
+-- Not copied here: its policies use photographer_profiles.status, which only
+-- exists after the 20261107 drafts migration.

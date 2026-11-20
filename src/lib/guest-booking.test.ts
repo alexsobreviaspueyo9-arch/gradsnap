@@ -36,24 +36,27 @@ describe('guestRegisterHref', () => {
 
 describe('parseSlotSelection', () => {
   it('keeps a valid date and slot id', () => {
-    expect(parseSlotSelection({ date: '2026-12-05', slot: SLOT })).toEqual({
+    expect(parseSlotSelection({ date: '2026-12-05', slot: SLOT, pkg: PHOTOGRAPHER })).toEqual({
       date: '2026-12-05',
       slotId: SLOT,
+      packageId: PHOTOGRAPHER,
     })
   })
 
   it('drops malformed values', () => {
-    expect(parseSlotSelection({ date: '12/05/2026', slot: 'drop table' })).toEqual({
+    expect(parseSlotSelection({ date: '12/05/2026', slot: 'drop table', pkg: 'x' })).toEqual({
       date: null,
       slotId: null,
+      packageId: null,
     })
-    expect(parseSlotSelection({})).toEqual({ date: null, slotId: null })
+    expect(parseSlotSelection({})).toEqual({ date: null, slotId: null, packageId: null })
   })
 })
 
 describe('selectionQuery', () => {
   it('rebuilds the query string, or nothing when empty', () => {
     expect(selectionQuery({ date: '2026-12-05', slotId: SLOT })).toBe(`?date=2026-12-05&slot=${SLOT}`)
+    expect(selectionQuery({ date: null, slotId: null, packageId: SLOT })).toBe(`?pkg=${SLOT}`)
     expect(selectionQuery({ date: null, slotId: null })).toBe('')
   })
 })

@@ -4,6 +4,7 @@ import {
   bookingRequestedClientEmail,
   bookingRequestedPhotographerEmail,
   escapeHtml,
+  sessionReminderEmail,
 } from '@/lib/email-templates'
 
 describe('escapeHtml', () => {
@@ -104,5 +105,34 @@ describe('booking request emails', () => {
     })
     expect(email.html).toContain('https://www.gradsnap.app/contact')
     expect(email.text).toContain('Maya confirmed your session on Saturday, December 12 at 10:00 (New York time).')
+  })
+})
+
+describe('sessionReminderEmail', () => {
+  it('says when, in New York time, without HTML from names', () => {
+    const email = sessionReminderEmail({
+      clientName: 'Ava',
+      photographerName: 'Maya <b>Chen</b>',
+      date: '2026-12-12',
+      startTime: '10:00:00',
+      kind: 'reminder_48h',
+      bookingsUrl: 'https://www.gradsnap.app/dashboard/client/bookings',
+    })
+    expect(email.subject).toBe('Your session is in two days with Maya <b>Chen</b>')
+    expect(email.html).toContain('Saturday, December 12 at 10:00 (New York time)')
+    expect(email.html).not.toContain('<b>Chen</b>')
+    expect(email.text).toContain('https://www.gradsnap.app/dashboard/client/bookings')
+  })
+
+  it('has a day-of version', () => {
+    const email = sessionReminderEmail({
+      clientName: 'Ava',
+      photographerName: 'Maya',
+      date: '2026-12-12',
+      startTime: '10:00:00',
+      kind: 'reminder_day',
+      bookingsUrl: 'https://x',
+    })
+    expect(email.subject).toBe('Today is your session with Maya')
   })
 })

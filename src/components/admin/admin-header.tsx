@@ -4,6 +4,7 @@ import { DashboardNav, type NavItem } from '@/components/dashboard/dashboard-nav
 const ADMIN_NAV: readonly NavItem[] = [
   { href: '/admin/preview', label: 'Preview' },
   { href: '/admin/leads', label: 'Leads' },
+  { href: '/admin/reviews', label: 'Reviews' },
 ]
 
 export function AdminHeader() {

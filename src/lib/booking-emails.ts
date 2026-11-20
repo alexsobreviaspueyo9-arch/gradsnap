@@ -3,6 +3,7 @@ import { sendEmail } from '@/lib/resend'
 import { formatPriceRange } from '@/lib/price'
 import { SITE_URL, CONTACT_PATH } from '@/lib/site'
 import {
+  sessionReminderEmail,
   bookingConfirmedEmail,
   bookingRequestedClientEmail,
   bookingRequestedPhotographerEmail,
@@ -83,4 +84,37 @@ export async function sendBookingConfirmedEmail(bookingId: string): Promise<void
   } catch (err) {
     console.error(`Booking confirmed email failed for booking ${bookingId}:`, err instanceof Error ? err.message : err)
   }
+}
+
+export type ReminderKind = 'reminder_48h' | 'reminder_day'
+
+// Cron: every confirmed session due a reminder gets at most one of each kind.
+export async function sendDueReminders(kind: ReminderKind): Promise<number> {
+  const { data, error } = await createServiceClient().rpc('due_booking_reminders', { p_kind: kind })
+  if (error) {
+    console.error(`Listing ${kind} reminders failed:`, error.message)
+    return 0
+  }
+  let sent = 0
+  for (const { booking_id: bookingId } of data ?? []) {
+    try {
+      const target = await claim(bookingId, kind)
+      if (!target?.recipient_email) continue
+      await sendEmail({
+        to: target.recipient_email,
+        ...sessionReminderEmail({
+          clientName: target.client_name ?? 'there',
+          photographerName: target.photographer_name ?? 'your photographer',
+          date: target.date,
+          startTime: target.start_time,
+          kind,
+          bookingsUrl: `${SITE_URL}/dashboard/client/bookings`,
+        }),
+      })
+      sent += 1
+    } catch (err) {
+      console.error(`Reminder ${kind} failed for booking ${bookingId}:`, err instanceof Error ? err.message : err)
+    }
+  }
+  return sent
 }

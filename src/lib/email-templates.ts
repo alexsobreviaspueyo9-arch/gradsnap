@@ -230,3 +230,31 @@ export function newMessageEmail(input: {
     ].join('\n'),
   }
 }
+
+// 48 hours before and on the day of a confirmed session (cron, idempotent).
+export function sessionReminderEmail(input: {
+  clientName: string
+  photographerName: string
+  date: string
+  startTime: string
+  kind: 'reminder_48h' | 'reminder_day'
+  bookingsUrl: string
+}): { subject: string; html: string; text: string } {
+  const when = `${sessionTime(input.date, input.startTime)} (New York time)`
+  const lead = input.kind === 'reminder_day' ? 'Today is your session' : 'Your session is in two days'
+  const photographer = input.photographerName.replace(/[\r\n]+/g, ' ')
+  return {
+    subject: `${lead} with ${photographer}`,
+    html: wrapper(`
+      <p>Hi ${escapeHtml(input.clientName)},</p>
+      <p>${escapeHtml(lead)} with <strong>${escapeHtml(photographer)}</strong>:
+      <strong>${escapeHtml(when)}</strong>.</p>
+      <p><a href="${escapeHtml(input.bookingsUrl)}">See your booking and message your photographer</a>.</p>
+    `),
+    text: [
+      `Hi ${input.clientName},`,
+      `${lead} with ${photographer}: ${when}.`,
+      `See your booking: ${input.bookingsUrl}`,
+    ].join('\n\n'),
+  }
+}

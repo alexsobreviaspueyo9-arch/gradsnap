@@ -14,7 +14,11 @@ import { cn } from '@/lib/utils'
 import { normalizeHttpUrl } from '@/lib/url'
 import { formatAllInPriceRange, formatPriceRange } from '@/lib/price'
 import { paymentSummary, type PaymentSetup } from '@/lib/payment'
-import { BookingWidget } from '@/components/client/BookingWidget'
+import { BookingWidget, type PackageOption } from '@/components/client/BookingWidget'
+import { FavoriteButton } from '@/components/client/favorite-button'
+import { ShareProfileButton } from '@/components/client/share-profile-button'
+import { ProfileReviews, type ProfileReview } from '@/components/client/profile-reviews'
+import { EMPTY_CARD_STATS, RESPONSE_BADGE_LABEL, fromPrice, responseBadge, type CardStats } from '@/lib/photographer-cards'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
 import { PilotNote } from '@/components/brand/pilot-note'
 import { DASHBOARD_BASE } from '@/lib/routing'
@@ -69,7 +73,12 @@ export function PhotographerDetailView({
   viewer = 'client',
   initialDate = null,
   initialSlotId = null,
+  initialPackageId = null,
   refCode = null,
+  packages = [],
+  reviews = [],
+  stats = EMPTY_CARD_STATS,
+  isFavorite = null,
 }: {
   photographer: DetailPhotographer
   photos: Pick<PortfolioPhoto, 'id' | 'image_url' | 'caption'>[]
@@ -81,17 +90,28 @@ export function PhotographerDetailView({
   viewer?: BookingViewer
   initialDate?: string | null
   initialSlotId?: string | null
+  initialPackageId?: string | null
   refCode?: string | null
+  packages?: PackageOption[]
+  reviews?: ProfileReview[]
+  stats?: CardStats
+  /** Signed-in clients only: whether this photographer is saved. */
+  isFavorite?: boolean | null
 }) {
   const name = photographer.display_name ?? 'Photographer'
   const style =
     photographer.specialty === 'Other'
       ? photographer.specialty_other
       : photographer.specialty
-  const priceRange = (paymentsEnabled ? formatAllInPriceRange : formatPriceRange)(
-    photographer.base_price,
-    photographer.price_max
-  )
+  const lowest = fromPrice(photographer.base_price, stats.minPackagePrice)
+  const priceRange =
+    stats.minPackagePrice != null
+      ? (paymentsEnabled ? formatAllInPriceRange : formatPriceRange)(lowest, null)
+      : (paymentsEnabled ? formatAllInPriceRange : formatPriceRange)(
+          photographer.base_price,
+          photographer.price_max
+        )
+  const badge = responseBadge(stats.responseHours)
   const instagramHref = normalizeHttpUrl(photographer.instagram_url)
   const socialLinks = (photographer.social_links ?? []).flatMap((link) => {
     const href = normalizeHttpUrl(link.url)
@@ -149,10 +169,23 @@ export function PhotographerDetailView({
                     </span>
                   )}
                 </p>
-                {viewer === 'client' && (
-                  <div className="mt-4">
-                    <MessagePhotographerButton photographerId={photographer.id} />
-                  </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {viewer === 'client' && <MessagePhotographerButton photographerId={photographer.id} />}
+                  {viewer === 'client' && isFavorite !== null && (
+                    <FavoriteButton photographerId={photographer.id} initialSaved={isFavorite} />
+                  )}
+                  <ShareProfileButton photographerId={photographer.id} name={name} />
+                </div>
+                {(stats.reviewCount > 0 || badge) && (
+                  <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    {stats.reviewCount > 0 && stats.ratingAvg != null && (
+                      <span className="font-medium text-foreground">
+                        ★ {stats.ratingAvg.toFixed(1)} ({stats.reviewCount} review
+                        {stats.reviewCount === 1 ? '' : 's'})
+                      </span>
+                    )}
+                    {badge && <span>{RESPONSE_BADGE_LABEL[badge]}</span>}
+                  </p>
                 )}
               </div>
             </div>
@@ -161,7 +194,7 @@ export function PhotographerDetailView({
               <p className="mt-6 text-4xl font-semibold tracking-[-0.03em] tabular-nums">
                 {priceRange}
                 <span className="ml-2 text-sm font-normal tracking-normal text-muted-foreground">
-                  per session
+                  {stats.minPackagePrice != null ? 'lowest package' : 'per session'}
                 </span>
               </p>
             )}
@@ -270,6 +303,29 @@ export function PhotographerDetailView({
               ))}
             </section>
           )}
+          {packages.length > 0 && (
+            <section aria-labelledby="packages-heading" className={PANEL}>
+              <h2 id="packages-heading" className="text-xl font-semibold tracking-tight">
+                Packages
+              </h2>
+              <ul className="mt-4 space-y-3">
+                {packages.map((pkg) => (
+                  <li key={pkg.id} className="flex items-start justify-between gap-4 rounded-2xl bg-muted p-4">
+                    <div>
+                      <p className="font-semibold">{pkg.name}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {pkg.duration_minutes} min · {pkg.included_photos} edited photos · delivered in{' '}
+                        {pkg.delivery_days} day{pkg.delivery_days === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    <p className="shrink-0 font-semibold tabular-nums">${pkg.price}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <ProfileReviews reviews={reviews} ratingAvg={stats.ratingAvg} reviewCount={stats.reviewCount} />
         </div>
 
         <section className="space-y-4 lg:sticky lg:top-36">
@@ -297,7 +353,9 @@ export function PhotographerDetailView({
             viewer={viewer}
             initialDate={initialDate}
             initialSlotId={initialSlotId}
+            initialPackageId={initialPackageId}
             refCode={refCode}
+            packages={packages}
           />
         </section>
       </div>

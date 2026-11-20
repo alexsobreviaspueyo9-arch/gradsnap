@@ -2,7 +2,7 @@ import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { loadPublicPhotographer, loadViewerRole } from '@/lib/public-photographers'
+import { loadProfileExtras, loadPublicPhotographer, loadViewerRole } from '@/lib/public-photographers'
 import {
   PUBLIC_PHOTOGRAPHERS_PATH,
   isUuid,
@@ -23,7 +23,7 @@ const loadProfile = cache(async (id: string) => {
 
 type Props = {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ date?: string; slot?: string; ref?: string }>
+  searchParams: Promise<{ date?: string; slot?: string; pkg?: string; ref?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -57,6 +57,7 @@ export default async function PublicPhotographerPage({ params, searchParams }: P
 
   const profile = await loadProfile(id)
   if (!profile) notFound()
+  const extras = await loadProfileExtras(supabase, id)
 
   return (
     <PublicShell accountHref={role === 'photographer' ? '/dashboard/photographer' : undefined}>
@@ -71,6 +72,10 @@ export default async function PublicPhotographerPage({ params, searchParams }: P
         initialDate={selection.date}
         initialSlotId={selection.slotId}
         refCode={parseRefCode(query.ref)}
+        initialPackageId={selection.packageId}
+        packages={extras.packages}
+        reviews={extras.reviews}
+        stats={extras.stats}
       />
     </PublicShell>
   )

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SlotWithPhotographer } from '@/components/client/CalendarSearch'
 import type { PublicPhotographer } from '@/components/client/photographer-detail-view'
 import type { AvailabilitySlot, Database, PortfolioPhoto } from '@/types/database'
+import { EMPTY_CARD_STATS, type CardStats } from '@/lib/photographer-cards'
 
 type Supabase = SupabaseClient<Database>
 
@@ -63,4 +64,43 @@ export async function loadViewerRole(
     .eq('id', user.id)
     .maybeSingle()
   return profile?.role === 'client' || profile?.role === 'photographer' ? profile.role : null
+}
+
+export type PublicPackage = Database['public']['Functions']['public_packages']['Returns'][number]
+export type PublicReview = Database['public']['Functions']['public_reviews']['Returns'][number]
+
+// Cover, rating, response time and lowest package for every listed
+// photographer (same RPC for guests and signed-in users).
+export async function loadCardStats(supabase: Supabase): Promise<Record<string, CardStats>> {
+  const { data, error } = await supabase.rpc('public_photographer_cards')
+  if (error) console.error('Loading photographer cards failed:', error.message)
+  return Object.fromEntries(
+    (data ?? []).map((row) => [
+      row.photographer_id,
+      {
+        coverImageUrl: row.cover_image_url,
+        ratingAvg: row.rating_avg == null ? null : Number(row.rating_avg),
+        reviewCount: row.review_count,
+        responseHours: row.response_hours == null ? null : Number(row.response_hours),
+        minPackagePrice: row.min_package_price == null ? null : Number(row.min_package_price),
+      },
+    ])
+  )
+}
+
+// Packages, reviews and card facts shown on a profile.
+export async function loadProfileExtras(
+  supabase: Supabase,
+  photographerId: string
+): Promise<{ packages: PublicPackage[]; reviews: PublicReview[]; stats: CardStats }> {
+  const [{ data: packages }, { data: reviews }, stats] = await Promise.all([
+    supabase.rpc('public_packages', { p_photographer_id: photographerId }),
+    supabase.rpc('public_reviews', { p_photographer_id: photographerId }),
+    loadCardStats(supabase),
+  ])
+  return {
+    packages: (packages ?? []).map((p) => ({ ...p, price: Number(p.price) })),
+    reviews: reviews ?? [],
+    stats: stats[photographerId] ?? EMPTY_CARD_STATS,
+  }
 }

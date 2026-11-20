@@ -16,6 +16,7 @@ import {
   completeBooking,
   cancelBooking,
   setBookingPaymentStatus,
+  markDelivered,
 } from '@/app/dashboard/photographer/bookings/actions'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import type {
@@ -162,6 +163,22 @@ export function BookingsManager({
     }
   }
 
+  async function handleDelivered(booking: BookingWithDetails) {
+    setActingId(booking.id)
+    setError(null)
+
+    try {
+      if (!isPreview) await markDelivered(booking.id)
+      setBookings((prev) =>
+        prev.map((b) => (b.id === booking.id ? { ...b, delivered_at: new Date().toISOString() } : b))
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    } finally {
+      setActingId(null)
+    }
+  }
+
   async function handleCancel(booking: BookingWithDetails) {
     if (!window.confirm(cancelMessage(booking, basePrice, paymentsEnabled))) return
 
@@ -276,6 +293,22 @@ export function BookingsManager({
                   >
                     {busy ? 'Completing…' : 'Mark completed'}
                   </Button>
+                )}
+                {booking.status === 'completed' && !booking.delivered_at && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 px-4"
+                    disabled={busy}
+                    onClick={() => handleDelivered(booking)}
+                  >
+                    {busy ? 'Saving…' : 'Mark photos delivered'}
+                  </Button>
+                )}
+                {booking.status === 'completed' && booking.delivered_at && (
+                  <span className="inline-flex h-9 items-center text-sm text-muted-foreground">
+                    Photos delivered
+                  </span>
                 )}
                 {booking.conversationId && (
                   <Link
