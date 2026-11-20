@@ -11,7 +11,7 @@ export default function HomePage() {
     <div className="flex flex-col">
       <TrackLandingViewed />
       <LandingNav />
-      <main>
+      <main id="main">
         <LandingHero />
         <HowItWorks />
         <GalleryStrip />

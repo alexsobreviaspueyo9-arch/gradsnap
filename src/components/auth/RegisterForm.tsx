@@ -82,7 +82,9 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Create an account</CardTitle>
+        <CardTitle className="text-2xl">
+          <h1>Create an account</h1>
+        </CardTitle>
         <CardDescription>Join GradSnap as a photographer or client</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

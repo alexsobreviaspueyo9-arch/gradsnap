@@ -801,3 +801,32 @@ events inside day cells, not just a highlighted date.
   with `photo_spots`.
 - Spots are Virginia Tech landmarks with approximate coordinates rounded to
   ~100 m and marked TODO-verify; nothing claims survey precision.
+
+
+## Accessibility pass (2026-11-20)
+
+- Tools (run locally, headless, against a build pointed at a dead Supabase
+  URL; dashboards checked through the admin preview's sample data): axe-core
+  4.10 with wcag2a/aa, wcag21a/aa, wcag22aa and best-practice in light and
+  dark, a first-Tab skip-link check and a 320px overflow check; Lighthouse 12
+  accessibility.
+- Found and fixed: no `<h1>` on /login, /register, /verify-email (CardTitle is
+  a div: an `<h1>` now sits inside it); content outside landmarks on the auth
+  and centered layouts (logo row is now `<header>`, content `<main>`). Added
+  the skip link, `id="main"` everywhere, a global reduced-motion rule, profile
+  photo alt text "Graduation photo by <name>", and /accessibility.
+- Result: 0 axe findings on 21 pages in both colour schemes; Lighthouse 100
+  on /, /photographers, /contact, the photographer bookings preview.
+- Remaining / not covered:
+  - Lighthouse can't score colour contrast on the photographer profile: its
+    bundled axe fails to parse `oklch(... none / 0.5)` (Tailwind v4 colour
+    mix). axe-core 4.10 checks that page with no findings. Tool limitation.
+  - Leaflet pins aren't keyboard-focusable; the "Pick a spot" select is the
+    equivalent control (stated on /accessibility).
+  - The month calendar (react-big-calendar) has limited keyboard support; the
+    date field next to it is the accessible path.
+  - Not audited with real accounts: live dashboards (only via preview data),
+    /admin/leads and /admin/reviews (need the service key), Stripe pages
+    (dormant), emails.
+  - /accessibility contact email is a TODO; photographer captions/alt text
+    depend on what photographers write.

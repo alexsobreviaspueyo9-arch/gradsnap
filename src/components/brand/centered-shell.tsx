@@ -10,12 +10,12 @@ export function CenteredShell({
 }) {
   return (
     <div className="relative flex min-h-[100dvh] flex-col px-4 py-6 sm:px-8">
-      <div className="relative">
+      <header className="relative">
         <Wordmark />
-      </div>
-      <div className="relative flex flex-1 items-center justify-center py-10">
+      </header>
+      <main id="main" className="relative flex flex-1 items-center justify-center py-10">
         <div className={cn('w-full max-w-md', className)}>{children}</div>
-      </div>
+      </main>
     </div>
   )
 }

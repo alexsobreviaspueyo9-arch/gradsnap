@@ -89,7 +89,7 @@ export default async function PhotographersLandingPage({
         </Link>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-16">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-16">
         <h1 className="max-w-3xl text-[2.5rem] leading-[1.05] font-semibold tracking-[-0.035em] sm:text-6xl">
           Photograph graduations.{' '}
           <span className="text-muted-foreground">Get booked directly.</span>

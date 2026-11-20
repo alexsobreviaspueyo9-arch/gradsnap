@@ -9,6 +9,7 @@ export const SITE_DESCRIPTION =
   'Connect with professional photographers for your graduation session.'
 
 export const CONTACT_PATH = '/contact'
+export const ACCESSIBILITY_PATH = '/accessibility'
 export const CONTACT_EMAIL = 'hola@gradsnap.app'
 
 // Fee and cancellation pages (shown only when PAYMENTS_ENABLED=true).

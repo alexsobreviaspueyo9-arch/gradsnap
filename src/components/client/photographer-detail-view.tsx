@@ -291,7 +291,7 @@ export function PhotographerDetailView({
                 >
                   <PortfolioImage
                     src={photo.image_url}
-                    alt={photo.caption ?? 'Portfolio photo'}
+                    alt={photo.caption ?? `Graduation photo by ${name}`}
                     fill
                     sizes={
                       i === 0

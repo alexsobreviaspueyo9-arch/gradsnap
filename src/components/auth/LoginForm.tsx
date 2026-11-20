@@ -86,7 +86,9 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
+        <CardTitle className="text-2xl">
+          <h1>Welcome back</h1>
+        </CardTitle>
         <CardDescription>Sign in to your GradSnap account</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

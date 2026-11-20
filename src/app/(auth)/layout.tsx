@@ -9,12 +9,12 @@ export default function AuthLayout({
   return (
     <div className="grid min-h-[100dvh] lg:grid-cols-[1fr_1.05fr]">
       <div className="relative flex flex-col px-4 py-6 sm:px-8">
-        <div className="relative">
+        <header className="relative">
           <Wordmark />
-        </div>
-        <div className="relative flex flex-1 items-center justify-center py-10">
+        </header>
+        <main id="main" className="relative flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-md">{children}</div>
-        </div>
+        </main>
       </div>
 
       <aside className="relative hidden overflow-hidden lg:block">

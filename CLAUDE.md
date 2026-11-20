@@ -78,6 +78,7 @@ src/components/dashboard/photographer-today.tsx  TodayPanel + OnboardingChecklis
 src/components/chat/message-templates-manager.tsx  saved replies (message_templates)
 src/lib/campus-spots.ts     Virginia Tech photo spots (APPROXIMATE lat/lng, TODO-verify), cleanSpotIds, shootsAt
 src/components/client/campus-map.tsx  Leaflet + OSM tiles (no key), loaded client-side only
+src/app/accessibility/      accessibility statement (contact email is a TODO), in footer + sitemap
 src/app/contact/            contact page (hola@gradsnap.app, "who is behind GradSnap" TODO)
 src/lib/gallery.ts          landing gallery photos + credits (null credit = "Example photo"; never invent)
 src/lib/ref-code.ts         personal link ?ref= (gs_ref cookie, 30 days), countBySource
@@ -276,6 +277,15 @@ shows only photographers whose `photo_spots` include it. Photographers tick
 approximate (3 decimals) and marked TODO-verify; the UI says so. Leaflet is
 imported dynamically in an effect (it needs `window`); `isolate z-0` keeps its
 panes under the sticky header.
+
+**Accessibility (2026-11-20).** Root layout starts with a "Skip to content"
+link (`gs-skip-link`); every page's `<main>` has `id="main"` (DashboardShell,
+PublicShell, CenteredShell, auth layout, landing, /fotografos), logo rows are
+`<header>`, each page has one `<h1>`. A global `prefers-reduced-motion` rule
+stops transitions/animations. Re-audit after UI work: axe-core (WCAG 2.2 AA +
+best practices) in light and dark, first Tab = skip link, no overflow at
+320px; Lighthouse accessibility. Last run: 0 axe findings on 21 pages,
+Lighthouse 100 on /, /photographers, /contact and the bookings dashboard.
 
 **Find a photographer (`/dashboard/client/photographers`).** `CalendarSearch`:
 filters (city substring, max price, style) client-side over upcoming open

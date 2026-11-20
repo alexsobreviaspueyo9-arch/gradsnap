@@ -287,3 +287,32 @@
   min-height: 2.75rem;
   background-color: var(--card);
 }
+
+/* Skip link: hidden until keyboard focus, then a visible pill (WCAG 2.4.1). */
+.gs-skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 600;
+}
+.gs-skip-link:focus {
+  top: 1rem;
+}
+
+/* Reduced motion: no transitions, animations or smooth scrolling anywhere
+   (Framer trees already honour it through MotionConfig). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

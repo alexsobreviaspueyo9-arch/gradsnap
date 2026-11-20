@@ -44,6 +44,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* First tab stop on every page; each page's <main> has id="main". */}
+        <a href="#main" className="gs-skip-link">
+          Skip to content
+        </a>
         <PostHogProvider>{children}</PostHogProvider>
         <Analytics />
       </body>

@@ -15,7 +15,9 @@ export default function VerifyEmailPage() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Mail className="h-7 w-7" />
         </div>
-        <CardTitle className="text-2xl">Check your email</CardTitle>
+        <CardTitle className="text-2xl">
+          <h1>Check your email</h1>
+        </CardTitle>
         <CardDescription>
           We sent a verification link to your inbox. Click it to activate your
           account.
