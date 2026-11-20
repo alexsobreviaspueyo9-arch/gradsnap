@@ -789,3 +789,15 @@ events inside day cells, not just a highlighted date.
   any time. Events show the client's first name only.
 - Cover photo = first portfolio photo (no extra column); reordering writes
   `sort_order`.
+
+
+## Campus map and photo spots (2026-11-20)
+
+- Leaflet 1.9.4 + OpenStreetMap tiles (no API key; attribution shown). Respect
+  the OSM tile usage policy: fine for this traffic, move to a tile provider if
+  usage grows.
+- Migration `20261120_campus_spots.sql`: `photographer_profiles.photo_spots
+  text[]` (format check, max 12) and `public_photographer_cards()` recreated
+  with `photo_spots`.
+- Spots are Virginia Tech landmarks with approximate coordinates rounded to
+  ~100 m and marked TODO-verify; nothing claims survey precision.

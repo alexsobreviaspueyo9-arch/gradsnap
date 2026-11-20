@@ -85,6 +85,7 @@ export async function loadCardStats(supabase: Supabase): Promise<Record<string, 
         reviewCount: row.review_count,
         responseHours: row.response_hours == null ? null : Number(row.response_hours),
         minPackagePrice: row.min_package_price == null ? null : Number(row.min_package_price),
+        photoSpots: row.photo_spots ?? [],
       },
     ])
   )

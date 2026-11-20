@@ -33,6 +33,8 @@ import {
   type CardStats,
 } from '@/lib/photographer-cards'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
+import { CampusMap } from '@/components/client/campus-map'
+import { CAMPUS_SPOTS, shootsAt } from '@/lib/campus-spots'
 import {
   PHOTOGRAPHER_SPECIALTIES,
   type AvailabilitySlot,
@@ -249,6 +251,7 @@ export function CalendarSearch({
   const [cityFilter, setCityFilter] = useState('')
   const [maxPriceFilter, setMaxPriceFilter] = useState('')
   const [specialtyFilter, setSpecialtyFilter] = useState('')
+  const [spotFilter, setSpotFilter] = useState<string | null>(null)
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(initialDate)
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
 
@@ -296,9 +299,10 @@ export function CalendarSearch({
         const style = p.specialty === 'Other' ? p.specialty_other : p.specialty
         if (style !== specialtyFilter) return false
       }
+      if (!shootsAt(cardStats[p.id]?.photoSpots, spotFilter)) return false
       return true
     })
-  }, [slots, cityFilter, maxPriceFilter, specialtyFilter, cardStats])
+  }, [slots, cityFilter, maxPriceFilter, specialtyFilter, spotFilter, cardStats])
 
   const photographers = useMemo(() => {
     const byId = new Map<string, Photographer>()
@@ -397,6 +401,29 @@ export function CalendarSearch({
                 </select>
               </div>
             </div>
+          </div>
+
+          <div className={cn(PANEL, 'space-y-3')}>
+            <div className="space-y-2">
+              <Label htmlFor="spotFilter">Pick a spot</Label>
+              <select
+                id="spotFilter"
+                value={spotFilter ?? ''}
+                onChange={(e) => setSpotFilter(e.target.value || null)}
+                className={FIELD}
+              >
+                <option value="">Any spot on campus</option>
+                {CAMPUS_SPOTS.map((spot) => (
+                  <option key={spot.id} value={spot.id}>
+                    {spot.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <CampusMap selectedSpotId={spotFilter} onSelectSpot={setSpotFilter} />
+            <p className="text-xs text-muted-foreground">
+              Shows photographers who list the spot. Pins are approximate.
+            </p>
           </div>
 
           <div className={PANEL}>

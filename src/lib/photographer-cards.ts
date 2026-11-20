@@ -8,6 +8,7 @@ export type CardStats = {
   reviewCount: number
   responseHours: number | null
   minPackagePrice: number | null
+  photoSpots: string[]
 }
 
 export const EMPTY_CARD_STATS: CardStats = {
@@ -16,6 +17,7 @@ export const EMPTY_CARD_STATS: CardStats = {
   reviewCount: 0,
   responseHours: null,
   minPackagePrice: null,
+  photoSpots: [],
 }
 
 // "from $X": the cheapest package if there are packages, else the base price.

@@ -254,6 +254,14 @@ select hardening_test.expect_error('photographer marks a booking as expired',
   format('update public.bookings set expired_at = now() where slot_id = %L', open_slot))
 from hardening_test.t_ids;
 
+select hardening_test.expect_error('photographer saves a malformed photo spot',
+  format('update public.photographer_profiles set photo_spots = array[''<script>''] where user_id = %L', photographer_uid))
+from hardening_test.t_ids;
+
+select hardening_test.expect_ok('photographer lists the spots they shoot at',
+  format('update public.photographer_profiles set photo_spots = array[''drillfield'', ''duck-pond''] where user_id = %L', photographer_uid))
+from hardening_test.t_ids;
+
 select hardening_test.expect_ok('photographer creates a private calendar link',
   'select public.reset_calendar_feed()');
 

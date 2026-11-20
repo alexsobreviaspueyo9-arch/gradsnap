@@ -100,6 +100,7 @@ export type Database = {
           terms_version: string | null
           terms_accepted_at: string | null
           ref_code: string
+          photo_spots: string[]
           status: PhotographerProfileStatus
           invite_token: string | null
           invite_expires_at: string | null
@@ -134,6 +135,7 @@ export type Database = {
           created_at?: string
         }
         Update: {
+          photo_spots?: string[]
           id?: string
           user_id?: string | null
           display_name?: string | null
@@ -581,6 +583,7 @@ export type Database = {
           review_count: number
           response_hours: number | null
           min_package_price: number | null
+          photo_spots: string[]
         }[]
       }
       submit_review: {

@@ -76,6 +76,8 @@ src/lib/photographer-dashboard.ts  checklist %, 48h request countdown, median re
 src/lib/photographer-today.ts      loads the "Today" panel; src/lib/reorder.ts (portfolio order)
 src/components/dashboard/photographer-today.tsx  TodayPanel + OnboardingChecklist; calendar-feed-card.tsx
 src/components/chat/message-templates-manager.tsx  saved replies (message_templates)
+src/lib/campus-spots.ts     Virginia Tech photo spots (APPROXIMATE lat/lng, TODO-verify), cleanSpotIds, shootsAt
+src/components/client/campus-map.tsx  Leaflet + OSM tiles (no key), loaded client-side only
 src/app/contact/            contact page (hola@gradsnap.app, "who is behind GradSnap" TODO)
 src/lib/gallery.ts          landing gallery photos + credits (null credit = "Example photo"; never invent)
 src/lib/ref-code.ts         personal link ?ref= (gs_ref cookie, 30 days), countBySource
@@ -265,6 +267,15 @@ backstop; it cancels with `expired_at` and reopens the slot, and an expiry
 never counts as a reply. Profile page has "Preview as client" (public page).
 Chat has saved templates (photographer messages page, insert from a select).
 Portfolio: drag or arrow buttons to reorder; first photo = cover ("Make cover").
+
+**Campus map (2026-11-20).** `CalendarSearch` has a "Pick a spot" select (the
+accessible control) and a Leaflet map whose pins mirror it; picking a spot
+shows only photographers whose `photo_spots` include it. Photographers tick
+"Where you shoot" in `ProfileForm`; profiles list their spots. Spot ids live in
+`lib/campus-spots.ts` (DB checks only the id format, max 12). Coordinates are
+approximate (3 decimals) and marked TODO-verify; the UI says so. Leaflet is
+imported dynamically in an effect (it needs `window`); `isolate z-0` keeps its
+panes under the sticky header.
 
 **Find a photographer (`/dashboard/client/photographers`).** `CalendarSearch`:
 filters (city substring, max price, style) client-side over upcoming open

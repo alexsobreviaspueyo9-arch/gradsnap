@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local, untracked folders (old project copies, code-map output).
+    "_handoff/**",
+    "graphify-out/**",
   ]),
 ]);
 

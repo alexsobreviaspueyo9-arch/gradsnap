@@ -52,6 +52,7 @@ export const photographer: PhotographerProfile = {
   terms_version: PHOTOGRAPHER_TERMS_VERSION,
   terms_accepted_at: null,
   ref_code: '0a1b2c3d4e',
+  photo_spots: ['drillfield', 'duck-pond'],
   status: 'claimed',
   invite_token: null,
   invite_expires_at: null,

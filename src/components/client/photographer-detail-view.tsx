@@ -18,6 +18,7 @@ import { BookingWidget, type PackageOption } from '@/components/client/BookingWi
 import { FavoriteButton } from '@/components/client/favorite-button'
 import { ShareProfileButton } from '@/components/client/share-profile-button'
 import { ProfileReviews, type ProfileReview } from '@/components/client/profile-reviews'
+import { spotById } from '@/lib/campus-spots'
 import { EMPTY_CARD_STATS, RESPONSE_BADGE_LABEL, fromPrice, responseBadge, type CardStats } from '@/lib/photographer-cards'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
 import { PilotNote } from '@/components/brand/pilot-note'
@@ -321,6 +322,24 @@ export function PhotographerDetailView({
                     <p className="shrink-0 font-semibold tabular-nums">${pkg.price}</p>
                   </li>
                 ))}
+              </ul>
+            </section>
+          )}
+
+          {stats.photoSpots.length > 0 && (
+            <section aria-labelledby="spots-heading" className={PANEL}>
+              <h2 id="spots-heading" className="text-xl font-semibold tracking-tight">
+                Photo spots
+              </h2>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {stats.photoSpots.map((id) => {
+                  const spot = spotById(id)
+                  return spot ? (
+                    <li key={id} className="rounded-full bg-muted px-3.5 py-1.5 text-sm font-medium">
+                      {spot.name}
+                    </li>
+                  ) : null
+                })}
               </ul>
             </section>
           )}

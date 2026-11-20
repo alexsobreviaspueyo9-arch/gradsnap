@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/posthog'
 import { withSuggestedPolicy } from '@/lib/suggested-policy'
+import { CAMPUS_SPOTS, cleanSpotIds } from '@/lib/campus-spots'
 import { useDashboardBase, usePreviewMode } from '@/components/preview/preview-mode'
 import { normalizeHttpUrl } from '@/lib/url'
 import { WeeklyAvailabilityPicker } from '@/components/photographer/WeeklyAvailabilityPicker'
@@ -137,6 +138,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>(
     profile.social_links ?? []
   )
+  const [photoSpots, setPhotoSpots] = useState<string[]>(profile.photo_spots ?? [])
   const [weeklyAvailability, setWeeklyAvailability] =
     useState<WeeklyAvailability>(profile.weekly_availability ?? {})
   const [paymentLink, setPaymentLink] = useState(profile.payment_link ?? '')
@@ -279,6 +281,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
         instagram_url: instagramHref,
         social_links: cleanedSocialLinks,
         weekly_availability: weeklyAvailability,
+        photo_spots: cleanSpotIds(photoSpots),
         payment_link: paymentLinkUrl,
         payment_terms: paymentTerms.trim() === '' ? null : paymentTerms.trim(),
         payment_method: paymentMethod,
@@ -556,6 +559,41 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
             </div>
           )}
         </div>
+      </Section>
+
+      <Section
+        title="Where you shoot"
+        description="Campus spots you know well. Clients can filter by spot and see them on your profile."
+      >
+        <fieldset>
+          <legend className="sr-only">Photo spots</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {CAMPUS_SPOTS.map((spot) => {
+              const checked = photoSpots.includes(spot.id)
+              return (
+                <label
+                  key={spot.id}
+                  className="flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-input p-3 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 size-4 accent-[var(--primary)]"
+                    checked={checked}
+                    onChange={() =>
+                      setPhotoSpots((current) =>
+                        checked ? current.filter((id) => id !== spot.id) : [...current, spot.id]
+                      )
+                    }
+                  />
+                  <span>
+                    <span className="font-medium">{spot.name}</span>
+                    <span className="block text-muted-foreground">{spot.description}</span>
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
       </Section>
 
       <Section
