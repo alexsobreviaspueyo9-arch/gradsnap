@@ -24,7 +24,9 @@ export default async function ClientPhotographersPage({
 
   if (!user) redirect('/login')
 
-  // Keeps every photographer's weekly hours filled 12 weeks ahead.
+  // Frees slots held by requests older than 48h, then keeps every
+  // photographer's weekly hours filled 12 weeks ahead.
+  await supabase.rpc('expire_stale_bookings')
   await supabase.rpc('refresh_weekly_slots')
 
   const { data: photographers } = await supabase

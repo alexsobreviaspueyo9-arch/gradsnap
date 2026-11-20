@@ -26,6 +26,8 @@ export default async function PhotographerBookingsPage() {
     redirect(PHOTOGRAPHER_TERMS_PATH)
   }
 
+  await supabase.rpc('expire_stale_bookings')
+
   const { data: slots } = await supabase
     .from('availability_slots')
     .select('id, date, start_time, end_time')

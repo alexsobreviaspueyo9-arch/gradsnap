@@ -110,3 +110,8 @@ export function formatZonedDateTime(instant: Date): string {
     minute: '2-digit',
   })
 }
+
+// Today's date in the market's zone (YYYY-MM-DD), whatever the server's zone.
+export function todayInAppZone(now: Date = new Date()): string {
+  return now.toLocaleDateString('sv-SE', { timeZone: APP_TIME_ZONE })
+}

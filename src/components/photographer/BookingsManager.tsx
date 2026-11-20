@@ -11,6 +11,7 @@ import { formatDateHeading, isoDateToLocalDate, zonedDateTime } from '@/lib/date
 import { feeBreakdown } from '@/lib/fees'
 import { photographerPenalty, refundAmounts, refundFor } from '@/lib/cancellation-policy'
 import { formatMoney } from '@/lib/price'
+import { formatTimeLeft, requestTimeLeftMs } from '@/lib/photographer-dashboard'
 import {
   confirmBooking,
   completeBooking,
@@ -259,8 +260,14 @@ export function BookingsManager({
             <div className="flex flex-1 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className={cn(STATUS_STYLES[booking.status], 'capitalize')}>
-                  {booking.status}
+                  {booking.expired_at ? 'Expired' : booking.status}
                 </Badge>
+                {booking.status === 'pending' && (
+                  // Minutes can differ between server and browser render.
+                  <span suppressHydrationWarning className="text-sm font-medium text-warning">
+                    {formatTimeLeft(requestTimeLeftMs(booking.created_at))}
+                  </span>
+                )}
                 <Badge className={cn(PAYMENT_STATUS_STYLES[booking.payment_status])}>
                   {booking.payment_status === 'paid' ? 'Paid' : 'Payment pending'}
                 </Badge>

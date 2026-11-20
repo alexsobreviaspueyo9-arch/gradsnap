@@ -12,6 +12,8 @@ type Props = {
   selected: Conversation | null
   initialMessages: BookingMessage[]
   emptyText: string
+  /** Photographer's saved replies, insertable into the message box. */
+  templates?: { id: string; title: string; body: string }[]
 }
 
 function ConversationList({
@@ -66,6 +68,7 @@ export function MessagesView({
   selected,
   initialMessages,
   emptyText,
+  templates = [],
 }: Props) {
   if (conversations.length === 0) {
     return (
@@ -118,6 +121,7 @@ export function MessagesView({
             currentUserId={currentUserId}
             canWrite={selected.canWrite}
             initialMessages={initialMessages}
+            templates={templates}
           />
         </section>
       ) : (

@@ -17,6 +17,8 @@ const NO_PAYMENT = {
 } as const
 
 export async function loadPublicListing(supabase: Supabase): Promise<SlotWithPhotographer[]> {
+  // Requests older than 48h free their slots before the listing is read.
+  await supabase.rpc('expire_stale_bookings')
   const [{ data: photographers, error: listError }, { data: slots, error: slotError }] =
     await Promise.all([supabase.rpc('public_photographers'), supabase.rpc('public_open_slots')])
   if (listError || slotError) console.error('Loading public listing failed:', listError ?? slotError)

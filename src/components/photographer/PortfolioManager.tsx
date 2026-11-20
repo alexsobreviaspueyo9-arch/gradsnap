@@ -2,7 +2,8 @@
 
 import { useRef, useState } from 'react'
 import { PortfolioImage } from '@/components/portfolio-image'
-import { ImagePlus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ImagePlus, Trash2, X } from 'lucide-react'
+import { moveItem, sortOrderChanges } from '@/lib/reorder'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -179,6 +180,27 @@ export function PortfolioManager({
     }
   }
 
+  // New order: index 0 is the cover photo on cards. Saved row by row
+  // (RLS: own photos only); on failure the old order comes back.
+  async function reorder(from: number, to: number) {
+    const previous = photos
+    const next = moveItem(photos, from, to)
+    setPhotos(next.map((p, i) => ({ ...p, sort_order: i })))
+    setError(null)
+    if (isPreview) return
+    for (const change of sortOrderChanges(next)) {
+      const { error: updateError } = await supabase
+        .from('portfolio_photos')
+        .update({ sort_order: change.sort_order })
+        .eq('id', change.id)
+      if (updateError) {
+        setPhotos(previous)
+        setError("Couldn't save the new order. Try again.")
+        return
+      }
+    }
+  }
+
   async function handleCaptionBlur(photo: PortfolioPhoto, caption: string) {
     const trimmed = caption.trim() === '' ? null : caption.trim()
     if (trimmed === photo.caption) return
@@ -306,9 +328,17 @@ export function PortfolioManager({
 
       {photos.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {photos.map((photo) => (
+          {photos.map((photo, index) => (
             <figure
               key={photo.id}
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData('text/plain', String(index))}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault()
+                const from = Number(e.dataTransfer.getData('text/plain'))
+                if (Number.isInteger(from)) reorder(from, index)
+              }}
               className="group overflow-hidden rounded-3xl bg-card"
             >
               <div className="relative aspect-square w-full">
@@ -330,7 +360,44 @@ export function PortfolioManager({
                   <Trash2 className="size-4" />
                 </Button>
               </div>
-              <figcaption className="p-3">
+              <figcaption className="space-y-2 p-3">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {index === 0 ? (
+                    <span className="inline-flex h-9 items-center rounded-full bg-muted px-3 text-xs font-medium">
+                      Cover photo
+                    </span>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3"
+                      onClick={() => reorder(index, 0)}
+                    >
+                      Make cover
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Move earlier"
+                    disabled={index === 0}
+                    onClick={() => reorder(index, index - 1)}
+                  >
+                    <ArrowLeft className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Move later"
+                    disabled={index === photos.length - 1}
+                    onClick={() => reorder(index, index + 1)}
+                  >
+                    <ArrowRight className="size-4" />
+                  </Button>
+                </div>
                 <Input
                   defaultValue={photo.caption ?? ''}
                   placeholder="Add a caption"

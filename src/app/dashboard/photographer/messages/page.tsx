@@ -5,6 +5,7 @@ import { loadConversations, loadThread } from '@/lib/chat'
 import { markConversationRead } from '@/lib/actions/chat'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { MessagesView } from '@/components/chat/messages-view'
+import { MessageTemplatesManager } from '@/components/chat/message-templates-manager'
 
 export default async function PhotographerMessagesPage({
   searchParams,
@@ -36,6 +37,11 @@ export default async function PhotographerMessagesPage({
   const selected = conversations.find((c) => c.id === conversation) ?? null
   const initialMessages = selected ? await loadThread(supabase, selected.id) : []
   if (selected) await markConversationRead(selected.id)
+  const { data: templates } = await supabase
+    .from('message_templates')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at')
 
   return (
     <>
@@ -50,7 +56,11 @@ export default async function PhotographerMessagesPage({
         selected={selected}
         initialMessages={initialMessages}
         emptyText="No chats yet. When a client messages you, the chat shows up here."
+        templates={templates ?? []}
       />
+      <div className="mt-4">
+        <MessageTemplatesManager userId={user.id} initialTemplates={templates ?? []} />
+      </div>
     </>
   )
 }

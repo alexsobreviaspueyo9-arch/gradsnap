@@ -250,6 +250,20 @@ select hardening_test.expect_error('photographer writes a review',
           join public.availability_slots s on s.id = b.slot_id where b.slot_id = %L', ref_slot))
 from hardening_test.t_ids;
 
+select hardening_test.expect_error('photographer marks a booking as expired',
+  format('update public.bookings set expired_at = now() where slot_id = %L', open_slot))
+from hardening_test.t_ids;
+
+select hardening_test.expect_ok('photographer creates a private calendar link',
+  'select public.reset_calendar_feed()');
+
+select hardening_test.expect_error('photographer reads bookings through the feed function',
+  'select * from public.calendar_feed_events(repeat(''a'', 64))');
+
+select hardening_test.expect_ok('photographer saves a message template',
+  format('insert into public.message_templates (user_id, title, body) values (%L, ''Hi'', ''Thanks for booking!'')', photographer_uid))
+from hardening_test.t_ids;
+
 select hardening_test.expect_ok('photographer confirms a booking and marks it paid',
   format('update public.bookings set status = ''confirmed'', payment_status = ''paid'' where slot_id = %L', open_slot))
 from hardening_test.t_ids;
@@ -355,6 +369,16 @@ select hardening_test.expect_error('client saves a favorite for someone else',
           select %L, pp.id from public.photographer_profiles pp where pp.user_id = %L', photographer_uid, photographer_uid))
 from hardening_test.t_ids;
 
+select hardening_test.expect_nothing('client reads the photographer''s calendar link',
+  'select token from public.photographer_calendar_feeds');
+select hardening_test.expect_nothing('client reads the photographer''s templates',
+  'select body from public.message_templates');
+select hardening_test.expect_error('client saves a template for someone else',
+  format('insert into public.message_templates (user_id, title, body) values (%L, ''x'', ''y'')', photographer_uid))
+from hardening_test.t_ids;
+select hardening_test.expect_error('client resets a calendar link (not a photographer)',
+  'select public.reset_calendar_feed()');
+
 select hardening_test.expect_unchanged('client edits a photographer''s package',
   'update public.photographer_packages set price = 1 returning id');
 
@@ -379,6 +403,9 @@ select hardening_test.expect_nothing('anon reads packages directly', 'select id 
 select hardening_test.expect_nothing('anon reads reviews directly', 'select id from public.reviews');
 select hardening_test.expect_nothing('anon reads favorites', 'select user_id from public.favorites');
 select hardening_test.expect_nothing('anon reads the moderation log', 'select id from public.review_moderation_log');
+select hardening_test.expect_nothing('anon reads calendar links', 'select token from public.photographer_calendar_feeds');
+select hardening_test.expect_nothing('anon reads message templates', 'select body from public.message_templates');
+select hardening_test.expect_ok('anon can trigger the (fixed) expiry sweep', 'select public.expire_stale_bookings()');
 
 select hardening_test.expect_error('anon books a slot',
   format('select public.book_slot(%L)', second_slot))

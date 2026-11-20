@@ -34,6 +34,7 @@ export default async function PhotographerDetailPage({
 
   if (!photographer) redirect('/dashboard/client/photographers')
 
+  await supabase.rpc('expire_stale_bookings')
   await supabase.rpc('refresh_weekly_slots')
 
   const { data: photos } = await supabase

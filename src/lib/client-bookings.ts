@@ -10,6 +10,7 @@ export async function loadClientBookings(
   supabase: SupabaseClient<Database>,
   clientId: string
 ): Promise<ClientBooking[]> {
+  await supabase.rpc('expire_stale_bookings')
   const { data: bookings } = await supabase
     .from('bookings')
     .select('id, status, slot_id, package_name, delivered_at')

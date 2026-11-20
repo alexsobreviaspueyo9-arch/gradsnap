@@ -772,3 +772,20 @@ events inside day cells, not just a highlighted date.
 - Reminders: Vercel Cron daily at 13:00 UTC (Hobby plan allows daily) ->
   `/api/cron/reminders` with `CRON_SECRET`; "48h" means sessions two New York
   days ahead.
+
+
+## Photographer UX: today panel, checklist, 48h expiry, calendar feed (2026-11-20)
+
+- Migration `20261120_photographer_ux.sql` (after `20261120_client_ux.sql`):
+  `bookings.expired_at`, `expire_stale_bookings()` (granted to anon too: a
+  fixed, idempotent sweep), `photographer_calendar_feeds` +
+  `reset_calendar_feed()` + `calendar_feed_events()` (service role),
+  `message_templates`; `set_booking_responded_at` ignores expiries.
+- Expiry choice: computed-on-read + daily cron, not a precise scheduler. Vercel
+  Hobby cron runs once a day, so a scheduled-only job could leave a request
+  "pending" for up to a day; sweeping before every read that shows bookings or
+  slots makes the 48h exact for anyone looking, at no extra cost.
+- Calendar feed: no OAuth; the 64-hex token is the credential, replaceable at
+  any time. Events show the client's first name only.
+- Cover photo = first portfolio photo (no extra column); reordering writes
+  `sort_order`.

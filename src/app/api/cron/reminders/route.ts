@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { sendDueReminders } from '@/lib/booking-emails'
+import { createServiceClient } from '@/lib/supabase/service'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  // Backstop for the on-read sweep: expire requests nobody looked at.
+  const { data: expired } = await createServiceClient().rpc('expire_stale_bookings')
   const reminder48h = await sendDueReminders('reminder_48h')
   const reminderDay = await sendDueReminders('reminder_day')
-  return NextResponse.json({ reminder48h, reminderDay })
+  return NextResponse.json({ expired: expired ?? 0, reminder48h, reminderDay })
 }

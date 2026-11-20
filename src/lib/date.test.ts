@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isUpcomingSlot, weeklyDates } from '@/lib/date'
+import { isUpcomingSlot, todayInAppZone, weeklyDates } from '@/lib/date'
 
 // 2026-07-01 16:00 UTC = 12:00 in America/New_York (EDT, UTC-4)
 const NOW = new Date('2026-07-01T16:00:00Z')
@@ -48,5 +48,12 @@ describe('weeklyDates', () => {
 
   it('returns just the start date for a single week', () => {
     expect(weeklyDates('2026-10-05', 1)).toEqual(['2026-10-05'])
+  })
+})
+
+describe('todayInAppZone', () => {
+  it('uses the New York date, not UTC', () => {
+    // 02:30 UTC on Dec 13 is still Dec 12 in New York.
+    expect(todayInAppZone(new Date('2026-12-13T02:30:00Z'))).toBe('2026-12-12')
   })
 })

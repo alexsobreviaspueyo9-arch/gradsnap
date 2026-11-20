@@ -1,4 +1,7 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/server'
 import { PHOTOGRAPHER_TERMS_PATH, needsTermsAcceptance } from '@/lib/photographer-terms'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -37,6 +40,16 @@ export default async function PhotographerProfilePage() {
       <PageHeader
         title="Your profile"
         description="This is what clients will see when they view your listing."
+        action={
+          <Link
+            href={`/photographers/${photographerProfile.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant: 'secondary' }), 'h-11 px-5')}
+          >
+            Preview as client
+          </Link>
+        }
       />
       <ProfileForm profile={photographerProfile} />
       <div className="mt-6">

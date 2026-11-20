@@ -14,6 +14,7 @@ type Props = {
   conversationId: string
   currentUserId: string
   canWrite: boolean
+  templates?: { id: string; title: string; body: string }[]
   initialMessages: BookingMessage[]
 }
 
@@ -21,7 +22,13 @@ function appendUnique(list: BookingMessage[], message: BookingMessage): BookingM
   return list.some((m) => m.id === message.id) ? list : [...list, message]
 }
 
-export function ChatThread({ conversationId, currentUserId, canWrite, initialMessages }: Props) {
+export function ChatThread({
+  conversationId,
+  currentUserId,
+  canWrite,
+  initialMessages,
+  templates = [],
+}: Props) {
   const [supabase] = useState(createClient)
   const isPreview = usePreviewMode()
   const [messages, setMessages] = useState(initialMessages)
@@ -149,6 +156,29 @@ export function ChatThread({ conversationId, currentUserId, canWrite, initialMes
           <Alert variant="destructive" className="mb-3">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
+        )}
+        {canWrite && templates.length > 0 && (
+          <div className="mb-2">
+            <label htmlFor="chat-template" className="sr-only">
+              Insert a template
+            </label>
+            <select
+              id="chat-template"
+              value=""
+              onChange={(e) => {
+                const template = templates.find((t) => t.id === e.target.value)
+                if (template) setDraft((current) => (current.trim() ? `${current}\n${template.body}` : template.body))
+              }}
+              className="h-11 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:w-auto"
+            >
+              <option value="">Insert a template…</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
         {canWrite ? (
           <form onSubmit={handleSubmit} className="flex items-end gap-2">

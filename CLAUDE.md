@@ -71,6 +71,11 @@ src/lib/ics.ts booking-timeline.ts photographer-cards.ts booking-steps.ts client
 src/components/client/      BookingWidget (3 steps), CalendarSearch (date-first cards), favorite/share
                             buttons, profile-reviews, review-form, client-bookings-list
 src/components/photographer/packages-editor.tsx  up to 3 packages (photographer_packages)
+src/app/api/calendar/[token]/  private photographer iCal feed (token from reset_calendar_feed)
+src/lib/photographer-dashboard.ts  checklist %, 48h request countdown, median reply time, unread
+src/lib/photographer-today.ts      loads the "Today" panel; src/lib/reorder.ts (portfolio order)
+src/components/dashboard/photographer-today.tsx  TodayPanel + OnboardingChecklist; calendar-feed-card.tsx
+src/components/chat/message-templates-manager.tsx  saved replies (message_templates)
 src/app/contact/            contact page (hola@gradsnap.app, "who is behind GradSnap" TODO)
 src/lib/gallery.ts          landing gallery photos + credits (null credit = "Example photo"; never invent)
 src/lib/ref-code.ts         personal link ?ref= (gs_ref cookie, 30 days), countBySource
@@ -248,6 +253,18 @@ profiles ("No reviews yet" when none); photographers can't edit/delete them;
 admins remove only for personal data/abuse (`/admin/reviews`, logged in
 `review_moderation_log`). Photographers mark photos delivered; reminders go
 out daily via cron.
+
+**Photographer UX (2026-11-20).** Overview starts with "Today" (requests to
+confirm with time left, unread chats, sessions today in New York, photos to
+deliver, median reply time once 3+ requests were answered), a completeness
+checklist ("Profile 75%: add 1 more photo", hidden at 100%) and the private
+calendar feed (`/api/calendar/<64-hex token>`, Replace link revokes the old
+one). Requests expire 48h after booking: `expire_stale_bookings()` runs
+computed-on-read (listings, dashboards, client bookings) plus the daily cron
+backstop; it cancels with `expired_at` and reopens the slot, and an expiry
+never counts as a reply. Profile page has "Preview as client" (public page).
+Chat has saved templates (photographer messages page, insert from a select).
+Portfolio: drag or arrow buttons to reorder; first photo = cover ("Make cover").
 
 **Find a photographer (`/dashboard/client/photographers`).** `CalendarSearch`:
 filters (city substring, max price, style) client-side over upcoming open

@@ -242,6 +242,7 @@ export type Database = {
           delivered_at: string | null
           reminder_48h_sent_at: string | null
           reminder_day_sent_at: string | null
+          expired_at: string | null
         }
         Insert: {
           id?: string
@@ -364,6 +365,18 @@ export type Database = {
           price?: number
           sort_order?: number
         }
+        Relationships: []
+      }
+      photographer_calendar_feeds: {
+        Row: { photographer_id: string; token: string; created_at: string }
+        Insert: { [_ in never]: never }
+        Update: { [_ in never]: never }
+        Relationships: []
+      }
+      message_templates: {
+        Row: { id: string; user_id: string; title: string; body: string; created_at: string }
+        Insert: { id?: string; user_id: string; title: string; body: string; created_at?: string }
+        Update: { title?: string; body?: string }
         Relationships: []
       }
       favorites: {
@@ -517,6 +530,26 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      expire_stale_bookings: {
+        Args: { [_ in never]: never }
+        Returns: number
+      }
+      reset_calendar_feed: {
+        Args: { [_ in never]: never }
+        Returns: string
+      }
+      calendar_feed_events: {
+        Args: { p_token: string }
+        Returns: {
+          booking_id: string
+          status: 'pending' | 'confirmed' | 'completed'
+          date: string
+          start_time: string
+          end_time: string
+          client_name: string | null
+          package_name: string | null
+        }[]
+      }
       public_reviews: {
         Args: { p_photographer_id: string }
         Returns: {
@@ -646,3 +679,4 @@ export type BookingMessage = Database['public']['Tables']['booking_messages']['R
 export type Lead = Database['public']['Tables']['leads']['Row']
 export type PhotographerPackage = Database['public']['Tables']['photographer_packages']['Row']
 export type Review = Database['public']['Tables']['reviews']['Row']
+export type MessageTemplate = Database['public']['Tables']['message_templates']['Row']

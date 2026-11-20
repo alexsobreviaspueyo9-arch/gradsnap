@@ -135,6 +135,7 @@ function booking(
     delivered_at: null,
     reminder_48h_sent_at: null,
     reminder_day_sent_at: null,
+    expired_at: null,
     slot: bookedSlot,
     clientName,
     conversationId: id === CHAT_BOOKING_ID ? CONVERSATION_ID : null,

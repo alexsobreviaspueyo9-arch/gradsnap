@@ -28,6 +28,8 @@ export type PhotographerOverviewProps = {
   /** Where in-app links point; the admin preview passes its own. */
   basePath?: string
   personalLink?: { link: string; counts: BookingSourceCounts } | null
+  /** Today panel, onboarding checklist, calendar feed (server-rendered). */
+  top?: React.ReactNode
 }
 
 const NAV_TILES = [
@@ -69,6 +71,7 @@ export function PhotographerOverview({
   totalBookingCount,
   basePath = DASHBOARD_BASE.photographer,
   personalLink = null,
+  top = null,
 }: PhotographerOverviewProps) {
   const profileRows = [
     { label: 'Email', value: email ?? 'Not set' },
@@ -79,6 +82,7 @@ export function PhotographerOverview({
 
   return (
     <div className="space-y-4">
+      {top}
       <div className="grid gap-4 lg:grid-cols-3">
         <WelcomeBanner
           className="lg:col-span-2"

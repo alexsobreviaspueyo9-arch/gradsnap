@@ -5,6 +5,11 @@ import { SITE_URL } from '@/lib/site'
 import { PHOTOGRAPHER_TERMS_PATH, needsTermsAcceptance } from '@/lib/photographer-terms'
 import { todayISODate } from '@/lib/date'
 import { PhotographerOverview } from '@/components/dashboard/photographer-overview'
+import { OnboardingChecklist, TodayPanel } from '@/components/dashboard/photographer-today'
+import { CalendarFeedCard } from '@/components/dashboard/calendar-feed-card'
+import { loadTodayData } from '@/lib/photographer-today'
+import { profileChecklist } from '@/lib/photographer-dashboard'
+import { DASHBOARD_BASE } from '@/lib/routing'
 
 export default async function PhotographerDashboard() {
   const supabase = await createClient()
@@ -75,6 +80,41 @@ export default async function PhotographerDashboard() {
     user.email ??
     'Photographer'
 
+  let top: React.ReactNode = null
+  if (photographerProfile) {
+    const [today, { count: packageCount }, { data: feed }] = await Promise.all([
+      loadTodayData(supabase, photographerProfile.id, user.id),
+      supabase
+        .from('photographer_packages')
+        .select('id', { count: 'exact', head: true })
+        .eq('photographer_id', photographerProfile.id),
+      supabase
+        .from('photographer_calendar_feeds')
+        .select('token')
+        .eq('photographer_id', photographerProfile.id)
+        .maybeSingle(),
+    ])
+    const checklist = profileChecklist({
+      displayName: photographerProfile.display_name,
+      bio: photographerProfile.bio,
+      city: photographerProfile.city,
+      basePrice: photographerProfile.base_price,
+      packageCount: packageCount ?? 0,
+      specialty: photographerProfile.specialty,
+      photoCount: photoCount ?? 0,
+      openSlotCount: availableSlotCount ?? 0,
+      hasWeeklyAvailability: Object.keys(photographerProfile.weekly_availability ?? {}).length > 0,
+      paymentMethod: photographerProfile.payment_method,
+    })
+    top = (
+      <>
+        <TodayPanel data={today} basePath={DASHBOARD_BASE.photographer} />
+        <OnboardingChecklist {...checklist} basePath={DASHBOARD_BASE.photographer} />
+        <CalendarFeedCard initialToken={feed?.token ?? null} siteUrl={SITE_URL} />
+      </>
+    )
+  }
+
   return (
     <PhotographerOverview
       displayName={displayName}
@@ -86,6 +126,7 @@ export default async function PhotographerDashboard() {
       photoCount={photoCount ?? 0}
       availableSlotCount={availableSlotCount ?? 0}
       totalBookingCount={totalBookingCount}
+      top={top}
       personalLink={
         photographerProfile
           ? {
