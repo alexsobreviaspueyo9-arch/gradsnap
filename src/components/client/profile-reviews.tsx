@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react'
 import { formatMessageTime } from '@/lib/chat'
 
 export type ProfileReview = {
@@ -10,9 +11,15 @@ export type ProfileReview = {
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span aria-label={`${rating} out of 5 stars`} className="tracking-tight">
-      {'★'.repeat(rating)}
-      <span className="text-muted-foreground">{'★'.repeat(5 - rating)}</span>
+    <span role="img" aria-label={`${rating} out of 5 stars`} className="inline-flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          aria-hidden
+          strokeWidth={1.5}
+          className={n <= rating ? 'size-4 fill-current text-foreground' : 'size-4 text-muted-foreground'}
+        />
+      ))}
     </span>
   )
 }
@@ -29,14 +36,15 @@ export function ProfileReviews({
   reviewCount: number
 }) {
   return (
-    <section aria-labelledby="reviews-heading" className="rounded-3xl bg-card p-6 sm:p-8">
+    <section aria-labelledby="reviews-heading" className="rounded-2xl border border-border bg-card p-6 sm:p-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="reviews-heading" className="text-xl font-semibold tracking-tight">
+        <h2 id="reviews-heading" className="text-xl font-medium">
           Reviews
         </h2>
         {reviewCount > 0 && ratingAvg != null && (
-          <p className="text-sm font-medium">
-            ★ {ratingAvg.toFixed(1)} · {reviewCount} review{reviewCount === 1 ? '' : 's'}
+          <p className="inline-flex items-center gap-1.5 text-sm font-medium tabular-nums">
+            <Star aria-hidden strokeWidth={1.5} className="size-4 fill-current" />
+            {ratingAvg.toFixed(1)}, {reviewCount} review{reviewCount === 1 ? '' : 's'}
           </p>
         )}
       </div>

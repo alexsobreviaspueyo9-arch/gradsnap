@@ -135,14 +135,14 @@ export function ChatThread({
               >
                 <p
                   className={cn(
-                    'max-w-[85%] rounded-3xl px-4 py-2.5 text-sm break-words whitespace-pre-wrap sm:max-w-[70%]',
+                    'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm break-words whitespace-pre-wrap sm:max-w-[70%]',
                     isOwn ? 'bg-foreground text-background' : 'bg-muted text-foreground'
                   )}
                 >
                   {message.body}
                 </p>
                 <span className="mt-1 px-2 text-xs text-muted-foreground">
-                  {isOwn ? 'You · ' : ''}
+                  {isOwn ? 'You, ' : ''}
                   {formatMessageTime(message.created_at)}
                 </span>
               </div>
@@ -193,7 +193,7 @@ export function ChatThread({
               maxLength={MESSAGE_MAX_LENGTH}
               rows={1}
               placeholder="Write a message"
-              className="max-h-40 min-h-11 flex-1 resize-none rounded-3xl border border-input bg-card px-4 py-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:text-sm"
+              className="max-h-40 min-h-11 flex-1 resize-none rounded-[10px] border border-input bg-card px-4 py-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:text-sm"
             />
             <Button
               type="submit"

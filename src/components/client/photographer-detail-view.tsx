@@ -1,14 +1,6 @@
 import Link from 'next/link'
 import { PortfolioImage } from '@/components/portfolio-image'
-import {
-  Aperture,
-  ArrowLeft,
-  AtSign,
-  Clock,
-  CreditCard,
-  Link as LinkIcon,
-  MapPin,
-} from 'lucide-react'
+import { Aperture, ArrowLeft, AtSign, Clock, CreditCard, Link as LinkIcon, MapPin, Star } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { normalizeHttpUrl } from '@/lib/url'
@@ -42,7 +34,7 @@ const DAY_LABELS: Record<Weekday, string> = {
   sun: 'Sun',
 }
 
-const PANEL = 'rounded-3xl bg-card p-6 sm:p-8'
+const PANEL = 'rounded-2xl border border-border bg-card p-6 sm:p-8'
 
 // What a guest may see (public_photographers RPC); payment details only reach
 // signed-in clients.
@@ -147,7 +139,7 @@ export function PhotographerDetailView({
                 {name.charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0">
-                <h1 className="text-3xl leading-tight font-semibold tracking-[-0.03em] sm:text-4xl">
+                <h1 className="text-3xl leading-tight font-medium tracking-[-0.03em] sm:text-4xl">
                   {name}
                 </h1>
                 <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -180,8 +172,9 @@ export function PhotographerDetailView({
                 {(stats.reviewCount > 0 || badge) && (
                   <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     {stats.reviewCount > 0 && stats.ratingAvg != null && (
-                      <span className="font-medium text-foreground">
-                        ★ {stats.ratingAvg.toFixed(1)} ({stats.reviewCount} review
+                      <span className="inline-flex items-center gap-1.5 font-medium text-foreground tabular-nums">
+                        <Star aria-hidden strokeWidth={1.5} className="size-4 fill-current" />
+                        {stats.ratingAvg.toFixed(1)} ({stats.reviewCount} review
                         {stats.reviewCount === 1 ? '' : 's'})
                       </span>
                     )}
@@ -192,7 +185,7 @@ export function PhotographerDetailView({
             </div>
 
             {priceRange && (
-              <p className="mt-6 text-4xl font-semibold tracking-[-0.03em] tabular-nums">
+              <p className="mt-6 text-4xl font-medium tracking-[-0.02em] tabular-nums">
                 {priceRange}
                 <span className="ml-2 text-sm font-normal tracking-normal text-muted-foreground">
                   {stats.minPackagePrice != null ? 'lowest package' : 'per session'}
@@ -214,8 +207,8 @@ export function PhotographerDetailView({
                 )}
                 {photographer.payment_terms && (
                   <div className="rounded-2xl bg-muted p-4">
-                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                      Payment and cancellation terms · Set by the photographer
+                    <p className="text-sm font-medium text-foreground">
+                      Payment and cancellation terms, set by the photographer
                     </p>
                     <p className="mt-1 whitespace-pre-line">{photographer.payment_terms}</p>
                   </div>
@@ -285,7 +278,7 @@ export function PhotographerDetailView({
                 <div
                   key={photo.id}
                   className={cn(
-                    'relative aspect-square w-full overflow-hidden rounded-3xl bg-muted',
+                    'relative aspect-square w-full overflow-hidden rounded-2xl bg-muted',
                     i === 0 && photos.length > 2 && 'col-span-2 row-span-2'
                   )}
                 >
@@ -298,7 +291,7 @@ export function PhotographerDetailView({
                         ? '(min-width: 1024px) 40vw, 66vw'
                         : '(min-width: 1024px) 20vw, 33vw'
                     }
-                    className="object-cover transition-transform duration-700 ease-out hover:scale-105"
+                    className="object-cover"
                   />
                 </div>
               ))}
@@ -306,7 +299,7 @@ export function PhotographerDetailView({
           )}
           {packages.length > 0 && (
             <section aria-labelledby="packages-heading" className={PANEL}>
-              <h2 id="packages-heading" className="text-xl font-semibold tracking-tight">
+              <h2 id="packages-heading" className="text-xl font-medium">
                 Packages
               </h2>
               <ul className="mt-4 space-y-3">
@@ -315,7 +308,7 @@ export function PhotographerDetailView({
                     <div>
                       <p className="font-semibold">{pkg.name}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {pkg.duration_minutes} min · {pkg.included_photos} edited photos · delivered in{' '}
+                        {pkg.duration_minutes} min, {pkg.included_photos} edited photos, delivered in{' '}
                         {pkg.delivery_days} day{pkg.delivery_days === 1 ? '' : 's'}
                       </p>
                     </div>
@@ -328,7 +321,7 @@ export function PhotographerDetailView({
 
           {stats.photoSpots.length > 0 && (
             <section aria-labelledby="spots-heading" className={PANEL}>
-              <h2 id="spots-heading" className="text-xl font-semibold tracking-tight">
+              <h2 id="spots-heading" className="text-xl font-medium">
                 Photo spots
               </h2>
               <ul className="mt-3 flex flex-wrap gap-2">
@@ -348,7 +341,7 @@ export function PhotographerDetailView({
         </div>
 
         <section className="space-y-4 lg:sticky lg:top-36">
-          <h2 className="text-2xl font-semibold tracking-tight">
+          <h2 className="text-2xl font-medium">
             Book a session
           </h2>
           {justBooked && (

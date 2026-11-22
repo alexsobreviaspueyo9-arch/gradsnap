@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils'
 import type { PaymentSetup } from '@/lib/payment'
 import type { AvailabilitySlot } from '@/types/database'
 
-const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
+const PANEL = 'rounded-2xl border border-border bg-card p-5 sm:p-6'
 
 export type PackageOption = {
   id: string
@@ -98,7 +98,7 @@ function PackagePicker({
                 {pkg.name}
               </span>
               <span className="mt-1 block text-sm text-muted-foreground">
-                {pkg.duration_minutes} min · {pkg.included_photos} edited photos · delivered in{' '}
+                {pkg.duration_minutes} min, {pkg.included_photos} edited photos, delivered in{' '}
                 {pkg.delivery_days} day{pkg.delivery_days === 1 ? '' : 's'}
               </span>
             </span>
@@ -259,7 +259,7 @@ export function BookingWidget({
 
   if (slots.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-12 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center">
         <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
           <CalendarX2 className="size-6" strokeWidth={1.75} aria-hidden />
         </span>
@@ -313,7 +313,7 @@ export function BookingWidget({
 
         {step === 'package' && (
           <section aria-label="Choose a package" className="space-y-3">
-            <h3 className="text-lg font-semibold tracking-tight">Choose a package</h3>
+            <h3 className="text-lg font-medium">Choose a package</h3>
             <PackagePicker packages={packages} selectedId={packageId} onSelect={setPackageId} />
           </section>
         )}
@@ -325,7 +325,7 @@ export function BookingWidget({
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
             />
-            <h3 className="text-lg font-semibold tracking-tight">
+            <h3 className="text-lg font-medium">
               {selectedDateISO ? formatDateHeading(selectedDateISO) : 'Select a date'}
             </h3>
             {daySlots.length === 0 ? (
@@ -346,7 +346,7 @@ export function BookingWidget({
 
         {step === 'review' && selectedSlot && (
           <section aria-label="Review your booking" className="space-y-4">
-            <h3 className="text-lg font-semibold tracking-tight">Review your booking</h3>
+            <h3 className="text-lg font-medium">Review your booking</h3>
             <dl className="divide-y divide-border text-sm">
               <div className="flex justify-between gap-4 py-2">
                 <dt className="text-muted-foreground">Photographer</dt>
@@ -356,7 +356,7 @@ export function BookingWidget({
                 <div className="flex justify-between gap-4 py-2">
                   <dt className="text-muted-foreground">Package</dt>
                   <dd className="text-right font-medium">
-                    {selectedPackage.name} · {selectedPackage.duration_minutes} min
+                    {selectedPackage.name}, {selectedPackage.duration_minutes} min
                   </dd>
                 </div>
               )}

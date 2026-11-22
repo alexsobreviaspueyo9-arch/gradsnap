@@ -80,7 +80,7 @@ export function MessageTemplatesManager({
   }
 
   return (
-    <details className="rounded-3xl bg-card p-5 sm:p-6">
+    <details className="rounded-2xl border border-border bg-card p-5 sm:p-6">
       <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
         Message templates ({templates.length})
       </summary>

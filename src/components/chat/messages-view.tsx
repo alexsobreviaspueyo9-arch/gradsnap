@@ -72,7 +72,7 @@ export function MessagesView({
 }: Props) {
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-3xl bg-card px-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-16 text-center">
         <span className="flex size-12 items-center justify-center rounded-full bg-muted">
           <MessageCircle className="size-5 text-muted-foreground" />
         </span>
@@ -86,7 +86,7 @@ export function MessagesView({
       <aside
         aria-label="Conversations"
         className={cn(
-          'rounded-3xl bg-card lg:max-h-[70dvh] lg:overflow-y-auto',
+          'rounded-2xl border border-border bg-card lg:max-h-[70dvh] lg:overflow-y-auto',
           selected && 'hidden lg:block'
         )}
       >
@@ -101,7 +101,7 @@ export function MessagesView({
       {selected ? (
         <section
           aria-label={`Chat with ${selected.counterpartName}`}
-          className="flex h-[70dvh] flex-col overflow-hidden rounded-3xl bg-card"
+          className="flex h-[70dvh] flex-col overflow-hidden rounded-2xl border border-border bg-card"
         >
           <header className="flex items-center gap-2 border-b px-2 py-3 sm:px-4">
             <Link
@@ -112,7 +112,7 @@ export function MessagesView({
               <ChevronLeft className="size-5" />
             </Link>
             <div className="min-w-0 px-2">
-              <h2 className="truncate font-semibold">{selected.counterpartName}</h2>
+              <h2 className="truncate font-medium">{selected.counterpartName}</h2>
             </div>
           </header>
           <ChatThread
@@ -125,7 +125,7 @@ export function MessagesView({
           />
         </section>
       ) : (
-        <div className="hidden items-center justify-center rounded-3xl bg-card p-10 text-sm text-muted-foreground lg:flex">
+        <div className="hidden items-center justify-center rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground lg:flex">
           Choose a conversation.
         </div>
       )}

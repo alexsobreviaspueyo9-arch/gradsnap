@@ -22,14 +22,14 @@ export default function PhotographerProfileLoading() {
             {Array.from({ length: PHOTO_TILES }, (_, i) => (
               <Skeleton
                 key={i}
-                className={i === 0 ? 'col-span-2 row-span-2 aspect-square rounded-3xl' : 'aspect-square rounded-3xl'}
+                className={i === 0 ? 'col-span-2 row-span-2 aspect-square rounded-2xl' : 'aspect-square rounded-2xl'}
               />
             ))}
           </section>
         </div>
         <section className="space-y-4">
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-[560px] w-full rounded-3xl" />
+          <Skeleton className="h-[560px] w-full rounded-2xl" />
         </section>
       </div>
     </div>

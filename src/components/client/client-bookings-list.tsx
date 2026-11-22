@@ -73,7 +73,7 @@ export function ClientBookingsList({
 }) {
   if (bookings.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-16 text-center">
         <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
           <CalendarClock className="size-6" strokeWidth={1.75} aria-hidden />
         </span>
@@ -87,13 +87,13 @@ export function ClientBookingsList({
       {bookings.map((booking) => {
         const isUpcoming = zonedDateTime(booking.date, booking.startTime) > new Date()
         return (
-          <li key={booking.id} className="space-y-4 rounded-3xl bg-card p-5 sm:p-6">
+          <li key={booking.id} className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-lg font-semibold tracking-tight">{booking.photographerName}</p>
+                <p className="text-lg font-medium">{booking.photographerName}</p>
                 <p className="text-sm text-muted-foreground">
                   {formatDateHeading(booking.date)}, {booking.startTime.slice(0, 5)}-{booking.endTime.slice(0, 5)}{' '}
-                  (New York time){booking.packageName ? ` · ${booking.packageName}` : ''}
+                  (New York time){booking.packageName ? `, ${booking.packageName}` : ''}
                 </p>
               </div>
               {calendarHref && isUpcoming && booking.status !== 'cancelled' && (

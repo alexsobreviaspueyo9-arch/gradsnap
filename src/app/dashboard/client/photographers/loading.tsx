@@ -11,8 +11,8 @@ export default function PhotographersLoading() {
       </div>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start">
         <div className="space-y-4">
-          <Skeleton className="h-24 w-full rounded-3xl" />
-          <Skeleton className="h-[560px] w-full rounded-3xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-[560px] w-full rounded-2xl" />
         </div>
         <div className="space-y-3">
           <Skeleton className="h-8 w-56" />

@@ -73,7 +73,7 @@ function formatSlotShort(slot: { date: string; start_time: string }): string {
     month: 'short',
     day: 'numeric',
   })
-  return `${day} · ${slot.start_time.slice(0, 5)}`
+  return `${day} at ${slot.start_time.slice(0, 5)}`
 }
 
 // One photographer: cover photo first, then the facts that help choose.

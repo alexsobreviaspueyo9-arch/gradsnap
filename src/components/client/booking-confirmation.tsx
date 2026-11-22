@@ -65,14 +65,14 @@ export function BookingConfirmation({
   return (
     <section
       aria-live="polite"
-      className="rounded-3xl bg-card p-6 sm:p-8"
+      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
     >
       <div className="flex items-center gap-3">
         <span className="flex size-12 items-center justify-center rounded-2xl bg-success-fill text-success">
           <CheckCircle2 className="size-6" strokeWidth={1.75} />
         </span>
         <div>
-          <h3 className="text-xl font-semibold tracking-tight">
+          <h3 className="text-xl font-medium">
             Booking requested
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export function BookingConfirmation({
       )}
 
       <div className="mt-6 rounded-2xl bg-muted/60 p-4">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <p className="text-sm font-medium text-foreground">
           Next step
         </p>
         <p className="mt-1 text-sm">{nextStep.text}</p>

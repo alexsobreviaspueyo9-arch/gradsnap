@@ -1,5 +1,6 @@
 'use client'
 
+import { Star } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -60,13 +61,17 @@ export function ReviewForm({ bookingId, photographerName }: { bookingId: string;
               aria-label={`${value} out of 5`}
               onClick={() => setRating(value)}
               className={cn(
-                'flex size-11 items-center justify-center rounded-full border text-lg transition-colors',
+                'flex size-11 items-center justify-center rounded-[10px] border transition-colors',
                 rating !== null && value <= rating
-                  ? 'border-foreground bg-foreground text-background'
-                  : 'border-input bg-card hover:bg-muted'
+                  ? 'border-primary bg-accent text-accent-foreground'
+                  : 'border-input bg-card text-muted-foreground hover:bg-secondary'
               )}
             >
-              ★
+              <Star
+                aria-hidden
+                strokeWidth={1.5}
+                className={cn('size-5', rating !== null && value <= rating && 'fill-current')}
+              />
             </button>
           ))}
         </div>
