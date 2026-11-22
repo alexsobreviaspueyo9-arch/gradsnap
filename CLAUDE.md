@@ -162,30 +162,21 @@ docs/HISTORY.md             full history (not auto-loaded)
 - **CSS:** custom global classes use the **`gs-`** prefix (`gs-calendar`,
   `gs-glass`, `gs-bleed-x`, `gs-scrollbar-none`); third-party styles are scoped
   under a `gs-` wrapper. Global overrides of shadcn go unlayered in `globals.css`
-  (capsule buttons, press state, focus outline, 44px fields) keyed on
+  (control radius, press state, focus outline, 44px fields) keyed on
   `.group\/button` / `[data-slot]`, never by editing `components/ui`.
-- **Design (2026-10, Apple HIG pass via the `apple-design` skill):**
-  - Tokens in `globals.css` are hex with their measured contrast in comments.
-    Neutral surfaces (`--background` grouped grey, `--card` white; black /
-    `#1c1c1e` in dark), one typeface (system font on Apple devices, Geist
-    elsewhere), headings `font-semibold`. Dark mode = `prefers-color-scheme` only.
-  - **One colour, one meaning:** violet (`primary`/`accent`) = the ONE primary
-    action per view and selection; green (`success`) = available / confirmed /
-    paid; amber (`warning`) = pending; red = destructive. Icons, avatars and
-    info chips are neutral (`bg-muted`). No Tailwind palette colours in app code.
-  - **Glass (`gs-glass`) only on floating chrome** (landing bar, dashboard bar,
-    profile save bar), never on cards or content. It turns opaque under
-    `prefers-contrast: more` / `prefers-reduced-transparency`.
-  - No text over photographs (measured down to 1.5:1). `--input` (3.6:1) is
-    for control edges, `--border` for decorative separators.
-  - Touch: buttons get a 44px hit region on coarse pointers; fields are 44px.
-    Don't dim text with `opacity-*` (it broke 4.5:1); change the surface.
-  - Cards/images `rounded-3xl`, buttons are capsules, portfolio tiles `aspect-square`.
-  - Motion: "How it works" stagger and the page fade only; wrap Framer trees
-    that react to reduced motion in `<MotionConfig reducedMotion="user">`
-    (branching on `useReducedMotion()` for `initial` causes hydration errors).
-  - Re-check after UI work with a contrast/overflow/target script (text >= 4.5:1,
-    no overflow at 320px, controls >= 28px); sentence case for all labels.
+- **Design (2026-11, unslop): `docs/design-direction.md` is the rule** (direction +
+  tokens; never propose a new direction, reuse it). Tokens in `globals.css`.
+  - Warm paper neutrals, one brick accent (`primary`) = the one primary action per view
+    and selection; green = available/confirmed/paid, amber = pending, red = destructive.
+    No Tailwind palette colours, no gradients, glows, glass or tracked uppercase.
+  - Instrument Sans everywhere (400/500); Newsreader (`font-display`) for large landing
+    headlines only. Controls 10px radius, cards `rounded-2xl`; pills only for tags.
+  - Signature: graduation day = `.gs-seal` double ring + "Your graduation" (landing form,
+    calendar, booking confirmation only).
+  - Stand-in photos only from `lib/placeholder-photos.ts` (landing/empty states, credited).
+  - A11y (keep): text >= 4.5:1, 44px targets on coarse pointers, visible focus ring, no
+    `opacity-*` on text, reduced motion stops all motion, no overflow at 320px, sentence
+    case, one `<h1>` per page. Re-check with a contrast/overflow script after UI work.
 - **Images:** new remote hosts need `images.remotePatterns` in `next.config.ts`
   (Unsplash and `*.supabase.co` storage are configured). `blob:` previews stay `<img>`.
 - **Analytics:** fire events only through `trackEvent()` (`lib/posthog.ts`);
@@ -199,12 +190,11 @@ docs/HISTORY.md             full history (not auto-loaded)
 
 ## Views (one paragraph each)
 
-**Landing (`/`).** Server page composing `components/landing/*`: glass
-capsule nav, hero (headline on the surface, portrait photo beside it),
-"How it works" (photo + numbered list with Framer stagger), horizontal
-gallery strip of 4/5 tiles (never add `justify-center`, it hides the first
-photo), two equal role cards whose buttons fire `signup_started` and link
-to `?role=`, footer.
+**Landing (`/`).** Server page composing `components/landing/*`: sticky bar,
+split hero (Newsreader headline, optional-date form -> `/photographers?grad=`, pilot
+note, campus photo with `CalendarPreview` drawn in code), "How it works" (photo +
+numbered steps), gallery of 3 stand-ins ("Example photo"), two role cards whose buttons
+fire `signup_started`, footer with photo credits.
 
 **Auth (`/login`, `/register`, `/verify-email`).** Split-screen layout.
 Email+password or Google. `RegisterForm` preselects role from `?role=` and

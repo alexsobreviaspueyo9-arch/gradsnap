@@ -7,9 +7,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: -apple-system, BlinkMacSystemFont, var(--font-geist-sans), 'Segoe UI', sans-serif;
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --font-heading: var(--font-sans);
+  /* Newsreader: large landing headlines only, never labels or buttons. */
+  --font-display: var(--font-newsreader), Georgia, serif;
+  --color-seal: var(--seal);
   --color-success: var(--success);
   --color-success-fill: var(--success-fill);
   --color-warning: var(--warning);
@@ -47,99 +50,103 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-2xl: 0.875rem;
+  --radius-3xl: 1rem;
+  --radius-4xl: 1.25rem;
 }
 
-/* Colour roles (contrast figures measured against the surface they sit on, WCAG).
-   Neutral surfaces so photographs carry the colour; the brand violet is spent only
-   on the primary action and on selection. One colour, one meaning:
-   violet = act / selected, green = available / paid / done, amber = waiting, red = destructive. */
+/* Direction (docs/design-direction.md): graduation day in Blacksburg. Warm paper
+   neutrals, one brick accent for the primary action and selection, photographs and
+   the calendar carry the colour. Contrast measured on the surface each role sits on.
+   brick = act / selected, green = available / paid / done, amber = waiting, red = destructive. */
 :root {
-  --background: #f5f5f7;          /* surface: grouped background */
-  --foreground: #1d1d1f;          /* label, 15.5:1 */
-  --card: #ffffff;                /* raised surface, label 16.8:1 */
-  --card-foreground: #1d1d1f;
+  --background: #faf8f4;          /* page, warm paper */
+  --foreground: #1f1b16;          /* primary text, 16.2:1 */
+  --card: #ffffff;
+  --card-foreground: #1f1b16;
   --popover: #ffffff;
-  --popover-foreground: #1d1d1f;
-  --primary: #4d34d5;             /* accent, white label 7.6:1 */
+  --popover-foreground: #1f1b16;
+  --primary: #9b3a24;             /* brick accent, white text 6.9:1 */
   --primary-foreground: #ffffff;
-  --secondary: #e8e8ed;           /* neutral button fill */
-  --secondary-foreground: #1d1d1f;
-  --muted: #ededf0;               /* fill */
-  --muted-foreground: #636366;    /* secondary label, 5.5:1 on surface, 5.1:1 on fill */
-  --accent: #eceafb;              /* tint: selected / current */
-  --accent-foreground: #3b25b8;   /* 8.3:1 on tint */
-  --destructive: #c9000f;         /* 6.0:1 on card, 5.2:1 on fill */
+  --secondary: #efe9df;           /* raised: secondary button, active row */
+  --secondary-foreground: #1f1b16;
+  --muted: #f1ece4;
+  --muted-foreground: #675e53;    /* secondary text, 6.0:1 on page, 5.4:1 on muted */
+  --accent: #f6e4dc;              /* selected tint */
+  --accent-foreground: #7a2a18;   /* 8.9:1 on tint */
+  --destructive: #b42318;         /* 6.2:1 on card */
   --success: #1b6e36;             /* 5.5:1 on its fill */
-  --success-fill: #e3f3e8;
+  --success-fill: #e3f1e6;
   --warning: #8a5300;             /* 5.6:1 on its fill */
   --warning-fill: #fbefd9;
-  --border: #d2d2d7;              /* separator (decorative) */
-  --input: #86868b;               /* control edge, 3.6:1 on card, 3.3:1 on surface */
-  --ring: #4d34d5;
-  --chart-1: #d2d2d7;
-  --chart-2: #86868b;
-  --chart-3: #4d34d5;
-  --chart-4: #3b25b8;
-  --chart-5: #1d1d1f;
+  --border: #e6e0d6;              /* hairline (decorative) */
+  --input: #8a8074;               /* control edge, 3.9:1 on card */
+  --ring: #9b3a24;
+  --seal: #9b3a24;                /* signature: the graduation-day ring */
+  --paper: #f7f4ee;               /* landing sections */
+  --chart-1: #e6e0d6;
+  --chart-2: #8a8074;
+  --chart-3: #9b3a24;
+  --chart-4: #7a2a18;
+  --chart-5: #1f1b16;
   --radius: 0.75rem;
-  --sidebar: #f5f5f7;
-  --sidebar-foreground: #1d1d1f;
-  --sidebar-primary: #4d34d5;
+  --sidebar: #faf8f4;
+  --sidebar-foreground: #1f1b16;
+  --sidebar-primary: #9b3a24;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eceafb;
-  --sidebar-accent-foreground: #3b25b8;
-  --sidebar-border: #d2d2d7;
-  --sidebar-ring: #4d34d5;
+  --sidebar-accent: #f6e4dc;
+  --sidebar-accent-foreground: #7a2a18;
+  --sidebar-border: #e6e0d6;
+  --sidebar-ring: #9b3a24;
 
-  --glass-fill: rgb(255 255 255 / 0.72);
-  --glass-edge: rgb(0 0 0 / 0.08);
-  --shadow-tint: rgb(0 0 0 / 0.12);
+  --glass-fill: #faf8f4;
+  --glass-edge: #e6e0d6;
+  --shadow-tint: rgb(31 27 22 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --foreground: #f5f5f7;          /* 19.3:1 */
-    --card: #1c1c1e;                /* label 15.6:1 */
-    --card-foreground: #f5f5f7;
-    --popover: #1c1c1e;
-    --popover-foreground: #f5f5f7;
-    --primary: #a59cff;             /* dark label 8.2:1 */
-    --primary-foreground: #0c0a1d;
-    --secondary: #2c2c2e;
-    --secondary-foreground: #f5f5f7;
-    --muted: #2c2c2e;
-    --muted-foreground: #a1a1a6;    /* 8.2:1 on surface, 5.4:1 on fill */
-    --accent: #262340;
-    --accent-foreground: #c9c3ff;   /* 9.1:1 */
-    --destructive: #ff6961;         /* 6.0:1 on card */
-    --success: #5ed486;             /* 7.7:1 on its fill */
+    --background: #14120f;
+    --foreground: #f3efe8;          /* 16.4:1 */
+    --card: #1d1a16;
+    --card-foreground: #f3efe8;
+    --popover: #1d1a16;
+    --popover-foreground: #f3efe8;
+    --primary: #e8957c;             /* dark text 7.4:1 */
+    --primary-foreground: #1f1b16;
+    --secondary: #2a2621;
+    --secondary-foreground: #f3efe8;
+    --muted: #2a2621;
+    --muted-foreground: #b3a999;    /* 7.6:1 on page, 6.1:1 on muted */
+    --accent: #3a2620;
+    --accent-foreground: #f4c2b1;   /* 8.6:1 */
+    --destructive: #ff7b6e;
+    --success: #5ed486;
     --success-fill: #12301d;
-    --warning: #f2b759;             /* 7.7:1 on its fill */
+    --warning: #f2b759;
     --warning-fill: #3a2a0a;
-    --border: #38383a;
-    --input: #7c7c80;               /* 4.1:1 on card */
-    --ring: #a59cff;
-    --chart-1: #48484a;
-    --chart-2: #7c7c80;
-    --chart-3: #a59cff;
-    --chart-4: #c9c3ff;
-    --chart-5: #f5f5f7;
-    --sidebar: #1c1c1e;
-    --sidebar-foreground: #f5f5f7;
-    --sidebar-primary: #a59cff;
-    --sidebar-primary-foreground: #0c0a1d;
-    --sidebar-accent: #262340;
-    --sidebar-accent-foreground: #c9c3ff;
-    --sidebar-border: #38383a;
-    --sidebar-ring: #a59cff;
+    --border: #36302a;
+    --input: #857b6f;               /* 3.9:1 on card */
+    --ring: #e8957c;
+    --seal: #e8957c;
+    --paper: #17140f;
+    --chart-1: #36302a;
+    --chart-2: #857b6f;
+    --chart-3: #e8957c;
+    --chart-4: #f4c2b1;
+    --chart-5: #f3efe8;
+    --sidebar: #1d1a16;
+    --sidebar-foreground: #f3efe8;
+    --sidebar-primary: #e8957c;
+    --sidebar-primary-foreground: #1f1b16;
+    --sidebar-accent: #3a2620;
+    --sidebar-accent-foreground: #f4c2b1;
+    --sidebar-border: #36302a;
+    --sidebar-ring: #e8957c;
 
-    --glass-fill: rgb(28 28 30 / 0.72);
-    --glass-edge: rgb(255 255 255 / 0.12);
-    --shadow-tint: rgb(0 0 0 / 0.5);
+    --glass-fill: #14120f;
+    --glass-edge: #36302a;
+    --shadow-tint: rgb(0 0 0 / 0.4);
   }
 }
 
@@ -153,10 +160,11 @@
   html {
     @apply font-sans;
   }
-  h1,
-  h2,
-  h3 {
-    letter-spacing: -0.022em;
+  h1 {
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    letter-spacing: -0.01em;
   }
   :focus-visible {
     outline: 2px solid var(--ring);
@@ -195,11 +203,12 @@
 
 
 /* App-wide shape rule, kept out of components/ui so `shadcn add` never overwrites it:
-   buttons are pills, text fields are a touch taller than the shadcn default. Unlayered on
-   purpose so it wins over the utility classes baked into the primitives. */
+   controls take the 10px control radius (not pills). Unlayered on purpose so it wins
+   over the utility classes baked into the primitives. */
 [data-slot='button'],
 .group\/button {
-  border-radius: 9999px;
+  border-radius: 0.625rem;
+  font-weight: 500;
 }
 
 /* Full-bleed horizontal strips that still start on the page's content edge. */
@@ -215,12 +224,12 @@
 }
 @media (min-width: 80rem) {
   .gs-bleed-x {
-    padding-inline: calc((100vw - 80rem) / 2 + 1.5rem);
-    scroll-padding-inline: calc((100vw - 80rem) / 2 + 1.5rem);
+    padding-inline: max(1.5rem, calc((100% - 80rem) / 2 + 1.5rem));
+    scroll-padding-inline: max(1.5rem, calc((100% - 80rem) / 2 + 1.5rem));
   }
 }
 
-/* Keyboard focus: a solid 2px outline in the accent (7.0:1 on the surface).
+/* Keyboard focus: a solid 2px outline in the accent (6.4:1 on the page).
    Unlayered so it beats the primitives' `outline-none` + 50% ring. */
 .group\/button:focus-visible,
 [data-slot='input']:focus-visible,
@@ -235,17 +244,11 @@
 .group\/button:not(:disabled):not([data-disabled]) {
   transition-property: scale, background-color, color, border-color, opacity;
   transition-duration: 160ms;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
 .group\/button:not(:disabled):not([data-disabled]):active {
   scale: 0.97;
-}
-
-@media (hover: hover) {
-  .group\/button.bg-primary:not(:disabled):not([data-disabled]):hover {
-    scale: 1.02;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -255,12 +258,10 @@
   }
 }
 
-/* The floating functional layer (landing bar, dashboard bar) and nothing else:
-   glass never goes on cards or content (liquid-glass.md > Where the material belongs). */
+/* Sticky bars (landing, dashboard, public pages): a solid page-coloured bar with a
+   hairline. Kept under the old class name so every bar follows one rule. */
 .gs-glass {
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  backdrop-filter: blur(24px) saturate(1.4);
   box-shadow: inset 0 0 0 1px var(--glass-edge);
 }
 
@@ -295,7 +296,7 @@
   top: -100px;
   z-index: 100;
   padding: 0.75rem 1.25rem;
-  border-radius: 9999px;
+  border-radius: 0.625rem;
   background: var(--foreground);
   color: var(--background);
   font-weight: 600;
@@ -315,4 +316,13 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Signature: the graduation day is marked with a seal, a double ring in the seal
+   colour. Used on the landing form, the calendar and the booking confirmation only. */
+.gs-seal {
+  box-shadow:
+    0 0 0 2px var(--seal),
+    0 0 0 4px var(--card),
+    0 0 0 5px var(--seal);
 }

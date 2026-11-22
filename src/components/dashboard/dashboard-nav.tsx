@@ -27,7 +27,7 @@ export function DashboardNav({
       aria-label={label}
       className={cn('gs-scrollbar-none -mx-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0', className)}
     >
-      <ul className="inline-flex gap-1 rounded-full bg-foreground/[0.06] p-1">
+      <ul className="inline-flex gap-1 rounded-xl bg-muted p-1">
         {items.map((item) => {
           const active = item.exact
             ? pathname === item.href
@@ -38,10 +38,10 @@ export function DashboardNav({
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex shrink-0 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors',
+                  'flex shrink-0 items-center rounded-[10px] px-4 text-sm font-medium whitespace-nowrap transition-colors',
                   tall ? 'h-11' : 'h-9',
                   active
-                    ? 'bg-card text-foreground shadow-[0_1px_3px_var(--shadow-tint)]'
+                    ? 'bg-card text-foreground ring-1 ring-border'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >

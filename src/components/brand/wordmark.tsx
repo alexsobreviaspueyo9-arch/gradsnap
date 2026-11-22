@@ -14,13 +14,11 @@ export function Wordmark({
       href={href}
       aria-label="GradSnap home"
       className={cn(
-        'inline-flex items-center gap-2 text-lg font-semibold tracking-tight',
+        'inline-flex min-h-11 items-center gap-2 text-lg font-semibold',
         className
       )}
     >
-      <span className="flex size-8 items-center justify-center rounded-[10px] bg-primary text-primary-foreground">
-        <Aperture className="size-4.5" strokeWidth={2} />
-      </span>
+      <Aperture className="size-5 text-primary" strokeWidth={1.75} aria-hidden />
       GradSnap
     </Link>
   )

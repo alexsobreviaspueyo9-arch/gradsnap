@@ -1,6 +1,4 @@
 import Link from 'next/link'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { Wordmark } from '@/components/brand/wordmark'
 import { LandingFooter } from '@/components/landing/landing-footer'
 
@@ -21,7 +19,7 @@ export function PublicShell({
           <Wordmark href="/" />
           <Link
             href={accountHref ?? '/login'}
-            className={cn(buttonVariants({ variant: 'secondary' }), 'h-11 px-5 text-sm')}
+            className="flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {accountHref ? 'Your dashboard' : 'Log in'}
           </Link>

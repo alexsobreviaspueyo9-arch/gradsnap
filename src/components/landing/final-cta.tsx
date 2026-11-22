@@ -23,7 +23,7 @@ const CHOICES: readonly Choice[] = [
     role: 'client',
     icon: GraduationCap,
     title: 'I am looking for a photographer for my graduation',
-    body: 'Browse real availability and book a session today.',
+    body: 'See open dates and book a session.',
     action: 'Find a photographer',
     variant: 'default',
   },
@@ -39,8 +39,8 @@ const CHOICES: readonly Choice[] = [
 
 export function FinalCta() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 md:pb-32">
-      <h2 className="max-w-2xl text-4xl font-semibold tracking-[-0.03em] text-balance sm:text-5xl">
+    <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 md:py-32">
+      <h2 className="max-w-2xl font-display text-4xl leading-[1.1] font-normal sm:text-5xl">
         Where do you fit in?
       </h2>
 
@@ -48,13 +48,11 @@ export function FinalCta() {
         {CHOICES.map(({ role, icon: Icon, title, body, action, variant }) => (
           <div
             key={role}
-            className="flex flex-col justify-between gap-10 rounded-3xl bg-card p-8 md:min-h-[320px] md:p-10"
+            className="flex flex-col justify-between gap-10 rounded-2xl border border-border bg-card p-6 md:min-h-[280px] md:p-8"
           >
             <div>
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-muted">
-                <Icon className="size-6" strokeWidth={1.75} aria-hidden />
-              </span>
-              <h3 className="mt-6 max-w-[22ch] text-2xl leading-[1.15] font-semibold md:text-3xl">
+              <Icon className="size-5 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+              <h3 className="mt-6 max-w-[24ch] text-2xl leading-[1.2] font-medium">
                 {title}
               </h3>
               <p className="mt-3 text-base text-muted-foreground">{body}</p>
@@ -64,7 +62,7 @@ export function FinalCta() {
               onClick={() => trackEvent('signup_started', { role })}
               className={cn(
                 buttonVariants({ variant, size: 'lg' }),
-                'h-12 self-start px-6 text-base'
+                'h-11 self-start px-5 text-base'
               )}
             >
               {action}

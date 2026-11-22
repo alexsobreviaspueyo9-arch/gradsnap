@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { PLACEHOLDER_PHOTOS } from '@/lib/placeholder-photos'
 import { ACCESSIBILITY_PATH, CANCELLATION_POLICY_PATH, CONTACT_PATH, FEES_PATH } from '@/lib/site'
 
 const LINKS = [
@@ -20,10 +21,7 @@ export function LandingFooter() {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
-        <p>
-          © {new Date().getFullYear()} GradSnap. Real photographers for the day
-          you finish school.
-        </p>
+        <p>© {new Date().getFullYear()} GradSnap. Graduation photographers in Blacksburg, VA</p>
         <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-1">
           {links.map((link) => (
             <Link
@@ -36,6 +34,17 @@ export function LandingFooter() {
           ))}
         </nav>
       </div>
+      <p className="mx-auto max-w-7xl px-4 pb-8 text-xs leading-relaxed text-muted-foreground sm:px-6">
+        Example photos from Wikimedia Commons:{' '}
+        {Object.values(PLACEHOLDER_PHOTOS).map((photo, i, all) => (
+          <span key={photo.page}>
+            <a href={photo.page} className="underline underline-offset-2 hover:text-foreground">
+              {photo.author}
+            </a>{' '}
+            ({photo.license}){i < all.length - 1 ? ', ' : ''}
+          </span>
+        ))}
+      </p>
     </footer>
   )
 }

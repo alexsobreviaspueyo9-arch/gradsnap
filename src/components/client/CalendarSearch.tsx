@@ -62,10 +62,10 @@ export type SlotWithPhotographer = AvailabilitySlot & {
 
 type Photographer = SlotWithPhotographer['photographer']
 
-const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
+const PANEL = 'rounded-2xl border border-border bg-card p-5 sm:p-6'
 const FIELD =
   'h-11 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
-const CHIP = 'inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium'
+const CHIP = 'inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium'
 
 function formatSlotShort(slot: { date: string; start_time: string }): string {
   const day = isoDateToLocalDate(slot.date).toLocaleDateString('en-US', {
@@ -112,7 +112,7 @@ function PhotographerCard({
     : null
 
   return (
-    <article className="overflow-hidden rounded-3xl bg-card">
+    <article className="overflow-hidden rounded-2xl border border-border bg-card">
       <Link href={profileHref} className="block" tabIndex={-1} aria-hidden>
         <div className="relative aspect-[16/9] w-full bg-muted">
           {stats.coverImageUrl ? (
@@ -124,7 +124,7 @@ function PhotographerCard({
               className="object-cover"
             />
           ) : (
-            <span className="flex h-full items-center justify-center text-4xl font-semibold text-muted-foreground">
+            <span className="flex h-full items-center justify-center text-4xl font-medium text-muted-foreground">
               {name.charAt(0).toUpperCase()}
             </span>
           )}
@@ -141,7 +141,7 @@ function PhotographerCard({
           <div className="min-w-0">
             <Link
               href={profileHref}
-              className="block truncate text-lg font-semibold tracking-tight hover:underline"
+              className="block truncate text-lg font-medium hover:underline"
             >
               {name}
             </Link>
@@ -164,7 +164,7 @@ function PhotographerCard({
             </p>
           </div>
           {price != null && (
-            <p className="shrink-0 text-right font-semibold tabular-nums">
+            <p className="shrink-0 text-right font-medium tabular-nums">
               from ${paymentsEnabled ? listTotalPrice(price) : price}
             </p>
           )}
@@ -356,7 +356,7 @@ export function CalendarSearch({
         <div className="space-y-4">
           <div className={cn(PANEL, 'space-y-4')}>
             <div className="space-y-2">
-              <Label htmlFor="graduationDate" className="text-base font-semibold">
+              <Label htmlFor="graduationDate" className="text-base font-medium">
                 When is your graduation?
               </Label>
               <div className="flex gap-2">
@@ -471,15 +471,15 @@ export function CalendarSearch({
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold tracking-tight" aria-live="polite">
+          <h2 className="text-2xl font-medium" aria-live="polite">
             {selectedDateISO
               ? `Available on ${formatDateHeading(selectedDateISO)}`
               : 'All photographers'}
           </h2>
 
           {shown.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-12 text-center">
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center">
+              <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <CalendarX2 className="size-6" strokeWidth={1.75} aria-hidden />
               </span>
               <p className="max-w-xs text-sm text-muted-foreground">

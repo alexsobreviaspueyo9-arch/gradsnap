@@ -8,7 +8,7 @@ export function PilotNote({ className }: { className?: string }) {
   return (
     <p
       className={cn(
-        'inline-flex rounded-full bg-muted px-3.5 py-1.5 text-sm font-medium text-foreground',
+        'text-sm text-muted-foreground',
         className
       )}
     >

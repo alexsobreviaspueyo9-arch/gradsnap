@@ -21,7 +21,8 @@ describe('galleryCaption', () => {
   })
 
   it('has no invented credits in the shipped config', () => {
-    // Placeholders are stock photos: every one must say "Example photo".
-    expect(GALLERY_PHOTOS.every((p) => p.src.includes('unsplash') ? p.credit === null : true)).toBe(true)
+    // Library stand-ins only: every one must say "Example photo".
+    expect(GALLERY_PHOTOS.length).toBeGreaterThan(0)
+    expect(GALLERY_PHOTOS.every((p) => p.credit === null)).toBe(true)
   })
 })

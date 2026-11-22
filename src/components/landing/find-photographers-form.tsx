@@ -27,13 +27,14 @@ export function FindPhotographersForm() {
           name={GRAD_PARAM}
           type="date"
           aria-describedby="hero-graduation-hint"
-          className="h-12 w-full rounded-lg border border-input bg-card px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-12 w-full rounded-[10px] border border-input bg-card px-3 text-base outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
-        <button type="submit" className={cn(buttonVariants({ size: 'lg' }), 'h-12 shrink-0 px-7 text-base')}>
+        <button type="submit" className={cn(buttonVariants({ size: 'lg' }), 'h-12 shrink-0 px-5 text-base')}>
           Find photographers
         </button>
       </div>
-      <p id="hero-graduation-hint" className="text-sm text-muted-foreground">
+      <p id="hero-graduation-hint" className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span aria-hidden className="gs-seal size-2 shrink-0 rounded-full" />
         Optional. We&apos;ll highlight it on the calendar.
       </p>
     </form>

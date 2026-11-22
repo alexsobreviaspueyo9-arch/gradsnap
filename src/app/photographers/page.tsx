@@ -41,11 +41,11 @@ export default async function PublicPhotographersPage({
       />
       {process.env.PAYMENTS_ENABLED !== 'true' && <PilotNote className="mb-6" />}
       {slots.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-20 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-20 text-center">
+          <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
             <CalendarX2 className="size-7" strokeWidth={1.75} />
           </span>
-          <p className="text-xl font-semibold">No open slots yet</p>
+          <p className="text-xl font-medium">No open slots yet</p>
           <p className="max-w-sm text-sm text-muted-foreground">
             Photographers have not opened any dates. Check back soon.
           </p>
