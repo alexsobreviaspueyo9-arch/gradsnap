@@ -12,10 +12,10 @@ export default function VerifyEmailPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-muted-foreground">
           <Mail className="h-7 w-7" />
         </div>
-        <CardTitle className="text-2xl">
+        <CardTitle className="text-2xl font-medium">
           <h1>Check your email</h1>
         </CardTitle>
         <CardDescription>
@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
       </CardHeader>
       <CardContent className="space-y-4 text-center text-sm text-muted-foreground">
         <p>Didn&apos;t receive it? Check your spam folder.</p>
-        <Link href="/login" className="text-primary underline underline-offset-4">
+        <Link href="/login" className="inline-flex min-h-11 items-center font-medium text-foreground underline underline-offset-4">
           Back to login
         </Link>
       </CardContent>

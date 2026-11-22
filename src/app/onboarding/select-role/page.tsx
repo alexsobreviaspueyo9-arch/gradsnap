@@ -102,9 +102,9 @@ function SelectRole() {
   return (
     <CenteredShell>
       <div>
-        <Card className="rounded-3xl py-6">
+        <Card className="py-6">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">
+            <CardTitle className="text-2xl font-medium">
               How will you use GradSnap?
             </CardTitle>
             <CardDescription>
@@ -146,15 +146,15 @@ function SelectRole() {
                   role="radio"
                   aria-checked={role === option.value}
                   onClick={() => setRole(option.value)}
-                  className={`flex items-start gap-3 rounded-2xl border-2 p-5 text-left transition-colors ${
+                  className={`flex min-h-11 items-start gap-3 rounded-xl border p-5 text-left transition-colors ${
                     role === option.value
-                      ? 'border-primary bg-accent'
-                      : 'border-border hover:border-primary/40'
+                      ? 'border-primary bg-accent text-accent-foreground'
+                      : 'border-input hover:bg-secondary'
                   }`}
                 >
                   <IconChip icon={option.icon} />
                   <div>
-                    <p className="font-semibold">{option.title}</p>
+                    <p className="font-medium">{option.title}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       {option.description}
                     </p>

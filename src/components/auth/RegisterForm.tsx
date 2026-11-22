@@ -82,7 +82,7 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">
+        <CardTitle className="text-2xl font-medium">
           <h1>Create an account</h1>
         </CardTitle>
         <CardDescription>Join GradSnap as a photographer or client</CardDescription>
@@ -138,10 +138,11 @@ export function RegisterForm() {
                     key={r}
                     type="button"
                     onClick={() => setRole(r)}
-                    className={`flex items-center justify-center gap-2 rounded-lg border-2 p-3 text-sm font-medium transition-colors ${
+                    aria-pressed={role === r}
+                    className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] border p-3 text-sm font-medium transition-colors ${
                       role === r
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-muted text-muted-foreground hover:border-primary/50'
+                        ? 'border-primary bg-accent text-accent-foreground'
+                        : 'border-input text-foreground hover:bg-secondary'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -159,7 +160,7 @@ export function RegisterForm() {
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
+          <div className="relative flex justify-center text-sm">
             <span className="bg-card px-2 text-muted-foreground">or</span>
           </div>
         </div>
@@ -169,7 +170,7 @@ export function RegisterForm() {
           onClick={handleGoogleRegister}
           type="button"
         >
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="mr-2 h-4 w-4" viewBox="0 0 24 24">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
               fill="#4285F4"
@@ -196,7 +197,7 @@ export function RegisterForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="inline-block py-2.5 text-primary underline underline-offset-4">
+          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="inline-flex min-h-11 items-center font-medium text-foreground underline underline-offset-4">
             Sign in
           </Link>
         </p>

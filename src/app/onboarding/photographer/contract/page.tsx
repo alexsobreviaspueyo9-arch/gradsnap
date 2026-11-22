@@ -76,9 +76,9 @@ export default async function PhotographerTermsPage() {
 
   return (
     <CenteredShell className="max-w-2xl">
-      <section className="space-y-6 rounded-3xl bg-card p-6 sm:p-8">
+      <section className="space-y-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
         <header>
-          <h1 className="text-2xl font-semibold tracking-tight">Photographer terms</h1>
+          <h1 className="text-3xl font-medium">Photographer terms</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {isTermsUpdate(profile)
               ? 'We updated the terms. Review and accept them to keep using your dashboard.'
@@ -88,10 +88,10 @@ export default async function PhotographerTermsPage() {
         </header>
 
         <div>
-          <h2 className="mb-3 font-semibold">In short</h2>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <h2 className="mb-3 text-lg font-medium">In short</h2>
+          <ul className="grid gap-x-8 border-t border-border sm:grid-cols-2">
             {SUMMARY.map(({ icon: Icon, title, body }) => (
-              <li key={title} className="flex gap-3 rounded-2xl bg-muted p-4">
+              <li key={title} className="flex gap-3 border-b border-border py-4">
                 <Icon className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
                 <div>
                   <p className="font-medium">{title}</p>
@@ -103,11 +103,11 @@ export default async function PhotographerTermsPage() {
         </div>
 
         <div>
-          <h2 className="mb-3 font-semibold">Full terms</h2>
+          <h2 className="mb-3 text-lg font-medium">Full terms</h2>
           <div
             tabIndex={0}
             aria-label="Full photographer terms"
-            className="max-h-96 space-y-4 overflow-y-auto rounded-2xl border border-input p-5 text-sm text-muted-foreground"
+            className="max-h-96 space-y-4 overflow-y-auto rounded-xl border border-input p-5 text-sm text-muted-foreground"
           >
             <PhotographerTermsText />
           </div>
