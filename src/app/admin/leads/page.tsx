@@ -57,7 +57,7 @@ export default async function AdminLeadsPage({
       <ImportLeads />
 
       <nav aria-label="Filter by status" className="gs-scrollbar-none -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <ul className="inline-flex gap-1 rounded-full bg-foreground/[0.06] p-1">
+        <ul className="inline-flex gap-1 rounded-xl bg-muted p-1">
           {tabs.map((tab) => {
             const isActive = tab.value === filter
             return (
@@ -66,9 +66,9 @@ export default async function AdminLeadsPage({
                   href={tab.value ? `/admin/leads?estado=${tab.value}` : '/admin/leads'}
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'flex h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors',
+                    'flex h-11 shrink-0 items-center rounded-[10px] px-4 text-sm font-medium whitespace-nowrap transition-colors',
                     isActive
-                      ? 'bg-card text-foreground shadow-[0_1px_3px_var(--shadow-tint)]'
+                      ? 'bg-card text-foreground ring-1 ring-border'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
@@ -87,14 +87,14 @@ export default async function AdminLeadsPage({
       )}
 
       {groups.length === 0 ? (
-        <p className="rounded-3xl bg-card p-10 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
           No leads {filter ? `in "${ESTADO_LABELS[filter]}"` : 'yet'}.
         </p>
       ) : (
         <div className="space-y-8">
           {groups.map((group) => (
             <section key={group.estado} aria-labelledby={`estado-${group.estado}`}>
-              <h2 id={`estado-${group.estado}`} className="mb-3 text-lg font-semibold tracking-tight">
+              <h2 id={`estado-${group.estado}`} className="mb-3 text-lg font-medium">
                 {ESTADO_LABELS[group.estado]}{' '}
                 <span className="text-muted-foreground tabular-nums">({group.leads.length})</span>
               </h2>

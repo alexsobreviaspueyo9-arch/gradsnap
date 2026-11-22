@@ -65,12 +65,12 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
   return (
     <tr className="border-t align-top">
       <td className="px-4 py-3">
-        <Badge variant="secondary">{lead.prioridad ?? '—'}</Badge>
+        <Badge variant="secondary">{lead.prioridad ?? 'None'}</Badge>
       </td>
       <td className="px-4 py-3">
         <p className="font-medium">{lead.nombre}</p>
         <p className="text-xs text-muted-foreground">
-          {[lead.zona, lead.fuente].filter(Boolean).join(' · ')}
+          {[lead.zona, lead.fuente].filter(Boolean).join(', ')}
         </p>
         {lead.motivo_encaje && <p className="mt-1 text-xs text-muted-foreground">{lead.motivo_encaje}</p>}
       </td>
@@ -156,7 +156,7 @@ function LeadRow({ lead, estadoLabels }: { lead: Lead; estadoLabels: Props['esta
 
 export function LeadsTable({ leads, estadoLabels }: Props) {
   return (
-    <div className="overflow-x-auto rounded-3xl bg-card">
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
       <table className="w-full min-w-[720px] text-left">
         <thead className="text-xs text-muted-foreground">
           <tr>
