@@ -20,11 +20,11 @@ export default function ErrorPage({
 
   return (
     <CenteredShell>
-      <div className="rounded-3xl bg-card p-8 text-center">
-        <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-muted text-foreground">
+      <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
           <TriangleAlert className="size-7" strokeWidth={1.75} />
         </span>
-        <h1 className="mt-5 text-2xl font-bold tracking-tight">
+        <h1 className="mt-5 text-2xl font-medium">
           Something went wrong
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">

@@ -38,15 +38,15 @@ const BENEFITS: readonly { icon: LucideIcon; title: string; body: string }[] = [
 function HowYouGetPaid() {
   return (
     <section aria-labelledby="get-paid" className="mt-14 max-w-3xl space-y-4">
-      <h2 id="get-paid" className="text-2xl font-semibold tracking-tight">
+      <h2 id="get-paid" className="text-2xl font-medium">
         How you get paid
       </h2>
-      <div className="rounded-3xl bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-6">
         <PhotographerPayFacts />
       </div>
-      <h3 className="text-lg font-semibold tracking-tight">If you cancel</h3>
+      <h3 className="text-lg font-medium">If you cancel</h3>
       <PhotographerPenaltyTable />
-      <p className="rounded-3xl border border-dashed border-input p-4 text-sm">
+      <p className="rounded-xl border border-border bg-muted p-4 text-sm">
         <strong>Founding photographers:</strong> TODO, terms to be confirmed. No numbers yet.
       </p>
       <p className="text-sm text-muted-foreground">
@@ -90,7 +90,7 @@ export default async function PhotographersLandingPage({
       </header>
 
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-16">
-        <h1 className="max-w-3xl text-[2.5rem] leading-[1.05] font-semibold tracking-[-0.035em] sm:text-6xl">
+        <h1 className="max-w-3xl font-display text-5xl leading-[1.06] font-normal sm:text-6xl">
           Photograph graduations.{' '}
           <span className="text-muted-foreground">Get booked directly.</span>
         </h1>
@@ -105,14 +105,14 @@ export default async function PhotographersLandingPage({
           Join as a photographer
         </Link>
 
-        <ul className="mt-14 grid gap-4 sm:grid-cols-3">
+        <ul className="mt-16 grid gap-x-10 gap-y-8 border-t border-border pt-8 sm:grid-cols-3">
           {BENEFITS.map(({ icon: Icon, title, body }) => (
-            <li key={title} className="rounded-3xl bg-card p-6">
-              <span className="flex size-11 items-center justify-center rounded-2xl bg-muted">
-                <Icon className="size-5 text-foreground" strokeWidth={1.75} />
-              </span>
-              <h2 className="mt-5 text-lg font-semibold tracking-tight">{title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+            <li key={title}>
+              <h2 className="flex items-center gap-2.5 text-lg font-medium">
+                <Icon className="size-[18px] shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+                {title}
+              </h2>
+              <p className="mt-2 text-base leading-relaxed text-muted-foreground">{body}</p>
             </li>
           ))}
         </ul>

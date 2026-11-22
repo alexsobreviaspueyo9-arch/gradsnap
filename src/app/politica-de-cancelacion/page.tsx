@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: CANCELLATION_POLICY_PATH },
 }
 
-const H2 = 'text-xl font-semibold tracking-tight'
+const H2 = 'text-xl font-medium'
 const DAY_MS = 86_400_000
 const EXAMPLE_DAYS_BEFORE = 10
 
@@ -68,11 +68,11 @@ export default function CancellationPolicyPage() {
           <h2 className={H2}>If you are the photographer</h2>
           <PhotographerPenaltyTable />
         </section>
-        <section className="space-y-3 rounded-3xl bg-card p-6 sm:p-8">
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8">
           <h2 className={H2}>Examples</h2>
           <Examples />
         </section>
-        <section className="space-y-3 rounded-3xl bg-card p-6 sm:p-8">
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8">
           <h2 className={H2}>Exceptions</h2>
           <PolicyExceptions />
         </section>

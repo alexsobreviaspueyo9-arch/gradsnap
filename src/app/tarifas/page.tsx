@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   alternates: { canonical: FEES_PATH },
 }
 
-const SECTION = 'space-y-3 rounded-3xl bg-card p-6 sm:p-8'
+const SECTION = 'space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8'
 
 // Only exists while PAYMENTS_ENABLED=true; otherwise the site is unchanged.
 export default function FeesPage() {
@@ -23,11 +23,11 @@ export default function FeesPage() {
       <PageHeader title="Fees" description="What clients pay, what photographers receive, and when." />
       <div className="max-w-3xl space-y-4">
         <section className={SECTION}>
-          <h2 className="text-xl font-semibold tracking-tight">For clients</h2>
+          <h2 className="text-xl font-medium">For clients</h2>
           <ClientFeeFacts />
         </section>
         <section className={SECTION}>
-          <h2 className="text-xl font-semibold tracking-tight">For photographers</h2>
+          <h2 className="text-xl font-medium">For photographers</h2>
           <PhotographerPayFacts />
         </section>
         <p className="text-sm text-muted-foreground">

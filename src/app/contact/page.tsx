@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: CONTACT_PATH },
 }
 
-const SECTION = 'space-y-3 rounded-3xl bg-card p-6 sm:p-8'
+const SECTION = 'space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8'
 
 export default function ContactPage() {
   return (
@@ -18,7 +18,7 @@ export default function ContactPage() {
       <PageHeader title="Contact" description="Questions about a booking or about GradSnap? Write to us." />
       <div className="max-w-2xl space-y-4">
         <section className={SECTION}>
-          <h2 className="text-xl font-semibold tracking-tight">Email</h2>
+          <h2 className="text-xl font-medium">Email</h2>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="inline-flex min-h-11 items-center gap-2 text-base font-medium underline underline-offset-4"
@@ -32,9 +32,9 @@ export default function ContactPage() {
         </section>
 
         <section className={SECTION}>
-          <h2 className="text-xl font-semibold tracking-tight">Who is behind GradSnap</h2>
+          <h2 className="text-xl font-medium">Who is behind GradSnap</h2>
           {/* TODO(owner): replace this placeholder with the real description. */}
-          <p className="rounded-2xl border border-dashed border-input p-4 text-sm">
+          <p className="rounded-xl border border-border bg-muted p-4 text-sm">
             <strong>TODO:</strong> who runs GradSnap (names, where you are based, why you built it).
             This placeholder will be replaced before launch.
           </p>

@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-3xl bg-card p-6 sm:p-8">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+    <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <h1 className="text-2xl font-medium">{title}</h1>
       <div className="mt-3 space-y-5 text-sm leading-relaxed text-muted-foreground">{children}</div>
     </section>
   )

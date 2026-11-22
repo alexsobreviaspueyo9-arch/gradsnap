@@ -33,7 +33,7 @@ export const EXAMPLE_PRICE = 200
 
 export function ClientRefundTable() {
   return (
-    <div className="overflow-x-auto rounded-3xl bg-card">
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
       <table className={TABLE}>
         <caption className="sr-only">Refund when a client cancels</caption>
         <thead>
@@ -74,7 +74,7 @@ export function ClientRefundTable() {
 
 export function PhotographerPenaltyTable() {
   return (
-    <div className="overflow-x-auto rounded-3xl bg-card">
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
       <table className={TABLE}>
         <caption className="sr-only">Penalty when a photographer cancels</caption>
         <thead>

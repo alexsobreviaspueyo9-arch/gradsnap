@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   alternates: { canonical: ACCESSIBILITY_PATH },
 }
 
-const SECTION = 'space-y-3 rounded-3xl bg-card p-6 sm:p-8'
-const H2 = 'text-xl font-semibold tracking-tight'
+const SECTION = 'space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8'
+const H2 = 'text-xl font-medium'
 
 export default function AccessibilityPage() {
   return (
@@ -49,7 +49,7 @@ export default function AccessibilityPage() {
         <section className={SECTION}>
           <h2 className={H2}>Report a barrier</h2>
           {/* TODO(owner): replace with the real accessibility contact email. */}
-          <p className="rounded-2xl border border-dashed border-input p-4">
+          <p className="rounded-xl border border-border bg-muted p-4">
             <strong>TODO:</strong> accessibility contact email. Until it is set, write to us from the
             Contact page and mention &ldquo;accessibility&rdquo;.
           </p>
