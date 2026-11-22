@@ -66,7 +66,7 @@ function ChoiceGroup<T extends string | boolean>({
                 'rounded-2xl border-2 p-4 text-left transition-colors',
                 isSelected
                   ? 'border-primary bg-accent text-accent-foreground'
-                  : 'border-border hover:border-primary/50'
+                  : 'border-input hover:bg-secondary'
               )}
             >
               <span className="block text-sm font-medium">{option.label}</span>
@@ -89,9 +89,9 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="space-y-6 rounded-3xl bg-card p-6 sm:p-8">
+    <section className="space-y-6 rounded-2xl border border-border bg-card p-6 sm:p-8">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">
+        <h2 className="text-xl font-medium">
           {title}
         </h2>
         {description && (
@@ -341,10 +341,10 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
                 aria-pressed={specialty === option}
                 onClick={() => setSpecialty(option)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                  'inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors',
                   specialty === option
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border text-muted-foreground hover:border-primary/60 hover:text-foreground'
+                    ? 'border-primary bg-accent text-accent-foreground'
+                    : 'border-input text-foreground hover:bg-secondary'
                 )}
               >
                 {specialty === option && <Check className="size-3.5" />}
@@ -608,7 +608,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
           Bookable slots are managed from your{' '}
           <Link
             href={`${photographerBase}/availability`}
-            className="font-medium text-primary underline underline-offset-4"
+            className="font-medium text-foreground underline underline-offset-4"
           >
             availability calendar
           </Link>
@@ -618,11 +618,11 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
 
       <div className="sticky bottom-4 z-20 space-y-2">
         {error && (
-          <Alert variant="destructive" className="bg-card shadow-lg">
+          <Alert variant="destructive" className="bg-card">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <div className="flex items-center justify-between gap-4 gs-glass rounded-full py-2 pr-2 pl-6 shadow-[0_12px_40px_-8px_var(--shadow-tint)]">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card py-2 pr-2 pl-5 shadow-[0_8px_24px_var(--shadow-tint)]">
           <p
             aria-live="polite"
             className={cn(

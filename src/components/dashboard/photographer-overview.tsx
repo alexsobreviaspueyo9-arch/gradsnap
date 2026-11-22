@@ -93,8 +93,8 @@ export function PhotographerOverview({
             label: 'View bookings',
           }}
         />
-        <section className="flex flex-col justify-between gap-6 rounded-3xl bg-card p-7">
-          <h2 className="text-xl font-semibold tracking-tight">
+        <section className="flex flex-col justify-between gap-6 rounded-2xl border border-border bg-card p-7">
+          <h2 className="text-xl font-medium">
             Your profile
           </h2>
           <dl className="space-y-3 text-sm">

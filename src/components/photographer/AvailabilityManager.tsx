@@ -26,7 +26,7 @@ import {
 import { usePreviewMode } from '@/components/preview/preview-mode'
 import type { AvailabilitySlot } from '@/types/database'
 
-const PANEL = 'rounded-3xl bg-card p-5 sm:p-6'
+const PANEL = 'rounded-2xl border border-border bg-card p-5 sm:p-6'
 const REPEAT_WEEK_OPTIONS = [4, 8, 12] as const
 const DEFAULT_REPEAT_WEEKS = 8
 
@@ -215,7 +215,7 @@ export function AvailabilityManager({
 
         <div className="space-y-4 lg:sticky lg:top-36">
           <section className={PANEL}>
-            <h2 className="text-xl font-semibold tracking-tight">
+            <h2 className="text-xl font-medium">
               {selectedDateISO
                 ? formatDateHeading(selectedDateISO)
                 : 'Select a date'}

@@ -11,7 +11,7 @@ export type TodayData = {
   responseHours: number | null
 }
 
-const PANEL = 'rounded-3xl bg-card p-6 sm:p-7'
+const PANEL = 'rounded-2xl border border-border bg-card p-6 sm:p-7'
 const LINK = 'font-medium text-foreground underline underline-offset-4'
 
 // What needs the photographer now: requests about to expire, unread chats,
@@ -26,7 +26,7 @@ export function TodayPanel({ data, basePath }: { data: TodayData; basePath: stri
   return (
     <section aria-labelledby="today-heading" className={PANEL}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="today-heading" className="text-xl font-semibold tracking-tight">
+        <h2 id="today-heading" className="text-xl font-medium">
           Today
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -41,7 +41,7 @@ export function TodayPanel({ data, basePath }: { data: TodayData; basePath: stri
       ) : (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2 rounded-2xl bg-muted p-4">
-            <h3 className="font-semibold">Requests to confirm ({data.requests.length})</h3>
+            <h3 className="font-medium">Requests to confirm ({data.requests.length})</h3>
             {data.requests.length === 0 ? (
               <p className="text-sm text-muted-foreground">None.</p>
             ) : (
@@ -49,7 +49,7 @@ export function TodayPanel({ data, basePath }: { data: TodayData; basePath: stri
                 {data.requests.map((r) => (
                   <li key={r.id} className="flex flex-wrap justify-between gap-x-3">
                     <span>
-                      {r.clientName} · {r.when}
+                      {r.clientName}, {r.when}
                     </span>
                     <span className="font-medium text-warning">{r.timeLeft}</span>
                   </li>
@@ -66,14 +66,14 @@ export function TodayPanel({ data, basePath }: { data: TodayData; basePath: stri
             )}
           </div>
           <div className="space-y-2 rounded-2xl bg-muted p-4">
-            <h3 className="font-semibold">Sessions today ({data.sessionsToday.length})</h3>
+            <h3 className="font-medium">Sessions today ({data.sessionsToday.length})</h3>
             {data.sessionsToday.length === 0 ? (
               <p className="text-sm text-muted-foreground">None.</p>
             ) : (
               <ul className="space-y-1.5 text-sm">
                 {data.sessionsToday.map((s) => (
                   <li key={s.id}>
-                    {s.time} · {s.clientName}
+                    {s.time}, {s.clientName}
                   </li>
                 ))}
               </ul>
@@ -83,7 +83,7 @@ export function TodayPanel({ data, basePath }: { data: TodayData; basePath: stri
             <span className="font-semibold">Unread messages: {data.unreadCount}</span>
             {data.unreadCount > 0 && (
               <>
-                {' · '}
+                {', '}
                 <Link href={`${basePath}/messages`} className={LINK}>
                   Open messages
                 </Link>
@@ -94,7 +94,7 @@ export function TodayPanel({ data, basePath }: { data: TodayData; basePath: stri
             <span className="font-semibold">Photos to deliver: {data.pendingDeliveries}</span>
             {data.pendingDeliveries > 0 && (
               <>
-                {' · '}
+                {', '}
                 <Link href={`${basePath}/bookings`} className={LINK}>
                   Mark delivered
                 </Link>
@@ -121,7 +121,7 @@ export function OnboardingChecklist({
   if (percent === 100) return null
   return (
     <section aria-labelledby="checklist-heading" className={PANEL}>
-      <h2 id="checklist-heading" className="text-xl font-semibold tracking-tight">
+      <h2 id="checklist-heading" className="text-xl font-medium">
         Profile {percent}%{nextStep ? `: ${nextStep.charAt(0).toLowerCase()}${nextStep.slice(1)}` : ''}
       </h2>
       <div

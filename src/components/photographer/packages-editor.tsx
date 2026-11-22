@@ -186,9 +186,9 @@ export function PackagesEditor({
   }
 
   return (
-    <section aria-labelledby="packages-editor" className="space-y-4 rounded-3xl bg-card p-6">
+    <section aria-labelledby="packages-editor" className="space-y-4 rounded-2xl border border-border bg-card p-6">
       <div>
-        <h2 id="packages-editor" className="text-xl font-semibold tracking-tight">
+        <h2 id="packages-editor" className="text-xl font-medium">
           Packages
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -6,4 +6,4 @@ export function Skeleton({ className }: { className?: string }) {
   )
 }
 
-export const SKELETON_PANEL = 'rounded-3xl bg-card p-6 sm:p-8'
+export const SKELETON_PANEL = 'rounded-2xl border border-border bg-card p-6 sm:p-8'

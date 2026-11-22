@@ -63,7 +63,7 @@ function DateTile({ isoDate, muted }: { isoDate: string; muted: boolean }) {
         muted ? 'bg-muted text-muted-foreground' : 'bg-muted text-foreground'
       )}
     >
-      <span className="text-[0.6875rem] font-semibold tracking-wide uppercase">
+      <span className="text-xs font-medium">
         {date.toLocaleDateString('en-US', { month: 'short' })}
       </span>
       <span className="text-2xl leading-none font-bold tabular-nums">
@@ -198,7 +198,7 @@ export function BookingsManager({
 
   if (bookings.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border px-6 py-20 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-20 text-center">
         <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
           <CalendarClock className="size-7" strokeWidth={1.75} />
         </span>
@@ -237,14 +237,14 @@ export function BookingsManager({
           <article
             key={booking.id}
             className={cn(
-              'flex flex-col gap-5 rounded-3xl bg-card p-5 sm:flex-row sm:items-center sm:p-6',
+              'flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-6',
               inactive && 'bg-muted/50'
             )}
           >
             <div className="flex items-center gap-4 sm:w-72 sm:shrink-0">
               <DateTile isoDate={booking.slot.date} muted={inactive} />
               <div className="min-w-0">
-                <p className="truncate text-lg font-semibold tracking-tight">
+                <p className="truncate text-lg font-medium">
                   {booking.clientName}
                 </p>
                 <p className="text-sm text-muted-foreground">

@@ -15,7 +15,7 @@ export function StatTile({
   return (
     <div
       className={cn(
-        'flex flex-col justify-between gap-8 rounded-3xl bg-card p-6',
+        'flex flex-col justify-between gap-8 rounded-2xl border border-border bg-card p-6',
         className
       )}
     >
