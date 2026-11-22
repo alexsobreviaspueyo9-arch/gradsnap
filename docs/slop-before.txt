@@ -1,0 +1,11 @@
+Slop baseline (master a75bd7b + find-photographers flow), 2026-11-21
+
+grep -rEn "bg-gradient|from-(purple|violet|indigo|blue)|transition-all|animate-(pulse|bounce)|uppercase|tracking-(wide|wider|widest)|blur-(2xl|3xl)|shadow-.*(purple|violet)" src | wc -l
+=> 11
+
+Emoji/symbol characters used as icons in src (.ts/.tsx, tests excluded): 5
+src\components\client\photographer-detail-view.tsx:184: ★ {stats.ratingAvg.toFixed(1)} ({stats.reviewCount} review
+src\components\client\profile-reviews.tsx:14: {'★'.repeat(rating)}
+src\components\client\profile-reviews.tsx:15: <span className="text-muted-foreground">{'★'.repeat(5 - rating)}</span>
+src\components\client\profile-reviews.tsx:39: ★ {ratingAvg.toFixed(1)} · {reviewCount} review{reviewCount === 1 ? '' : 's'}
+src\components\client\review-form.tsx:69: ★

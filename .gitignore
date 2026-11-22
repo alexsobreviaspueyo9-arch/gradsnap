@@ -48,3 +48,6 @@ next-env.d.ts
 
 # graphify knowledge graph (local, regenerate with /graphify --update)
 graphify-out/
+
+# Local agent skills (Codex copy of unslop); never committed
+.agents/

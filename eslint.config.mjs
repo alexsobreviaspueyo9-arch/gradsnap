@@ -9,6 +9,11 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // Local, untracked folders (handoff notes, code graph, agent skills).
+    "_handoff/**",
+    "graphify-out/**",
+    ".agents/**",
+    ".claude/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
