@@ -259,7 +259,9 @@ export function CalendarSearch({
   const todayISO = todayInAppZone()
   const [gradISO, setGradISO] = useState<string | null>(gradDate)
   const [calendarDate, setCalendarDate] = useState<Date>(() => calendarAnchor(todayISO))
-  const [view, setView] = useState<CalendarView>('week')
+  // Month grid by default: every day is visible and the months can be browsed,
+  // even before any photographer has opened a date.
+  const [view, setView] = useState<CalendarView>('month')
   const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null)
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
 
@@ -352,17 +354,18 @@ export function CalendarSearch({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start">
         <div className="space-y-4">
           <div className={cn(PANEL, 'space-y-4')}>
             <div className="space-y-2">
               <Label htmlFor="graduationDate" className="text-base font-medium">
                 When is your graduation?
               </Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Input
                   id="graduationDate"
                   type="date"
+                  className="min-w-48 flex-1"
                   min={todayISO}
                   aria-describedby="graduationDate-hint"
                   value={gradISO ?? ''}
@@ -422,29 +425,6 @@ export function CalendarSearch({
             </div>
           </div>
 
-          <div className={cn(PANEL, 'space-y-3')}>
-            <div className="space-y-2">
-              <Label htmlFor="spotFilter">Pick a spot</Label>
-              <select
-                id="spotFilter"
-                value={spotFilter ?? ''}
-                onChange={(e) => setSpotFilter(e.target.value || null)}
-                className={FIELD}
-              >
-                <option value="">Any spot on campus</option>
-                {CAMPUS_SPOTS.map((spot) => (
-                  <option key={spot.id} value={spot.id}>
-                    {spot.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <CampusMap selectedSpotId={spotFilter} onSelectSpot={setSpotFilter} />
-            <p className="text-xs text-muted-foreground">
-              Shows photographers who list the spot. Pins are approximate.
-            </p>
-          </div>
-
           <div className={PANEL}>
             <AvailabilityCalendar
               events={events}
@@ -468,6 +448,30 @@ export function CalendarSearch({
               </button>
             )}
           </div>
+
+          <div className={cn(PANEL, 'space-y-3')}>
+            <div className="space-y-2">
+              <Label htmlFor="spotFilter">Pick a spot</Label>
+              <select
+                id="spotFilter"
+                value={spotFilter ?? ''}
+                onChange={(e) => setSpotFilter(e.target.value || null)}
+                className={FIELD}
+              >
+                <option value="">Any spot on campus</option>
+                {CAMPUS_SPOTS.map((spot) => (
+                  <option key={spot.id} value={spot.id}>
+                    {spot.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <CampusMap selectedSpotId={spotFilter} onSelectSpot={setSpotFilter} />
+            <p className="text-xs text-muted-foreground">
+              Shows photographers who list the spot. Pins are approximate.
+            </p>
+          </div>
+
         </div>
 
         <div className="space-y-4">
@@ -483,9 +487,11 @@ export function CalendarSearch({
                 <CalendarX2 className="size-6" strokeWidth={1.75} aria-hidden />
               </span>
               <p className="max-w-xs text-sm text-muted-foreground">
-                {selectedDateISO
-                  ? 'No photographers match your filters on this date. Try a nearby date or adjust your filters.'
-                  : 'No photographers match your filters.'}
+                {slots.length === 0
+                  ? 'Photographers have not opened any dates yet. Check back soon.'
+                  : selectedDateISO
+                    ? 'No photographers match your filters on this date. Try a nearby date or adjust your filters.'
+                    : 'No photographers match your filters.'}
               </p>
             </div>
           ) : (

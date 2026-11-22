@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { CalendarX2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { loadCardStats, loadPublicListing, loadViewerRole } from '@/lib/public-photographers'
 import { PUBLIC_PHOTOGRAPHERS_PATH } from '@/lib/guest-booking'
@@ -40,26 +39,14 @@ export default async function PublicPhotographersPage({
         description="Pick a date to see which photographers are available. You only need an account to book."
       />
       {process.env.PAYMENTS_ENABLED !== 'true' && <PilotNote className="mb-6" />}
-      {slots.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-20 text-center">
-          <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-            <CalendarX2 className="size-7" strokeWidth={1.75} />
-          </span>
-          <p className="text-xl font-medium">No open slots yet</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Photographers have not opened any dates. Check back soon.
-          </p>
-        </div>
-      ) : (
-        <CalendarSearch
-          initialSlots={slots}
-          paymentsEnabled={false}
-          viewer={role === 'photographer' ? 'photographer' : 'guest'}
-          photographersPath={PUBLIC_PHOTOGRAPHERS_PATH}
-          cardStats={cardStats}
-          gradDate={grad}
-        />
-      )}
+      <CalendarSearch
+        initialSlots={slots}
+        paymentsEnabled={false}
+        viewer={role === 'photographer' ? 'photographer' : 'guest'}
+        photographersPath={PUBLIC_PHOTOGRAPHERS_PATH}
+        cardStats={cardStats}
+        gradDate={grad}
+      />
     </PublicShell>
   )
 }

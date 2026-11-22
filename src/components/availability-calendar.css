@@ -184,3 +184,9 @@
   height: 100%;
   min-height: 140px;
 }
+
+/* "Your graduation" wraps inside narrow month cells instead of truncating. */
+.gs-calendar .rbc-event.gs-highlight-event .rbc-event-content {
+  white-space: normal;
+  line-height: 1.2;
+}
