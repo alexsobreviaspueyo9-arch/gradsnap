@@ -50,7 +50,7 @@ export function CampusMap({
           radius: 10,
           weight: 2,
           color: token('--card', '#ffffff'),
-          fillColor: token('--foreground', '#1d1d1f'),
+          fillColor: token('--foreground', '#1f1b16'),
           fillOpacity: 0.9,
         })
           .addTo(map)
@@ -70,7 +70,7 @@ export function CampusMap({
   useEffect(() => {
     for (const [id, marker] of markersRef.current) {
       marker.setStyle({
-        fillColor: id === selectedSpotId ? token('--primary', '#4d34d5') : token('--foreground', '#1d1d1f'),
+        fillColor: id === selectedSpotId ? token('--primary', '#9b3a24') : token('--foreground', '#1f1b16'),
         radius: id === selectedSpotId ? 13 : 10,
       })
     }

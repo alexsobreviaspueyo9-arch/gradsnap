@@ -6,10 +6,10 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 // Same values as the light tokens in globals.css.
-const BACKGROUND = '#f5f5f7'
-const FOREGROUND = '#1d1d1f'
-const SECONDARY = '#636366'
-const PRIMARY = '#4d34d5'
+const BACKGROUND = '#f7f4ee'
+const FOREGROUND = '#1f1b16'
+const SECONDARY = '#675e53'
+const PRIMARY = '#9b3a24'
 
 export default function OpengraphImage(): ImageResponse {
   return new ImageResponse(

@@ -15,7 +15,7 @@ export function escapeHtml(value: string): string {
 
 function wrapper(bodyHtml: string): string {
   return `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #111;">
+    <div style="font-family: 'Instrument Sans', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #1f1b16;">
       <h2 style="margin-bottom: 4px;">GradSnap</h2>
       ${bodyHtml}
     </div>
@@ -59,20 +59,20 @@ export function bookingConfirmedEmail(input: {
       <p>Hi ${escapeHtml(input.clientName)},</p>
       <p><strong>${escapeHtml(input.photographerName)}</strong> confirmed your session on
       <strong>${escapeHtml(when)}</strong>.</p>
-      <p>See you then!</p>
+      <p>See you then.</p>
       ${input.contactUrl ? contactLine(input.contactUrl) : ''}
     `),
     text: [
       `Hi ${input.clientName},`,
       `${input.photographerName} confirmed your session on ${when}.`,
-      'See you then!',
+      'See you then.',
       ...(input.contactUrl ? [`Questions? ${input.contactUrl}`] : []),
     ].join('\n\n'),
   }
 }
 
 function contactLine(contactUrl: string): string {
-  return `<p style="font-size: 13px; color: #636366;">Questions? <a href="${escapeHtml(contactUrl)}">Contact GradSnap</a>.</p>`
+  return `<p style="font-size: 13px; color: #675e53;">Questions? <a href="${escapeHtml(contactUrl)}">Contact GradSnap</a>.</p>`
 }
 
 // Preserves the photographer's own line breaks without trusting them as HTML.
@@ -203,14 +203,14 @@ export function newMessageEmail(input: {
   return {
     subject: `${sender} sent you a message on GradSnap`,
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1d1d1f;">
+      <div style="font-family: 'Instrument Sans', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1f1b16;">
         <p style="margin: 0 0 24px; font-size: 20px; font-weight: 600;">GradSnap</p>
         <p style="margin: 0 0 12px; font-size: 16px;">Hi ${escapeHtml(input.recipientName)},</p>
         <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5;">
           ${senderHtml} sent you a new message on GradSnap. Don&#39;t leave them waiting &mdash; reply from your inbox.
         </p>
-        <a href="${escapeHtml(input.link)}" style="display: inline-block; padding: 12px 24px; border-radius: 999px; background: #4d34d5; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none;">View message</a>
-        <p style="margin: 32px 0 0; font-size: 12px; line-height: 1.5; color: #636366;">
+        <a href="${escapeHtml(input.link)}" style="display: inline-block; padding: 12px 24px; border-radius: 10px; background: #9b3a24; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none;">View message</a>
+        <p style="margin: 32px 0 0; font-size: 12px; line-height: 1.5; color: #675e53;">
           This is an automated message, please don&#39;t reply to this email.<br />
           ${escapeHtml(why)}
         </p>
