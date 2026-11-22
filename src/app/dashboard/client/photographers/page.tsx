@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { CalendarX2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { isUpcomingSlot, todayISODate } from '@/lib/date'
-import { parseSlotSelection } from '@/lib/guest-booking'
+import { isUpcomingSlot, todayISODate, todayInAppZone } from '@/lib/date'
+import { parseGradParam } from '@/lib/grad-date'
 import { loadCardStats } from '@/lib/public-photographers'
 import { PageHeader } from '@/components/dashboard/page-header'
 import {
@@ -13,9 +13,9 @@ import {
 export default async function ClientPhotographersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string }>
+  searchParams: Promise<{ grad?: string }>
 }) {
-  const { date } = parseSlotSelection(await searchParams)
+  const grad = parseGradParam((await searchParams).grad, todayInAppZone())
   const supabase = await createClient()
 
   const {
@@ -83,7 +83,7 @@ export default async function ClientPhotographersPage({
           initialSlots={slotsWithPhotographer}
           paymentsEnabled={process.env.PAYMENTS_ENABLED === 'true'}
           cardStats={await loadCardStats(supabase)}
-          initialDate={date}
+          gradDate={grad}
         />
       )}
     </>

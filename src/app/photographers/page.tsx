@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import { CalendarX2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { loadCardStats, loadPublicListing, loadViewerRole } from '@/lib/public-photographers'
-import { PUBLIC_PHOTOGRAPHERS_PATH, parseSlotSelection } from '@/lib/guest-booking'
+import { PUBLIC_PHOTOGRAPHERS_PATH } from '@/lib/guest-booking'
+import { GRAD_PARAM, parseGradParam } from '@/lib/grad-date'
+import { todayInAppZone } from '@/lib/date'
 import { PublicShell } from '@/components/brand/public-shell'
 import { PilotNote } from '@/components/brand/pilot-note'
 import { PageHeader } from '@/components/dashboard/page-header'
@@ -20,14 +22,14 @@ export const metadata: Metadata = {
 export default async function PublicPhotographersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string }>
+  searchParams: Promise<{ grad?: string }>
 }) {
-  // ?date= from the landing page's "When is your graduation?" picker.
-  const { date } = parseSlotSelection(await searchParams)
+  // ?grad= from the landing page: marks the day, the calendar opens on today.
+  const grad = parseGradParam((await searchParams).grad, todayInAppZone())
   const supabase = await createClient()
   const role = await loadViewerRole(supabase)
   // Signed-in clients get the full experience (live slots, booking, chat).
-  if (role === 'client') redirect(`/dashboard/client/photographers${date ? `?date=${date}` : ''}`)
+  if (role === 'client') redirect(`/dashboard/client/photographers${grad ? `?${GRAD_PARAM}=${grad}` : ''}`)
 
   const [slots, cardStats] = await Promise.all([loadPublicListing(supabase), loadCardStats(supabase)])
 
@@ -55,7 +57,7 @@ export default async function PublicPhotographersPage({
           viewer={role === 'photographer' ? 'photographer' : 'guest'}
           photographersPath={PUBLIC_PHOTOGRAPHERS_PATH}
           cardStats={cardStats}
-          initialDate={date}
+          gradDate={grad}
         />
       )}
     </PublicShell>

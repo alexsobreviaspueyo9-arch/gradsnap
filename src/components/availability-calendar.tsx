@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
+import { Calendar, dateFnsLocalizer, type View } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,12 @@ export type CalendarEvent = {
   title: string
   start: Date
   end: Date
+  allDay?: boolean
 }
+
+export type CalendarView = 'month' | 'week'
+
+const HIGHLIGHT_EVENT_ID = 'gs-highlight'
 
 function isSameDay(a: Date, b: Date) {
   return (
@@ -30,34 +35,78 @@ function isSameDay(a: Date, b: Date) {
   )
 }
 
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+// Month grid by default. Callers can add a week view, control the shown date,
+// mark one day (e.g. "Your graduation") and block days before `minDate`.
 export function AvailabilityCalendar({
   events,
   selectedDate,
   onSelectDate,
   className,
+  views = ['month'],
+  view,
+  onView,
+  date,
+  onNavigate,
+  highlight = null,
+  minDate,
 }: {
   events: CalendarEvent[]
   selectedDate?: Date
   onSelectDate?: (date: Date) => void
   className?: string
+  views?: CalendarView[]
+  view?: CalendarView
+  onView?: (view: CalendarView) => void
+  date?: Date
+  onNavigate?: (date: Date) => void
+  highlight?: { date: Date; label: string } | null
+  minDate?: Date
 }) {
+  const allEvents = highlight
+    ? [
+        ...events,
+        {
+          id: HIGHLIGHT_EVENT_ID,
+          title: highlight.label,
+          start: highlight.date,
+          end: highlight.date,
+          allDay: true,
+        },
+      ]
+    : events
+  const isBlocked = (day: Date) => (minDate ? startOfDay(day) < startOfDay(minDate) : false)
+  const select = (day: Date) => {
+    if (!isBlocked(day)) onSelectDate?.(day)
+  }
+
   return (
-    <div className={cn('gs-calendar', className)}>
+    <div className={cn('gs-calendar', view === 'week' && 'gs-calendar--days', className)}>
       <Calendar
         localizer={localizer}
-        events={events}
-        views={['month']}
-        defaultView="month"
-        style={{ height: 560 }}
+        events={allEvents}
+        views={views}
+        defaultView={views[0]}
+        {...(view ? { view, onView: (v: View) => onView?.(v as CalendarView) } : {})}
+        {...(date ? { date, onNavigate: (d: Date) => onNavigate?.(d) } : {})}
+        style={{ height: view === 'week' ? 260 : 560 }}
         selectable
         popup
-        onSelectSlot={(slotInfo) => onSelectDate?.(slotInfo.start)}
-        onSelectEvent={(event) => onSelectDate?.(event.start)}
-        dayPropGetter={(date) => {
-          if (selectedDate && isSameDay(date, selectedDate)) {
-            return { className: 'rbc-selected-cell' }
-          }
-          return {}
+        onSelectSlot={(slotInfo) => select(slotInfo.start)}
+        onSelectEvent={(event) => select(event.start)}
+        eventPropGetter={(event) =>
+          event.id === HIGHLIGHT_EVENT_ID ? { className: 'gs-highlight-event' } : {}
+        }
+        dayPropGetter={(day) => {
+          const classes = [
+            selectedDate && isSameDay(day, selectedDate) ? 'rbc-selected-cell' : '',
+            highlight && isSameDay(day, highlight.date) ? 'gs-highlight-day' : '',
+            isBlocked(day) ? 'gs-past-day' : '',
+          ].filter(Boolean)
+          return classes.length ? { className: classes.join(' ') } : {}
         }}
       />
     </div>

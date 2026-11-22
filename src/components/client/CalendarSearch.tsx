@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   AvailabilityCalendar,
   type CalendarEvent,
+  type CalendarView,
 } from '@/components/availability-calendar'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,8 +18,9 @@ import {
   formatDateHeading,
   isoDateToLocalDate,
   localDateToISODate,
-  todayISODate,
+  todayInAppZone,
 } from '@/lib/date'
+import { calendarAnchor, parseGradParam } from '@/lib/grad-date'
 import { SlotPicker, slotTimeLabel } from '@/components/client/slot-picker'
 import { selectionQuery, type BookingViewer } from '@/lib/guest-booking'
 import { MessagePhotographerButton } from '@/components/client/message-photographer-button'
@@ -84,6 +86,7 @@ function PhotographerCard({
   daySlots,
   nextSlot,
   onDate,
+  isGradDay,
   selectedSlotId,
   onSelectSlot,
 }: {
@@ -95,6 +98,7 @@ function PhotographerCard({
   daySlots: SlotWithPhotographer[]
   nextSlot: SlotWithPhotographer | null
   onDate: string | null
+  isGradDay: boolean
   selectedSlotId: string | null
   onSelectSlot: (id: string) => void
 }) {
@@ -127,7 +131,7 @@ function PhotographerCard({
         </div>
       </Link>
       <div className="space-y-3 p-5 sm:p-6">
-        {onDate && (
+        {isGradDay && (
           <p className={cn(CHIP, 'bg-success-fill text-success')}>
             <CalendarCheck className="size-3.5" aria-hidden />
             Available on your date
@@ -232,7 +236,7 @@ export function CalendarSearch({
   viewer = 'client',
   photographersPath,
   cardStats = {},
-  initialDate = null,
+  gradDate = null,
 }: {
   initialSlots: SlotWithPhotographer[]
   paymentsEnabled: boolean
@@ -240,8 +244,8 @@ export function CalendarSearch({
   /** Where photographer names link; defaults to the client dashboard. */
   photographersPath?: string
   cardStats?: Record<string, CardStats>
-  /** From ?date= (e.g. the landing page's date picker). */
-  initialDate?: string | null
+  /** From ?grad= (landing page): only marks the day; the calendar opens on today. */
+  gradDate?: string | null
 }) {
   const supabase = createClient()
   const isPreview = usePreviewMode()
@@ -252,7 +256,11 @@ export function CalendarSearch({
   const [maxPriceFilter, setMaxPriceFilter] = useState('')
   const [specialtyFilter, setSpecialtyFilter] = useState('')
   const [spotFilter, setSpotFilter] = useState<string | null>(null)
-  const [selectedDateISO, setSelectedDateISO] = useState<string | null>(initialDate)
+  const todayISO = todayInAppZone()
+  const [gradISO, setGradISO] = useState<string | null>(gradDate)
+  const [calendarDate, setCalendarDate] = useState<Date>(() => calendarAnchor(todayISO))
+  const [view, setView] = useState<CalendarView>('week')
+  const [selectedDateISO, setSelectedDateISO] = useState<string | null>(null)
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
 
   // Live-remove a slot the moment anyone books or deletes it, so a client
@@ -328,11 +336,18 @@ export function CalendarSearch({
     title: 'Available',
     start: isoDateToLocalDate(date),
     end: isoDateToLocalDate(date),
+    allDay: true,
   }))
 
   function chooseDate(iso: string | null) {
     setSelectedDateISO(iso)
     setSelectedSlotId(null)
+  }
+
+  function jumpToGraduation() {
+    if (!gradISO) return
+    setCalendarDate(isoDateToLocalDate(gradISO))
+    chooseDate(gradISO)
   }
 
   return (
@@ -348,20 +363,24 @@ export function CalendarSearch({
                 <Input
                   id="graduationDate"
                   type="date"
-                  min={todayISODate()}
-                  value={selectedDateISO ?? ''}
-                  onChange={(e) => chooseDate(e.target.value || null)}
+                  min={todayISO}
+                  aria-describedby="graduationDate-hint"
+                  value={gradISO ?? ''}
+                  onChange={(e) => setGradISO(parseGradParam(e.target.value, todayISO))}
                 />
-                {selectedDateISO && (
+                {gradISO && (
                   <button
                     type="button"
-                    onClick={() => chooseDate(null)}
-                    className={cn(buttonVariants({ variant: 'ghost' }), 'h-11 shrink-0 px-4')}
+                    onClick={jumpToGraduation}
+                    className={cn(buttonVariants({ variant: 'secondary' }), 'h-11 shrink-0 px-4')}
                   >
-                    Clear
+                    Jump to graduation
                   </button>
                 )}
               </div>
+              <p id="graduationDate-hint" className="text-sm text-muted-foreground">
+                Optional. We&apos;ll highlight it on the calendar.
+              </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
@@ -429,9 +448,25 @@ export function CalendarSearch({
           <div className={PANEL}>
             <AvailabilityCalendar
               events={events}
+              views={['week', 'month']}
+              view={view}
+              onView={setView}
+              date={calendarDate}
+              onNavigate={setCalendarDate}
+              minDate={calendarAnchor(todayISO)}
+              highlight={gradISO ? { date: isoDateToLocalDate(gradISO), label: 'Your graduation' } : null}
               selectedDate={selectedDateISO ? isoDateToLocalDate(selectedDateISO) : undefined}
-              onSelectDate={(date) => chooseDate(date ? localDateToISODate(date) : null)}
+              onSelectDate={(date) => chooseDate(localDateToISODate(date))}
             />
+            {selectedDateISO && (
+              <button
+                type="button"
+                onClick={() => chooseDate(null)}
+                className={cn(buttonVariants({ variant: 'ghost' }), 'mt-3 h-11 px-4')}
+              >
+                Show all dates
+              </button>
+            )}
           </div>
         </div>
 
@@ -466,6 +501,7 @@ export function CalendarSearch({
                   daySlots={daySlots.filter((s) => s.photographer.id === photographer.id)}
                   nextSlot={nextSlots.get(photographer.id) ?? null}
                   onDate={selectedDateISO}
+                  isGradDay={!!gradISO && selectedDateISO === gradISO}
                   selectedSlotId={selectedSlotId}
                   onSelectSlot={setSelectedSlotId}
                 />
