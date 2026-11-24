@@ -26,11 +26,12 @@ export function FindPhotographersForm() {
           id="hero-graduation-date"
           name={GRAD_PARAM}
           type="date"
+          autoComplete="off"
           aria-describedby="hero-graduation-hint"
           className="h-12 w-full rounded-[10px] border border-input bg-card px-3 text-base outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
         <button type="submit" className={cn(buttonVariants({ size: 'lg' }), 'h-12 shrink-0 px-5 text-base')}>
-          Find photographers
+          Find Photographers
         </button>
       </div>
       <p id="hero-graduation-hint" className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -326,3 +326,73 @@
     0 0 0 4px var(--card),
     0 0 0 5px var(--seal);
 }
+
+/* ── Dynamic landing (branch redesign-dynamic) ────────────────────────────
+   A richer, motion-friendly layer on top of the warm/brick base: a second
+   warm accent for gradients, elevation shadows for depth, and a soft hero
+   mesh. Colour meaning is unchanged; these are visual depth only. */
+:root {
+  --accent-2: #c6761f;            /* warm amber, pairs with brick in gradients */
+  --grad-warm: linear-gradient(120deg, #9b3a24 0%, #c6761f 100%);
+  --elev-1: 0 1px 2px rgb(31 27 22 / 0.04), 0 2px 8px rgb(31 27 22 / 0.05);
+  --elev-2: 0 2px 4px rgb(31 27 22 / 0.05), 0 10px 24px rgb(31 27 22 / 0.08);
+  --elev-3: 0 8px 16px rgb(31 27 22 / 0.06), 0 24px 56px rgb(31 27 22 / 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent-2: #e8a765;
+    --grad-warm: linear-gradient(120deg, #e8957c 0%, #e8a765 100%);
+    --elev-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.35);
+    --elev-2: 0 2px 4px rgb(0 0 0 / 0.35), 0 10px 24px rgb(0 0 0 / 0.45);
+    --elev-3: 0 8px 16px rgb(0 0 0 / 0.4), 0 24px 56px rgb(0 0 0 / 0.55);
+  }
+}
+
+/* Soft warm mesh behind the hero. Static gradients (no animation), so it is
+   safe under reduced motion with nothing to disable. */
+.gs-hero-mesh {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(42rem 42rem at 82% -10%, color-mix(in oklab, var(--accent-2) 26%, transparent), transparent 60%),
+    radial-gradient(38rem 38rem at -8% 8%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 58%);
+}
+
+/* Elevation helpers (depth without glows). */
+.gs-elev-1 { box-shadow: var(--elev-1); }
+.gs-elev-2 { box-shadow: var(--elev-2); }
+.gs-elev-3 { box-shadow: var(--elev-3); }
+
+/* Hover lift for cards/tiles: compositor-friendly, reduced-motion safe. */
+.gs-lift {
+  transition-property: transform, box-shadow, border-color;
+  transition-duration: 220ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+@media (hover: hover) {
+  .gs-lift:hover { transform: translateY(-4px); box-shadow: var(--elev-3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-lift { transition: none; }
+  .gs-lift:hover { transform: none; }
+}
+
+/* Gradient ink for a single emphasised headline word. */
+.gs-grad-text {
+  background: var(--grad-warm);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* One-time entrance for above-the-fold content. The resting state is visible,
+   so if the animation never runs (JS off, reduced motion) the content still
+   shows — animation is enhancement only. */
+@keyframes gs-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.gs-enter { animation: gs-fade-up 0.6s both cubic-bezier(0.2, 0, 0, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .gs-enter { animation: none; }
+}
