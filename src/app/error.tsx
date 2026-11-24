@@ -20,7 +20,7 @@ export default function ErrorPage({
 
   return (
     <CenteredShell>
-      <div className="rounded-2xl border border-border bg-card p-8 text-center">
+      <div className="rounded-2xl border border-border bg-card p-8 text-center gs-elev-1">
         <span className="mx-auto flex size-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
           <TriangleAlert className="size-7" strokeWidth={1.75} />
         </span>

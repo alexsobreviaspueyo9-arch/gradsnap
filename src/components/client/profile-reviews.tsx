@@ -36,7 +36,7 @@ export function ProfileReviews({
   reviewCount: number
 }) {
   return (
-    <section aria-labelledby="reviews-heading" className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+    <section aria-labelledby="reviews-heading" className="rounded-2xl border border-border bg-card p-6 sm:p-8 gs-elev-1">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="reviews-heading" className="text-xl font-medium">
           Reviews

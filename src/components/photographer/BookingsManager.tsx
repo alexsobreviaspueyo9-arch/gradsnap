@@ -198,7 +198,7 @@ export function BookingsManager({
 
   if (bookings.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-20 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-20 text-center gs-elev-1">
         <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
           <CalendarClock className="size-7" strokeWidth={1.75} />
         </span>

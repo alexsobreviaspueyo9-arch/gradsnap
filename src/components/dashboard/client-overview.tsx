@@ -36,7 +36,7 @@ export function ClientOverview({
         }}
       />
 
-      <section className="flex flex-col justify-between gap-8 rounded-2xl border border-border bg-card p-7 lg:row-span-2">
+      <section className="flex flex-col justify-between gap-8 rounded-2xl border border-border bg-card p-7 gs-elev-1 lg:row-span-2">
         <h2 className="text-xl font-medium">
           Your account
         </h2>
@@ -62,7 +62,7 @@ export function ClientOverview({
         value={String(pastCount)}
         icon={ClipboardList}
       />
-      <section aria-labelledby="saved-heading" className="rounded-2xl border border-border bg-card p-7 lg:col-span-3">
+      <section aria-labelledby="saved-heading" className="rounded-2xl border border-border bg-card p-7 gs-elev-1 lg:col-span-3">
         <h2 id="saved-heading" className="text-xl font-medium">
           Saved photographers
         </h2>

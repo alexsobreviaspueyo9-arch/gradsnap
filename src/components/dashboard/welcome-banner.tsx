@@ -16,7 +16,7 @@ export function WelcomeBanner({
   return (
     <section
       className={cn(
-        'flex min-h-[240px] flex-col justify-between gap-8 rounded-2xl border border-border bg-card p-6 md:p-8',
+        'gs-hero-mesh flex min-h-[240px] flex-col justify-between gap-8 overflow-hidden rounded-2xl border border-border p-6 gs-elev-2 md:p-8',
         className
       )}
     >

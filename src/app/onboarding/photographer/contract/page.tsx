@@ -76,7 +76,7 @@ export default async function PhotographerTermsPage() {
 
   return (
     <CenteredShell className="max-w-2xl">
-      <section className="space-y-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <section className="space-y-8 rounded-2xl border border-border bg-card p-6 gs-elev-1 sm:p-8">
         <header>
           <h1 className="text-3xl font-medium">Photographer terms</h1>
           <p className="mt-2 text-sm text-muted-foreground">

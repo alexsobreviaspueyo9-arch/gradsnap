@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils'
 import type { PaymentSetup } from '@/lib/payment'
 import type { AvailabilitySlot } from '@/types/database'
 
-const PANEL = 'rounded-2xl border border-border bg-card p-5 sm:p-6'
+const PANEL = 'rounded-2xl border border-border bg-card p-5 gs-elev-1 sm:p-6'
 
 export type PackageOption = {
   id: string
@@ -259,7 +259,7 @@ export function BookingWidget({
 
   if (slots.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center gs-elev-1">
         <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
           <CalendarX2 className="size-6" strokeWidth={1.75} aria-hidden />
         </span>

@@ -32,7 +32,7 @@ export default function NotFound() {
           </div>
         </div>
         <figure className="min-w-0">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted gs-elev-2">
             <Image src={PHOTO.src} alt={PHOTO.alt} fill priority sizes="(min-width: 768px) 32vw, 100vw" className="object-cover" />
           </div>
           <figcaption className="mt-3 text-xs text-muted-foreground">

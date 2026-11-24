@@ -34,7 +34,7 @@ const DAY_LABELS: Record<Weekday, string> = {
   sun: 'Sun',
 }
 
-const PANEL = 'rounded-2xl border border-border bg-card p-6 sm:p-8'
+const PANEL = 'rounded-2xl border border-border bg-card p-6 gs-elev-1 sm:p-8'
 
 // What a guest may see (public_photographers RPC); payment details only reach
 // signed-in clients.

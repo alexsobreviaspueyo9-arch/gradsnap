@@ -36,11 +36,11 @@ export default async function AdminReviewsPage() {
         description="Remove a review only if it shares personal data or is abusive. Every removal is logged with your email."
       />
       {(reviews ?? []).length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">No reviews yet.</p>
+        <p className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground gs-elev-1">No reviews yet.</p>
       ) : (
         <ul className="space-y-3">
           {(reviews ?? []).map((review) => (
-            <li key={review.id} className="space-y-3 rounded-2xl border border-border bg-card p-5">
+            <li key={review.id} className="space-y-3 rounded-2xl border border-border bg-card p-5 gs-elev-1">
               <p className="text-sm">
                 <span className="font-semibold">{nameById.get(review.photographer_id) ?? 'Photographer'}</span>
                 <span className="text-muted-foreground">

@@ -22,7 +22,7 @@ export function PreviewBar({ role }: { role: UserRole }) {
     <div className="mb-8 space-y-4">
       <section
         aria-label="Preview mode"
-        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl border border-border bg-card p-4 sm:px-6"
+        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl border border-border bg-card p-4 sm:px-6 gs-elev-1"
       >
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted">

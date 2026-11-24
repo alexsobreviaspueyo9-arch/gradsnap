@@ -62,7 +62,7 @@ export type SlotWithPhotographer = AvailabilitySlot & {
 
 type Photographer = SlotWithPhotographer['photographer']
 
-const PANEL = 'rounded-2xl border border-border bg-card p-5 sm:p-6'
+const PANEL = 'rounded-2xl border border-border bg-card p-5 gs-elev-1 sm:p-6'
 const FIELD =
   'h-11 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
 const CHIP = 'inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium'
@@ -112,7 +112,7 @@ function PhotographerCard({
     : null
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card">
+    <article className="gs-lift overflow-hidden rounded-2xl border border-border bg-card gs-elev-1">
       <Link href={profileHref} className="block" tabIndex={-1} aria-hidden>
         <div className="relative aspect-[16/9] w-full bg-muted">
           {stats.coverImageUrl ? (
@@ -482,7 +482,7 @@ export function CalendarSearch({
           </h2>
 
           {shown.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center">
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-12 text-center gs-elev-1">
               <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <CalendarX2 className="size-6" strokeWidth={1.75} aria-hidden />
               </span>

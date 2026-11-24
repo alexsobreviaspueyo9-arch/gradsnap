@@ -244,7 +244,7 @@ export function PortfolioManager({
         onChange={handleFilesSelected}
       />
 
-      <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-border bg-card/50 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-border bg-card/50 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left gs-elev-1">
         <div className="flex items-center gap-4">
           <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
             <ImagePlus className="size-7" strokeWidth={1.75} />
@@ -274,7 +274,7 @@ export function PortfolioManager({
       </div>
 
       {pending.length > 0 && (
-        <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6 gs-elev-1">
           <p className="text-lg font-medium">
             {pending.length} photo{pending.length === 1 ? '' : 's'} ready to
             upload

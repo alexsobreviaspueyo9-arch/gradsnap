@@ -25,7 +25,7 @@ export function PersonalLinkCard({ link, counts }: { link: string; counts: Booki
   }
 
   return (
-    <section aria-labelledby="personal-link" className="space-y-4 rounded-2xl border border-border bg-card p-6 sm:p-7">
+    <section aria-labelledby="personal-link" className="space-y-4 rounded-2xl border border-border bg-card p-6 sm:p-7 gs-elev-1">
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted">
           <Link2 className="size-5" strokeWidth={1.75} aria-hidden />

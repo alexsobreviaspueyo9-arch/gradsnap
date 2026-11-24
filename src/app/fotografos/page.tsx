@@ -6,6 +6,7 @@ import { CalendarCheck, GraduationCap, HandCoins, type LucideIcon } from 'lucide
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Wordmark } from '@/components/brand/wordmark'
+import { Reveal } from '@/components/landing/reveal'
 import { LandingFooter } from '@/components/landing/landing-footer'
 import { TrackPhotographerLandingViewed } from '@/components/analytics/track-photographer-landing-viewed'
 import { parseSignupSrc } from '@/lib/signup-src'
@@ -41,7 +42,7 @@ function HowYouGetPaid() {
       <h2 id="get-paid" className="text-2xl font-medium">
         How you get paid
       </h2>
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-6 gs-elev-1">
         <PhotographerPayFacts />
       </div>
       <h3 className="text-lg font-medium">If you cancel</h3>
@@ -91,7 +92,7 @@ export default async function PhotographersLandingPage({
 
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-16 sm:px-6 sm:pt-16">
         <h1 className="max-w-3xl font-display text-5xl leading-[1.06] font-normal sm:text-6xl">
-          Photograph graduations.{' '}
+          Photograph <span className="gs-grad-text">graduations</span>.{' '}
           <span className="text-muted-foreground">Get booked directly.</span>
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
@@ -105,15 +106,20 @@ export default async function PhotographersLandingPage({
           Join as a photographer
         </Link>
 
-        <ul className="mt-16 grid gap-x-10 gap-y-8 border-t border-border pt-8 sm:grid-cols-3">
-          {BENEFITS.map(({ icon: Icon, title, body }) => (
-            <li key={title}>
-              <h2 className="flex items-center gap-2.5 text-lg font-medium">
-                <Icon className="size-[18px] shrink-0 text-muted-foreground" strokeWidth={1.5} aria-hidden />
-                {title}
-              </h2>
-              <p className="mt-2 text-base leading-relaxed text-muted-foreground">{body}</p>
-            </li>
+        <ul className="mt-16 grid gap-5 sm:grid-cols-3">
+          {BENEFITS.map(({ icon: Icon, title, body }, i) => (
+            <Reveal as="li" key={title} delay={i * 0.1}>
+              <div className="gs-lift h-full rounded-2xl border border-border bg-card p-6 gs-elev-1">
+                <span
+                  aria-hidden
+                  className="flex size-11 items-center justify-center rounded-xl border border-border bg-[color:var(--accent)] text-[color:var(--accent-foreground)]"
+                >
+                  <Icon className="size-5" strokeWidth={1.75} />
+                </span>
+                <h2 className="mt-5 text-lg font-medium">{title}</h2>
+                <p className="mt-2 text-base leading-relaxed text-muted-foreground text-pretty">{body}</p>
+              </div>
+            </Reveal>
           ))}
         </ul>
 

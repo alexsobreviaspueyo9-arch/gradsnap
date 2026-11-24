@@ -102,7 +102,7 @@ function SelectRole() {
   return (
     <CenteredShell>
       <div>
-        <Card className="py-6">
+        <Card className="py-6 gs-elev-2">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-medium">
               How will you use GradSnap?

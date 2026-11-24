@@ -80,7 +80,7 @@ export function RegisterForm() {
   }
 
   return (
-    <Card>
+    <Card className="gs-elev-2">
       <CardHeader>
         <CardTitle className="text-2xl font-medium">
           <h1>Create an account</h1>

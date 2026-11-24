@@ -72,7 +72,7 @@ export function MessagesView({
 }: Props) {
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-16 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-6 py-16 text-center gs-elev-1">
         <span className="flex size-12 items-center justify-center rounded-full bg-muted">
           <MessageCircle className="size-5 text-muted-foreground" />
         </span>
@@ -125,7 +125,7 @@ export function MessagesView({
           />
         </section>
       ) : (
-        <div className="hidden items-center justify-center rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground lg:flex">
+        <div className="hidden items-center justify-center rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground lg:flex gs-elev-1">
           Choose a conversation.
         </div>
       )}

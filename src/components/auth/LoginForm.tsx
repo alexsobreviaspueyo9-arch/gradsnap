@@ -84,7 +84,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
+    <Card className="gs-elev-2">
       <CardHeader>
         <CardTitle className="text-2xl font-medium">
           <h1>Welcome back</h1>

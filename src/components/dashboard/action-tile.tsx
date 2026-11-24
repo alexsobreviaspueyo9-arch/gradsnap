@@ -15,9 +15,9 @@ export function ActionTile({
   return (
     <Link
       href={href}
-      className="group flex h-full items-center gap-4 rounded-2xl border border-border bg-card p-6 transition-colors hover:bg-card/70 active:bg-muted"
+      className="gs-lift group flex h-full items-center gap-4 rounded-2xl border border-border bg-card p-6 gs-elev-1 active:bg-muted"
     >
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-muted">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-[color:var(--accent)] text-[color:var(--accent-foreground)]">
         <Icon className="size-5" strokeWidth={1.75} aria-hidden />
       </span>
       <span className="min-w-0 flex-1">

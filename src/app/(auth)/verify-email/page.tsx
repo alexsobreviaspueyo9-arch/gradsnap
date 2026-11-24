@@ -10,7 +10,7 @@ import {
 
 export default function VerifyEmailPage() {
   return (
-    <Card>
+    <Card className="gs-elev-2">
       <CardHeader className="text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-muted-foreground">
           <Mail className="h-7 w-7" />

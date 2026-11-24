@@ -22,10 +22,10 @@ export default function AuthLayout({
 
       <aside
         aria-label="About GradSnap"
-        className="hidden border-l border-border bg-[var(--paper)] lg:flex lg:flex-col lg:justify-center lg:px-16 xl:px-24"
+        className="gs-hero-mesh hidden border-l border-border lg:flex lg:flex-col lg:justify-center lg:px-16 xl:px-24"
       >
         <p className="max-w-[16ch] font-display text-5xl leading-[1.08] font-normal">
-          Pick a day in Blacksburg and book your graduation photographer
+          Pick a day in Blacksburg and book your <span className="gs-grad-text">graduation</span> photographer
         </p>
         <CalendarPreview className="mt-12 w-full max-w-[400px]" />
       </aside>

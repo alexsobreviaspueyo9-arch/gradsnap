@@ -87,7 +87,7 @@ export default async function AdminLeadsPage({
       )}
 
       {groups.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground gs-elev-1">
           No leads {filter ? `in "${ESTADO_LABELS[filter]}"` : 'yet'}.
         </p>
       ) : (

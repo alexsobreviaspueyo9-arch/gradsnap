@@ -65,7 +65,7 @@ export function BookingConfirmation({
   return (
     <section
       aria-live="polite"
-      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
+      className="rounded-2xl border border-border bg-card p-6 sm:p-8 gs-elev-1"
     >
       <div className="flex items-center gap-3">
         <span className="flex size-12 items-center justify-center rounded-2xl bg-success-fill text-success">

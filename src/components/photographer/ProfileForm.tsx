@@ -89,7 +89,7 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="space-y-6 rounded-2xl border border-border bg-card p-6 sm:p-8">
+    <section className="space-y-6 rounded-2xl border border-border bg-card p-6 sm:p-8 gs-elev-1">
       <div>
         <h2 className="text-xl font-medium">
           {title}
@@ -622,7 +622,7 @@ export function ProfileForm({ profile }: { profile: PhotographerProfile }) {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card py-2 pr-2 pl-5 shadow-[0_8px_24px_var(--shadow-tint)]">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card py-2 pr-2 pl-5 shadow-[0_8px_24px_var(--shadow-tint)] gs-elev-1">
           <p
             aria-live="polite"
             className={cn(

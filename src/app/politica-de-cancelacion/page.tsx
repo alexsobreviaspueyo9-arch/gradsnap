@@ -68,11 +68,11 @@ export default function CancellationPolicyPage() {
           <h2 className={H2}>If you are the photographer</h2>
           <PhotographerPenaltyTable />
         </section>
-        <section className="space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8 gs-elev-1">
           <h2 className={H2}>Examples</h2>
           <Examples />
         </section>
-        <section className="space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <section className="space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8 gs-elev-1">
           <h2 className={H2}>Exceptions</h2>
           <PolicyExceptions />
         </section>

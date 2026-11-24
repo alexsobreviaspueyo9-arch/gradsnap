@@ -29,7 +29,7 @@ export function ImportLeads() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8 space-y-3 rounded-2xl border border-border bg-card p-5 sm:p-6">
+    <form onSubmit={handleSubmit} className="mb-8 space-y-3 rounded-2xl border border-border bg-card p-5 sm:p-6 gs-elev-1">
       <Label htmlFor="import-handles" className="text-base font-semibold">
         Import
       </Label>

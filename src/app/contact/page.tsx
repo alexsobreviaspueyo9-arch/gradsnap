@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: CONTACT_PATH },
 }
 
-const SECTION = 'space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8'
+const SECTION = 'space-y-3 rounded-2xl border border-border bg-card p-6 sm:p-8 gs-elev-1'
 
 export default function ContactPage() {
   return (
