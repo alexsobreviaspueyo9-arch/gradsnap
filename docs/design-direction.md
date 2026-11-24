@@ -51,3 +51,23 @@ chrome). Every later screen reuses this; never propose a new direction. Tokens l
   empty states only, never as a photographer's portfolio or profile photo.
 - **A11y:** text >= 4.5:1, 44px targets, visible 2px focus ring in `--ring`, reduced
   motion, responsive from 360px.
+
+## Dynamic layer (2026-11, redesign-dynamic branch)
+
+A depth + motion layer on top of the warm/brick base. Marketing/public surfaces
+get motion (reveals, mesh); app screens stay calm (depth + hover, no heavy scroll
+motion). All of it is reduced-motion safe and never hides content behind JS.
+
+- Tokens (`globals.css`): `--accent-2` (warm amber), `--grad-warm` gradient,
+  `--elev-1/2/3` elevation shadows.
+- Utilities: `.gs-hero-mesh` (warm radial mesh ground), `.gs-elev-1/2/3`,
+  `.gs-lift` (hover translateY + shadow, reduced-motion off), `.gs-grad-text`
+  (gradient headline word), `.gs-enter` + `@keyframes gs-fade-up` (CSS entrance,
+  resting state visible), and `<Reveal>` (`components/landing/reveal.tsx`, scroll
+  reveal that renders visible on the server / no-JS / reduced motion).
+- Usage: cards carry `gs-elev-1`; interactive tiles/cards add `gs-lift`; hero-like
+  surfaces (landing hero, dashboard welcome banner, auth aside, /fotografos) use
+  `gs-hero-mesh`; the landing + recruitment page use `Reveal` and `.gs-enter`.
+- Built to the Vercel Web Interface Guidelines as the quality bar (focus states,
+  labels, `prefers-reduced-motion`, `tabular-nums`, `text-balance`, image dims,
+  Title Case buttons, transform/opacity-only animation).
